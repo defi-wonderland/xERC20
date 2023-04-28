@@ -25,5 +25,43 @@ contract XERC20 is ERC20, Ownable, IXERC20 {
 
   function setMinter(address _minter) external onlyOwner {
     minters[_minter] = true;
+
+    emit AddedMinter(_minter);
+  }
+
+  /**
+   * @notice Removes a minter from the allowlist
+   * @dev Can only be called by the owner
+   * @param _minter The address of the minter to give permissions to
+   */
+
+  function removeMinter(address _minter) external onlyOwner {
+    minters[_minter] = false;
+
+    emit RemovedMinter(_minter);
+  }
+
+  /**
+   * @notice Mints tokens for a user
+   * @dev Can only be called by a minter
+   * @param _user The address of the user who needs tokens minted
+   * @param _amount The amount of tokens being minted
+   */
+
+  function mint(address _user, uint256 _amount) external {
+    if (!minters[msg.sender]) revert OnlyMinters();
+    _mint(_user, _amount);
+  }
+
+  /**
+   * @notice Burns tokens for a user
+   * @dev Can only be called by a minter
+   * @param _user The address of the user who needs tokens burned
+   * @param _amount The amount of tokens being burned
+   */
+
+  function burn(address _user, uint256 _amount) external {
+    if (!minters[msg.sender]) revert OnlyMinters();
+    _burn(_user, _amount);
   }
 }
