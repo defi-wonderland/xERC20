@@ -1,0 +1,28 @@
+name: Sync Repository
+
+on:
+  push:
+    branches:
+      - "main"
+      - "dev"
+
+jobs:
+  sync:
+    if: github.repository == 'defi-wonderland/xTokens-private'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out github repository
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Install SSH Client
+        uses: webfactory/ssh-agent@v0.7.0
+        with:
+          ssh-private-key: ${{ secrets.SYNC_SSH_PRIVATE_KEY }}
+
+      - name: Add Remote
+        run: git remote add public git@github.com:defi-wonderland/xTokens.git
+
+      - name: Sync branch
+        run: git push public ${{ github.ref_name }}
