@@ -3,38 +3,16 @@ pragma solidity >=0.8.4 <0.9.0;
 
 interface IXERC20 {
   /**
-   * @notice Emitted when a new minter is added
+   * @notice Reverts when a user with too low of a limit tries to call mint/burn
    */
 
-  event AddedMinter(address _minter);
+  error IXERC20_NotHighEnoughLimits();
 
   /**
-   * @notice Emitted when a minter is removed
+   * @notice Reverts when a user tries to mint who isn't approved
    */
 
-  event RemovedMinter(address _minter);
-
-  /**
-   * @notice Reverts when a non minter tries to call a minter only function
-   */
-
-  error OnlyMinters();
-
-  /**
-   * @notice Adds a minter to the allowlist
-   *
-   * @param _minter The address of the minter to give permissions to
-   */
-
-  function setMinter(address _minter) external;
-
-  /**
-   * @notice Removes a minter from the allowlist
-   *
-   * @param _minter The address of the minter to give permissions to
-   */
-
-  function removeMinter(address _minter) external;
+  error IXERC20_NotApprovedMinter();
 
   /**
    * @notice Mints tokens for a user

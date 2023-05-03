@@ -44,20 +44,40 @@ interface IXERC20Parameters {
 
   error IXERC20Parameters_NotOwner();
 
+  /**
+   * @notice Reverts when a caller is not the token address of the XERC20
+   */
+
+  error IXERC20Parameters_NotXERC20();
+
   struct Parameters {
     uint256 id;
     address token;
-    mapping(address => uint256) limits;
+    uint256 timestamp;
+    uint256 ratePerSecond;
+    mapping(address => uint256) maxLimit;
+    mapping(address => uint256) currentLimit;
     mapping(uint256 => bool) chainId;
+    mapping(address => bool) isMinter;
   }
 
   /**
    * @notice Creates a parameter config and deploys the XERC20
-   *
-   * @param _chainId array of starting chainIds the token should support
+   * @dev _limits and _minters are parallel arrays and should be the same length
+   * @param _chainId The array of chainIds to be added to the parameter
+   * @param _limits The limits to be added to the minters
+   * @param _minters The minters who will recieve the limits
+   * @param _tokenName The name of the token you are deploying
+   * @param _tokenSymbol The symbol of the token you are deploying
    */
 
-  function createParams(uint256[] memory _chainId, uint256[] memory _limits, address[] memory _minters) external;
+  function createParams(
+    uint256[] memory _chainId,
+    uint256[] memory _limits,
+    address[] memory _minters,
+    string memory _tokenName,
+    string memory _tokenSymbol
+  ) external;
 
   /**
    * @notice Updates the limit of any minter
@@ -68,6 +88,16 @@ interface IXERC20Parameters {
    */
 
   function changeLimit(uint256 _id, uint256 _limit, address _minter) external;
+
+  /**
+   * @notice Uses the limit of any minter
+   * @dev Can only be called by the XERC20 token for the underlying parameters
+   * @param _id Parameter NFT id
+   * @param _change The change in the limit
+   * @param _minter The address of the minter who is being changed
+   */
+
+  function useLimits(uint256 _id, uint256 _change, address _minter) external;
 
   /**
    * @notice Updates the limit of any minter
@@ -89,11 +119,31 @@ interface IXERC20Parameters {
   function getChainIdStatus(uint256 _id, uint256 _chainId) external view returns (bool _result);
 
   /**
-   * @notice Returns the limit of a minter
+   * @notice Returns the max limit of a minter
    *
    * @param _id Parameter NFT id
    * @param _minter The minter we are viewing the limits of
    *  @return _limit The limit the minter has
    */
-  function getLimits(uint256 _id, address _minter) external view returns (uint256 _limit);
+  function getMaxLimit(uint256 _id, address _minter) external view returns (uint256 _limit);
+
+  /**
+   * @notice Returns the current limit of a minter
+   *
+   * @param _id Parameter NFT id
+   * @param _minter The minter we are viewing the limits of
+   * @return _limit The limit the minter has
+   */
+
+  function getCurrentLimit(uint256 _id, address _minter) external view returns (uint256 _limit);
+
+  /**
+   * @notice Returns the status of if a minter is approved to mint
+   *
+   * @param _id Parameter NFT id
+   * @param _minter The minter we are checking the status of
+   * @return _result The result of the check
+   */
+
+  function isMinterApproved(uint256 _id, address _minter) external view returns (bool _result);
 }

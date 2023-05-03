@@ -5,44 +5,30 @@ import {IXERC20} from 'interfaces/IXERC20.sol';
 import {ERC20} from '@openzeppelin/contracts/token/ERC20/ERC20.sol';
 import {ERC20Permit} from '@openzeppelin/contracts/token/ERC20/extensions/draft-ERC20Permit.sol';
 import {Ownable} from '@openzeppelin/contracts/access/Ownable.sol';
+import {IXERC20Parameters} from 'interfaces/IXERC20Parameters.sol';
 
 contract XERC20 is ERC20, Ownable, IXERC20, ERC20Permit {
-  mapping(address => bool) public minters;
+  IXERC20Parameters public immutable PARAMETERS;
+  uint256 public id;
+  address public factory;
 
   /**
    * @notice Constructs the initial config of the XERC20
    *
    * @param _name The name of the token
    * @param _symbol The symbol of the token
+   * @param _parameters The address of the parameter contract for this XERC20
+   * @param _id The id of the NFT that manages the parameters
    */
 
   constructor(
     string memory _name,
-    string memory _symbol
-  ) ERC20(string.concat('x', _name), string.concat('x', _symbol)) ERC20Permit(string.concat('x', _name)) {}
-
-  /**
-   * @notice Adds a minter to the allowlist
-   * @dev Can only be called by the owner
-   * @param _minter The address of the minter to give permissions to
-   */
-
-  function setMinter(address _minter) external onlyOwner {
-    minters[_minter] = true;
-
-    emit AddedMinter(_minter);
-  }
-
-  /**
-   * @notice Removes a minter from the allowlist
-   * @dev Can only be called by the owner
-   * @param _minter The address of the minter to give permissions to
-   */
-
-  function removeMinter(address _minter) external onlyOwner {
-    minters[_minter] = false;
-
-    emit RemovedMinter(_minter);
+    string memory _symbol,
+    address _parameters,
+    uint256 _id
+  ) ERC20(string.concat('x', _name), string.concat('x', _symbol)) ERC20Permit(string.concat('x', _name)) {
+    PARAMETERS = IXERC20Parameters(_parameters);
+    id = _id;
   }
 
   /**
@@ -53,7 +39,7 @@ contract XERC20 is ERC20, Ownable, IXERC20, ERC20Permit {
    */
 
   function mint(address _user, uint256 _amount) external {
-    if (!minters[msg.sender]) revert OnlyMinters();
+    if (!PARAMETERS.isMinterApproved(id, _user)) revert IXERC20_NotApprovedMinter();
     _mint(_user, _amount);
   }
 
@@ -65,7 +51,9 @@ contract XERC20 is ERC20, Ownable, IXERC20, ERC20Permit {
    */
 
   function burn(address _user, uint256 _amount) external {
-    if (!minters[msg.sender]) revert OnlyMinters();
+    uint256 _currentLimit = PARAMETERS.getMaxLimit(id, _user);
+    if (_currentLimit < _amount) revert IXERC20_NotHighEnoughLimits();
+    PARAMETERS.useLimits(id, _amount, _user);
     _burn(_user, _amount);
   }
 }
