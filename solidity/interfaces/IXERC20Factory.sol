@@ -9,18 +9,17 @@ interface IXERC20Factory {
   error IXERC20Factory_AlreadyDeployed();
 
   /**
-   * @notice Reverts when the caller is not able to deploy
-   */
-
-  error IXERC20Factory_CantDeploy();
-
-  /**
    * @notice Deploys an XERC20 contract using CREATE2
    *
    * @param _name The name of the token
    * @param _symbol The symbol of the token
-   * @param _id The id of the NFT that manages the parameters
    */
 
-  function deploy(string memory _name, string memory _symbol, uint256 _id) external returns (address _xerc20);
+  function deploy(
+    string memory _name,
+    string memory _symbol,
+    uint256[] memory _limits,
+    address[] memory _minters,
+    uint256[] memory _chainId
+  ) external returns (address _xerc20);
 }
