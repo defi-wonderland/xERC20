@@ -16,6 +16,7 @@ contract XERC20Factory is IXERC20Factory {
    * @param _symbol The symbol of the token
    */
 
+  // TODO: Add way to deploy Lockbox if we are deploying an xerc20 onto the homechain
   function deploy(
     string memory _name,
     string memory _symbol,

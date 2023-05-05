@@ -243,8 +243,10 @@ contract UnitCreateParams is Base {
     _xerc20.changeLimit(_limit, _minter);
     vm.stopPrank();
 
+    vm.startPrank(_minter);
     _xerc20.mint(_minter, _limit);
     _xerc20.burn(_minter, _limit);
+    vm.stopPrank();
 
     assertEq(_xerc20.getMaxLimit(_minter), _limit);
     assertEq(_xerc20.getCurrentLimit(_minter), 0);
@@ -286,8 +288,10 @@ contract UnitCreateParams is Base {
     _xerc20.changeLimit(_limit, _minter);
     vm.stopPrank();
 
+    vm.startPrank(_minter);
     _xerc20.mint(_minter, _limit);
     _xerc20.burn(_minter, _limit);
+    vm.stopPrank();
 
     vm.warp(_currentTimestamp + 12 hours);
 
@@ -305,8 +309,10 @@ contract UnitCreateParams is Base {
     _xerc20.changeLimit(_limit, _minter);
     vm.stopPrank();
 
+    vm.startPrank(_minter);
     _xerc20.mint(_minter, _limit);
     _xerc20.burn(_minter, _usedLimit);
+    vm.stopPrank();
 
     vm.warp(_currentTimestamp + 20 hours);
 
@@ -325,15 +331,18 @@ contract UnitCreateParams is Base {
     uint256 _currentTimestamp = 1_683_145_698;
     vm.warp(_currentTimestamp);
 
-    vm.startPrank(_owner);
+    vm.prank(_owner);
     // Setting the limit at its original limit
     _xerc20.changeLimit(_limit, _minter);
 
+    vm.startPrank(_minter);
     _xerc20.mint(_minter, _limit);
     _xerc20.burn(_minter, _usedLimit);
+    vm.stopPrank();
+
+    vm.prank(_owner);
     // Adding 100k to the limit
     _xerc20.changeLimit(_limit + 100_000, _minter);
-    vm.stopPrank();
 
     assertEq(_xerc20.getCurrentLimit(_minter), (_limit - _usedLimit) + 100_000);
   }
@@ -349,15 +358,18 @@ contract UnitCreateParams is Base {
     _limit = bound(_limit, 1e15, 1e40);
     _usedLimit = bound(_usedLimit, 100_000, 1e9);
 
-    vm.startPrank(_owner);
+    vm.prank(_owner);
     // Setting the limit at its original limit
     _xerc20.changeLimit(_limit, _minter);
 
+    vm.startPrank(_minter);
     _xerc20.mint(_minter, _limit);
     _xerc20.burn(_minter, _usedLimit);
+    vm.stopPrank();
+
+    vm.prank(_owner);
     // Removing 100k to the limit
     _xerc20.changeLimit(_limit - 100_000, _minter);
-    vm.stopPrank();
 
     assertEq(_xerc20.getCurrentLimit(_minter), (_limit - _usedLimit) - 100_000);
   }

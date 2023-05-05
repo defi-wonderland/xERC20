@@ -31,7 +31,7 @@ contract XERC20 is ERC20, Ownable, IXERC20, ERC20Permit {
    */
 
   function mint(address _user, uint256 _amount) external {
-    if (!params.isMinter[_user]) revert IXERC20_NotApprovedMinter();
+    if (!params.isMinter[msg.sender]) revert IXERC20_NotApprovedMinter();
     _mint(_user, _amount);
   }
 
@@ -43,9 +43,9 @@ contract XERC20 is ERC20, Ownable, IXERC20, ERC20Permit {
    */
 
   function burn(address _user, uint256 _amount) external {
-    uint256 _currentLimit = getCurrentLimit(_user);
+    uint256 _currentLimit = getCurrentLimit(msg.sender);
     if (_currentLimit < _amount) revert IXERC20_NotHighEnoughLimits();
-    _useLimits(_amount, _user);
+    _useLimits(_amount, msg.sender);
     _burn(_user, _amount);
   }
 
