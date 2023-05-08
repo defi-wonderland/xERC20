@@ -3,16 +3,31 @@ pragma solidity >=0.8.4 <0.9.0;
 
 interface IXERC20Factory {
   /**
-   * @notice Reverts when a contract is tring to deploy to an address that is already in use
+   * @notice Reverts when a non-owner attempts to call
    */
 
-  error IXERC20Factory_AlreadyDeployed();
+  error IXERC20Factory_NotOwner();
+
+  /**
+   * @notice Reverts when a token is address zero
+   */
+
+  error IXERC20Factory_TokenZeroAddress();
+
+  /**
+   * @notice Reverts when a lockbox is already deployed
+   */
+
+  error IXERC20Factory_LockboxAlreadyDeployed();
 
   /**
    * @notice Deploys an XERC20 contract using CREATE2
-   *
+   * @dev _limits and _minters must be the same length
    * @param _name The name of the token
    * @param _symbol The symbol of the token
+   * @param _limits The array of limits that you are adding (optional, can be an empty array)
+   * @param _minters The array of minters that you are adding (optional, can be an empty array)
+   * @param _baseToken The address of the base ERC20 token if you are deploying a lockbox (optional, put address(0) if you dont want to deploy one)
    */
 
   function deploy(
@@ -20,6 +35,15 @@ interface IXERC20Factory {
     string memory _symbol,
     uint256[] memory _limits,
     address[] memory _minters,
-    uint256[] memory _chainId
-  ) external returns (address _xerc20);
+    address _baseToken
+  ) external returns (address _xerc20, address _lockbox);
+
+  /**
+   * @notice Deploys an XERC20Lockbox contract using CREATE3
+   *
+   * @param _xerc20 The address of the xerc20 that you want to deploy a lockbox for
+   * @param _baseToken The address of the base token that you want to lock
+   */
+
+  function deployLockbox(address _xerc20, address _baseToken) external returns (address _lockbox);
 }

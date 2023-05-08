@@ -20,8 +20,11 @@ contract XERC20 is ERC20, Ownable, IXERC20, ERC20Permit {
 
   constructor(
     string memory _name,
-    string memory _symbol
-  ) ERC20(string.concat('x', _name), string.concat('x', _symbol)) ERC20Permit(string.concat('x', _name)) {}
+    string memory _symbol,
+    address _owner
+  ) ERC20(string.concat('x', _name), string.concat('x', _symbol)) ERC20Permit(string.concat('x', _name)) {
+    _transferOwnership(_owner);
+  }
 
   /**
    * @notice Mints tokens for a user
@@ -79,26 +82,6 @@ contract XERC20 is ERC20, Ownable, IXERC20, ERC20Permit {
   }
 
   /**
-   * @notice Creates a parameter config and deploys the XERC20
-   * @dev Can only be called by owner
-   * @param _chainId An array of chainIds you are whitelisting for this token
-   */
-
-  function createChainIds(uint256[] memory _chainId) external onlyOwner {
-    uint256 _chainIdLength = _chainId.length;
-
-    for (uint256 _i; _i < _chainIdLength;) {
-      params.chainId[_chainId[_i]] = true;
-
-      unchecked {
-        ++_i;
-      }
-    }
-
-    emit ChainIdsCreated(_chainId);
-  }
-
-  /**
    * @notice Updates the limit of any minter
    * @dev Can only be called by the governance or owner
    * @param _limit The updated limit we are setting to the minter
@@ -132,19 +115,6 @@ contract XERC20 is ERC20, Ownable, IXERC20, ERC20Permit {
   }
 
   /**
-   * @notice Updates the limit of any minter
-   * @dev Can only be called by the governance or owner of the NFT
-   *  Parameter NFT id
-   * @param _newChainId The new chainId we are whitelisting
-   */
-
-  function addChainId(uint256 _newChainId) external onlyOwner {
-    params.chainId[_newChainId] = true;
-
-    emit ChainIdAdded(_newChainId);
-  }
-
-  /**
    * @notice Returns the max limit of a minter
    *
    * @param _minter The minter we are viewing the limits of
@@ -174,17 +144,6 @@ contract XERC20 is ERC20, Ownable, IXERC20, ERC20Permit {
       uint256 _calculatedLimit = _limit + (_timePassed * params.ratePerSecond);
       _limit = _calculatedLimit > _maxLimit ? _maxLimit : _calculatedLimit;
     }
-  }
-
-  /**
-   * @notice Returns the status of a chainId
-   *
-   * @param _chainId The chainId we are checking the status of
-   * @return _result The result of if a chainId is supported
-   */
-
-  function getChainIdStatus(uint256 _chainId) public view returns (bool _result) {
-    _result = params.chainId[_chainId];
   }
 
   /**

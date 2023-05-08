@@ -22,7 +22,7 @@ abstract contract Base is Test {
 
   function setUp() public virtual {
     vm.startPrank(_owner);
-    _xerc20 = new XERC20('Test', 'TST');
+    _xerc20 = new XERC20('Test', 'TST', _owner);
     vm.stopPrank();
   }
 }
@@ -99,26 +99,6 @@ contract UnitMintBurn is Base {
 }
 
 contract UnitCreateParams is Base {
-  function testCreateParam(uint256 _newChainId, uint256 _limit, address _minter) public {
-    vm.assume(_limit > 0);
-    uint256[] memory _chainId = new uint256[](1);
-    uint256[] memory _limits = new uint256[](1);
-    address[] memory _minters = new address[](1);
-
-    _chainId[0] = _newChainId;
-    _limits[0] = _limit;
-    _minters[0] = _minter;
-
-    vm.startPrank(_owner);
-    _xerc20.createLimits(_limits, _minters);
-    _xerc20.createChainIds(_chainId);
-    vm.stopPrank();
-
-    assertEq(_xerc20.getMaxLimit(_minter), _limit);
-    assertEq(_xerc20.isMinterApproved(_minter), true);
-    assertEq(_xerc20.getChainIdStatus(_newChainId), true);
-  }
-
   function testChangeLimit(uint256 _amount, address _randomAddr) public {
     vm.startPrank(_owner);
     _xerc20.changeLimit(_amount, _randomAddr);
@@ -126,34 +106,7 @@ contract UnitCreateParams is Base {
     assertEq(_xerc20.getMaxLimit(_randomAddr), _amount);
   }
 
-  function testAddChainId(uint256 _newChainId) public {
-    vm.startPrank(_owner);
-    _xerc20.addChainId(_newChainId);
-    vm.stopPrank();
-    assertEq(_xerc20.getChainIdStatus(_newChainId), true);
-  }
-
-  function testBadChainIdIsFalse(uint256 _badChainId) public {
-    assertEq(_xerc20.getChainIdStatus(_badChainId), false);
-  }
-
-  function testCreationWithChainIds(uint256 _id1, uint256 _id2, uint256 _id3) public {
-    uint256[] memory _chainId = new uint256[](3);
-    _chainId[0] = _id1;
-    _chainId[1] = _id2;
-    _chainId[2] = _id3;
-
-    vm.prank(_owner);
-    _xerc20.createChainIds(_chainId);
-
-    assertEq(_xerc20.getChainIdStatus(_id1), true);
-    assertEq(_xerc20.getChainIdStatus(_id2), true);
-    assertEq(_xerc20.getChainIdStatus(_id3), true);
-  }
-
   function testRevertsWithWrongCaller() public {
-    vm.expectRevert('Ownable: caller is not the owner');
-    _xerc20.addChainId(100);
     vm.expectRevert('Ownable: caller is not the owner');
     _xerc20.changeLimit(1e18, _minter);
   }
@@ -198,22 +151,6 @@ contract UnitCreateParams is Base {
     emit LimitsCreated(_limits, _minters);
     vm.prank(_owner);
     _xerc20.createLimits(_limits, _minters);
-  }
-
-  function testCreateChainIdsEmitsEvent() public {
-    uint256[] memory _chainId = new uint256[](0);
-
-    vm.expectEmit(true, true, true, true);
-    emit ChainIdsCreated(_chainId);
-    vm.prank(_owner);
-    _xerc20.createChainIds(_chainId);
-  }
-
-  function testAddChainIdEmitsEvent(uint256 _newChainId) public {
-    vm.startPrank(_owner);
-    vm.expectEmit(true, true, true, true);
-    emit ChainIdAdded(_newChainId);
-    _xerc20.addChainId(_newChainId);
   }
 
   function testChangeLimitEmitsEvent(uint256 _limit, address _minter) public {

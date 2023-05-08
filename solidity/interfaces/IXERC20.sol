@@ -10,13 +10,6 @@ interface IXERC20 {
    */
 
   event LimitsCreated(uint256[] _limits, address[] _minters);
-  /**
-   * @notice Emits when multiple chain id's are whitelisted
-   *
-   * @param _chainId The array of chainIds to be added to the parameter
-   */
-
-  event ChainIdsCreated(uint256[] _chainId);
 
   /**
    * @notice Emits when a new limit is added
@@ -27,14 +20,6 @@ interface IXERC20 {
    */
 
   event LimitsChanged(uint256 _oldLimit, uint256 _newLimit, address _minter);
-
-  /**
-   * @notice Emits when a new chainId is added
-   *
-   * @param _newChainId The new chainId we are whitelisting
-   */
-
-  event ChainIdAdded(uint256 _newChainId);
 
   /**
    * @notice Reverts when a user with too low of a limit tries to call mint/burn
@@ -71,7 +56,6 @@ interface IXERC20 {
     uint256 ratePerSecond;
     mapping(address => uint256) maxLimit;
     mapping(address => uint256) currentLimit;
-    mapping(uint256 => bool) chainId;
     mapping(address => bool) isMinter;
   }
 
@@ -85,14 +69,6 @@ interface IXERC20 {
   function createLimits(uint256[] memory _limits, address[] memory _minters) external;
 
   /**
-   * @notice Creates a parameter config and deploys the XERC20
-   * @dev Can only be called by owner
-   * @param _chainId An array of chainIds you are whitelisting for this token
-   */
-
-  function createChainIds(uint256[] memory _chainId) external;
-
-  /**
    * @notice Updates the limit of any minter
    * @dev Can only be called by the governance or owner of the NFT
    * @param _limit The updated limit we are setting to the minter
@@ -100,23 +76,6 @@ interface IXERC20 {
    */
 
   function changeLimit(uint256 _limit, address _minter) external;
-
-  /**
-   * @notice Updates the limit of any minter
-   * @dev Can only be called by the governance or owner of the NFT
-   * @param _newChainId The new chainId we are whitelisting
-   */
-
-  function addChainId(uint256 _newChainId) external;
-
-  /**
-   * @notice Returns the status of a chainId
-   *
-   * @param _chainId The chainId we are checking the status of
-   * @return _result The result of if a chainId is supported
-   */
-
-  function getChainIdStatus(uint256 _chainId) external view returns (bool _result);
 
   /**
    * @notice Returns the max limit of a minter
