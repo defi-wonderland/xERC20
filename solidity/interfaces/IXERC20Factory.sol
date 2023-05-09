@@ -25,16 +25,20 @@ interface IXERC20Factory {
    * @dev _limits and _minters must be the same length
    * @param _name The name of the token
    * @param _symbol The symbol of the token
-   * @param _limits The array of limits that you are adding (optional, can be an empty array)
+   * @param _minterLimits The array of limits that you are adding (optional, can be an empty array)
    * @param _minters The array of minters that you are adding (optional, can be an empty array)
+   * @param _burnerLimits The array of limits that you are adding (optional, can be an empty array)
+   * @param _burners The array of burners that you are adding (optional, can be an empty array)
    * @param _baseToken The address of the base ERC20 token if you are deploying a lockbox (optional, put address(0) if you dont want to deploy one)
    */
 
   function deploy(
     string memory _name,
     string memory _symbol,
-    uint256[] memory _limits,
+    uint256[] memory _minterLimits,
     address[] memory _minters,
+    uint256[] memory _burnerLimits,
+    address[] memory _burners,
     address _baseToken
   ) external returns (address _xerc20, address _lockbox);
 

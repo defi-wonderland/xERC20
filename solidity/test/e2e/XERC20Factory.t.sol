@@ -7,7 +7,7 @@ contract E2EDeployment is CommonE2EBase {
     uint256[] memory _limits = new uint256[](0);
     address[] memory _minters = new address[](0);
 
-    (address _xerc20,) = _xerc20Factory.deploy('Test', 'TST', _limits, _minters, address(0));
+    (address _xerc20,) = _xerc20Factory.deploy('Test', 'TST', _limits, _minters, _limits, _minters, address(0));
     assertEq(XERC20(_xerc20).name(), 'xTest');
   }
 }

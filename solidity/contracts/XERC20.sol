@@ -9,7 +9,8 @@ import {Ownable} from '@openzeppelin/contracts/access/Ownable.sol';
 contract XERC20 is ERC20, Ownable, IXERC20, ERC20Permit {
   uint256 private constant _DURATION = 1 days;
 
-  Parameters public params;
+  Parameters public minterParams;
+  Parameters public burnerParams;
 
   /**
    * @notice Constructs the initial config of the XERC20
@@ -34,8 +35,10 @@ contract XERC20 is ERC20, Ownable, IXERC20, ERC20Permit {
    */
 
   function mint(address _user, uint256 _amount) external {
-    if (!params.isMinter[msg.sender]) revert IXERC20_NotApprovedMinter();
+    uint256 _currentLimit = getMinterCurrentLimit(msg.sender);
+    if (_currentLimit < _amount) revert IXERC20_NotHighEnoughLimits();
     _mint(_user, _amount);
+    _useMinterLimits(_amount, msg.sender);
   }
 
   /**
@@ -46,31 +49,30 @@ contract XERC20 is ERC20, Ownable, IXERC20, ERC20Permit {
    */
 
   function burn(address _user, uint256 _amount) external {
-    uint256 _currentLimit = getCurrentLimit(msg.sender);
+    uint256 _currentLimit = getBurnerCurrentLimit(msg.sender);
     if (_currentLimit < _amount) revert IXERC20_NotHighEnoughLimits();
-    _useLimits(_amount, msg.sender);
     _burn(_user, _amount);
+    _useBurnerLimits(_amount, msg.sender);
   }
 
   /**
-   * @notice Creates a parameter config and deploys the XERC20
+   * @notice Creates limits for minters
    * @dev _limits and _minters are parallel arrays and should be the same length
    * @param _limits The limits to be added to the minters
    * @param _minters The minters who will recieve the limits
    */
 
-  function createLimits(uint256[] memory _limits, address[] memory _minters) external onlyOwner {
+  function createMinterLimits(uint256[] memory _limits, address[] memory _minters) external onlyOwner {
     uint256 _mintersLength = _minters.length;
     if (_limits.length != _mintersLength) revert IXERC20_IncompatibleLengths();
 
     for (uint256 _i; _i < _mintersLength;) {
-      if (params.maxLimit[_minters[_i]] != 0 || _limits[_i] == 0) {
-        changeLimit(_limits[_i], _minters[_i]);
+      if (minterParams.maxLimit[_minters[_i]] != 0 || _limits[_i] == 0) {
+        changeMinterLimit(_limits[_i], _minters[_i]);
       } else {
-        params.maxLimit[_minters[_i]] = _limits[_i];
-        params.currentLimit[_minters[_i]] = _limits[_i];
-        params.ratePerSecond = params.maxLimit[_minters[_i]] / _DURATION;
-        params.isMinter[_minters[_i]] = true;
+        minterParams.maxLimit[_minters[_i]] = _limits[_i];
+        minterParams.currentLimit[_minters[_i]] = _limits[_i];
+        minterParams.ratePerSecond = minterParams.maxLimit[_minters[_i]] / _DURATION;
       }
 
       unchecked {
@@ -78,7 +80,36 @@ contract XERC20 is ERC20, Ownable, IXERC20, ERC20Permit {
       }
     }
 
-    emit LimitsCreated(_limits, _minters);
+    emit MinterLimitsCreated(_limits, _minters);
+  }
+
+  /**
+   * @notice Creates limits for burners
+   * @dev _limits and _minters are parallel arrays and should be the same length
+   * @param _limits The limits to be added to the minters
+   * @param _burners The minters who will recieve the limits
+   */
+
+  function createBurnerLimits(uint256[] memory _limits, address[] memory _burners) external onlyOwner {
+    uint256 _burnersLength = _burners.length;
+    if (_limits.length != _burnersLength) revert IXERC20_IncompatibleLengths();
+
+    for (uint256 _i; _i < _burnersLength;) {
+      if (burnerParams.maxLimit[_burners[_i]] != 0 || _limits[_i] == 0) {
+        changeBurnerLimit(_limits[_i], _burners[_i]);
+      } else {
+        burnerParams.maxLimit[_burners[_i]] = _limits[_i];
+        burnerParams.currentLimit[_burners[_i]] = _limits[_i];
+        burnerParams.ratePerSecond = burnerParams.maxLimit[_burners[_i]] / _DURATION;
+        burnerParams.timestamp = block.timestamp;
+      }
+
+      unchecked {
+        ++_i;
+      }
+    }
+
+    emit BurnerLimitsCreated(_limits, _burners);
   }
 
   /**
@@ -88,30 +119,35 @@ contract XERC20 is ERC20, Ownable, IXERC20, ERC20Permit {
    * @param _minter The address of the minter we are setting the limit too
    */
 
-  function changeLimit(uint256 _limit, address _minter) public onlyOwner {
-    if (!params.isMinter[_minter]) {
-      params.isMinter[_minter] = true;
-    }
+  function changeMinterLimit(uint256 _limit, address _minter) public onlyOwner {
+    uint256 _oldLimit = minterParams.maxLimit[_minter];
+    uint256 _currentLimit = getMinterCurrentLimit(_minter);
+    minterParams.maxLimit[_minter] = _limit;
 
-    // If limit is being moved to zero we should remove minter rights
-    if (_limit == 0) params.isMinter[_minter] = false;
+    minterParams.currentLimit[_minter] = _calculateNewCurrentLimit(_limit, _oldLimit, _currentLimit);
 
-    uint256 _oldLimit = params.maxLimit[_minter];
-    uint256 _currentLimit = getCurrentLimit(_minter);
-    params.maxLimit[_minter] = _limit;
-    uint256 _difference;
+    minterParams.ratePerSecond = _limit / _DURATION;
+    minterParams.timestamp = block.timestamp;
+    emit MinterLimitsChanged(_oldLimit, _limit, _minter);
+  }
 
-    if (_oldLimit > _limit) {
-      _difference = _oldLimit - _limit;
-      params.currentLimit[_minter] = _currentLimit > _difference ? _currentLimit - _difference : 0;
-    } else {
-      _difference = _limit - _oldLimit;
-      params.currentLimit[_minter] = _currentLimit + _difference;
-    }
+  /**
+   * @notice Updates the limit of any burner
+   * @dev Can only be called by the governance or owner
+   * @param _limit The updated limit we are setting to the minter
+   * @param _burner The address of the burner we are setting the limit too
+   */
 
-    params.ratePerSecond = _limit / _DURATION;
-    params.timestamp = block.timestamp;
-    emit LimitsChanged(_oldLimit, _limit, _minter);
+  function changeBurnerLimit(uint256 _limit, address _burner) public onlyOwner {
+    uint256 _oldLimit = burnerParams.maxLimit[_burner];
+    uint256 _currentLimit = getBurnerCurrentLimit(_burner);
+    burnerParams.maxLimit[_burner] = _limit;
+
+    burnerParams.currentLimit[_burner] = _calculateNewCurrentLimit(_limit, _oldLimit, _currentLimit);
+
+    burnerParams.ratePerSecond = _limit / _DURATION;
+    burnerParams.timestamp = block.timestamp;
+    emit BurnerLimitsChanged(_oldLimit, _limit, _burner);
   }
 
   /**
@@ -121,8 +157,19 @@ contract XERC20 is ERC20, Ownable, IXERC20, ERC20Permit {
    * @return _limit The limit the minter has
    */
 
-  function getMaxLimit(address _minter) public view returns (uint256 _limit) {
-    _limit = params.maxLimit[_minter];
+  function getMinterMaxLimit(address _minter) public view returns (uint256 _limit) {
+    _limit = minterParams.maxLimit[_minter];
+  }
+
+  /**
+   * @notice Returns the max limit of a minter
+   *
+   * @param _burner The burner we are viewing the limits of
+   * @return _limit The limit the burner has
+   */
+
+  function getBurnerMaxLimit(address _burner) public view returns (uint256 _limit) {
+    _limit = burnerParams.maxLimit[_burner];
   }
 
   /**
@@ -132,29 +179,29 @@ contract XERC20 is ERC20, Ownable, IXERC20, ERC20Permit {
    * @return _limit The limit the minter has
    */
 
-  function getCurrentLimit(address _minter) public view returns (uint256 _limit) {
-    _limit = params.currentLimit[_minter];
-    uint256 _maxLimit = params.maxLimit[_minter];
-    if (_limit == _maxLimit) {
-      return _limit;
-    } else if (params.timestamp + _DURATION <= block.timestamp) {
-      _limit = params.maxLimit[_minter];
-    } else if (params.timestamp + _DURATION > block.timestamp) {
-      uint256 _timePassed = block.timestamp - params.timestamp;
-      uint256 _calculatedLimit = _limit + (_timePassed * params.ratePerSecond);
-      _limit = _calculatedLimit > _maxLimit ? _maxLimit : _calculatedLimit;
-    }
+  function getMinterCurrentLimit(address _minter) public view returns (uint256 _limit) {
+    _limit = _getCurrentLimit(
+      minterParams.currentLimit[_minter],
+      minterParams.maxLimit[_minter],
+      minterParams.timestamp,
+      minterParams.ratePerSecond
+    );
   }
 
   /**
-   * @notice Returns the status of if a minter is approved to mint
+   * @notice Returns the current limit of a minter
    *
-   * @param _minter The minter we are checking the status of
-   * @return _result The result of the check
+   * @param _burner The burner we are viewing the limits of
+   * @return _limit The limit the minter has
    */
 
-  function isMinterApproved(address _minter) public view returns (bool _result) {
-    _result = params.isMinter[_minter];
+  function getBurnerCurrentLimit(address _burner) public view returns (uint256 _limit) {
+    _limit = _getCurrentLimit(
+      burnerParams.currentLimit[_burner],
+      burnerParams.maxLimit[_burner],
+      burnerParams.timestamp,
+      burnerParams.ratePerSecond
+    );
   }
 
   /**
@@ -163,9 +210,72 @@ contract XERC20 is ERC20, Ownable, IXERC20, ERC20Permit {
    * @param _minter The address of the minter who is being changed
    */
 
-  function _useLimits(uint256 _change, address _minter) internal {
-    uint256 _currentLimit = getCurrentLimit(_minter);
-    params.timestamp = block.timestamp;
-    params.currentLimit[_minter] = _currentLimit - _change;
+  function _useMinterLimits(uint256 _change, address _minter) internal {
+    uint256 _currentLimit = getMinterCurrentLimit(_minter);
+    minterParams.timestamp = block.timestamp;
+    minterParams.currentLimit[_minter] = _currentLimit - _change;
+  }
+
+  /**
+   * @notice Uses the limit of any minter
+   * @param _change The change in the limit
+   * @param _burner The address of the minter who is being changed
+   */
+
+  function _useBurnerLimits(uint256 _change, address _burner) internal {
+    uint256 _currentLimit = getBurnerCurrentLimit(_burner);
+    burnerParams.timestamp = block.timestamp;
+    burnerParams.currentLimit[_burner] = _currentLimit - _change;
+  }
+
+  /**
+   * @notice Updates the current limit
+   *
+   * @param _limit The new limit
+   * @param _oldLimit The old limit
+   * @param _currentLimit The current limit
+   */
+
+  function _calculateNewCurrentLimit(
+    uint256 _limit,
+    uint256 _oldLimit,
+    uint256 _currentLimit
+  ) internal pure returns (uint256 _newCurrentLimit) {
+    uint256 _difference;
+
+    if (_oldLimit > _limit) {
+      _difference = _oldLimit - _limit;
+      _newCurrentLimit = _currentLimit > _difference ? _currentLimit - _difference : 0;
+    } else {
+      _difference = _limit - _oldLimit;
+      _newCurrentLimit = _currentLimit + _difference;
+    }
+  }
+
+  /**
+   * @notice Gets the current limit
+   *
+   * @param _currentLimit The current limit
+   * @param _maxLimit The max limit
+   * @param _timestamp The timestamp of the last update
+   * @param _ratePerSecond The rate per second
+   */
+
+  function _getCurrentLimit(
+    uint256 _currentLimit,
+    uint256 _maxLimit,
+    uint256 _timestamp,
+    uint256 _ratePerSecond
+  ) internal view returns (uint256 _limit) {
+    _limit = _currentLimit;
+    if (_limit == _maxLimit) {
+      return _limit;
+    } else if (_timestamp + _DURATION <= block.timestamp) {
+      _limit = _maxLimit;
+    } else if (_timestamp + _DURATION > block.timestamp) {
+      uint256 _timePassed = block.timestamp - _timestamp;
+      uint256 _calculatedLimit = _limit + (_timePassed * _ratePerSecond);
+      _limit = _calculatedLimit > _maxLimit ? _maxLimit : _calculatedLimit;
+    }
   }
 }

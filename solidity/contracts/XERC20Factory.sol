@@ -20,19 +20,23 @@ contract XERC20Factory is IXERC20Factory {
    * @dev _limits and _minters must be the same length
    * @param _name The name of the token
    * @param _symbol The symbol of the token
-   * @param _limits The array of limits that you are adding (optional, can be an empty array)
+   * @param _minterLimits The array of limits that you are adding (optional, can be an empty array)
    * @param _minters The array of minters that you are adding (optional, can be an empty array)
+   * @param _burnerLimits The array of limits that you are adding (optional, can be an empty array)
+   * @param _burners The array of burners that you are adding (optional, can be an empty array)
    * @param _baseToken The address of the base ERC20 token if you are deploying a lockbox (optional, put address(0) if you dont want to deploy one)
    */
 
   function deploy(
     string memory _name,
     string memory _symbol,
-    uint256[] memory _limits,
+    uint256[] memory _minterLimits,
     address[] memory _minters,
+    uint256[] memory _burnerLimits,
+    address[] memory _burners,
     address _baseToken
   ) external returns (address _xerc20, address _lockbox) {
-    _xerc20 = _deployXERC20(_name, _symbol, _limits, _minters);
+    _xerc20 = _deployXERC20(_name, _symbol, _minterLimits, _minters, _burnerLimits, _burners);
 
     if (_baseToken != address(0)) {
       _lockbox = _deployLockbox(_xerc20, _baseToken);
@@ -59,15 +63,19 @@ contract XERC20Factory is IXERC20Factory {
    * @dev _limits and _minters must be the same length
    * @param _name The name of the token
    * @param _symbol The symbol of the token
-   * @param _limits The array of limits that you are adding (optional, can be an empty array)
+   * @param _minterLimits The array of limits that you are adding (optional, can be an empty array)
    * @param _minters The array of minters that you are adding (optional, can be an empty array)
+   * @param _burnerLimits The array of limits that you are adding (optional, can be an empty array)
+   * @param _burners The array of burners that you are adding (optional, can be an empty array)
    */
 
   function _deployXERC20(
     string memory _name,
     string memory _symbol,
-    uint256[] memory _limits,
-    address[] memory _minters
+    uint256[] memory _minterLimits,
+    address[] memory _minters,
+    uint256[] memory _burnerLimits,
+    address[] memory _burners
   ) internal returns (address _xerc20) {
     bytes32 _salt = keccak256(abi.encodePacked(_name, _symbol, msg.sender));
     bytes memory _creation = type(XERC20).creationCode;
@@ -79,8 +87,12 @@ contract XERC20Factory is IXERC20Factory {
     xerc20Registry[_xerc20] = true;
 
     // if the user inputs empty arrays we dont waste gas calling these functions
-    if (_limits.length != _minters.length && _limits.length != 0) {
-      XERC20(_xerc20).createLimits(_limits, _minters);
+    if (_minterLimits.length != _minters.length && _minterLimits.length != 0) {
+      XERC20(_xerc20).createMinterLimits(_minterLimits, _minters);
+    }
+
+    if (_burnerLimits.length != _burners.length && _burnerLimits.length != 0) {
+      XERC20(_xerc20).createBurnerLimits(_burnerLimits, _burners);
     }
   }
 

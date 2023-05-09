@@ -15,10 +15,10 @@ abstract contract Base is Test {
 
   XERC20 internal _xerc20;
 
-  event ChainIdsCreated(uint256[] _chainId);
-  event LimitsCreated(uint256[] _limits, address[] _minters);
-  event LimitsChanged(uint256 _oldLimit, uint256 _newLimit, address _minter);
-  event ChainIdAdded(uint256 _newChainId);
+  event MinterLimitsCreated(uint256[] _limits, address[] _minters);
+  event MinterLimitsChanged(uint256 _oldLimit, uint256 _newLimit, address _minter);
+  event BurnerLimitsCreated(uint256[] _limits, address[] _burners);
+  event BurnerLimitsChanged(uint256 _oldLimit, uint256 _newLimit, address _burner);
 
   function setUp() public virtual {
     vm.startPrank(_owner);
@@ -39,8 +39,9 @@ contract UnitNames is Base {
 
 contract UnitMintBurn is Base {
   function testMintRevertsIfNotApprove(uint256 _amount) public {
+    vm.assume(_amount > 0);
     vm.prank(_user);
-    vm.expectRevert(IXERC20.IXERC20_NotApprovedMinter.selector);
+    vm.expectRevert(IXERC20.IXERC20_NotHighEnoughLimits.selector);
     _xerc20.mint(_user, _amount);
   }
 
@@ -49,10 +50,10 @@ contract UnitMintBurn is Base {
     _amount1 = bound(_amount1, 1, 1e40);
     vm.assume(_amount1 > _amount0);
     vm.prank(_owner);
-    _xerc20.changeLimit(_amount0, _user);
+    _xerc20.changeMinterLimit(_amount0, _user);
 
     vm.startPrank(_user);
-    _xerc20.mint(_user, _amount1);
+    _xerc20.mint(_user, _amount0);
     vm.expectRevert(IXERC20.IXERC20_NotHighEnoughLimits.selector);
     _xerc20.burn(_user, _amount1);
     vm.stopPrank();
@@ -62,7 +63,7 @@ contract UnitMintBurn is Base {
     vm.assume(_amount > 0);
 
     vm.prank(_owner);
-    _xerc20.changeLimit(_amount, _user);
+    _xerc20.changeMinterLimit(_amount, _user);
     vm.prank(_user);
     _xerc20.mint(_user, _amount);
 
@@ -71,8 +72,10 @@ contract UnitMintBurn is Base {
 
   function testBurn(uint256 _amount) public {
     _amount = bound(_amount, 1, 1e40);
-    vm.prank(_owner);
-    _xerc20.changeLimit(_amount, _user);
+    vm.startPrank(_owner);
+    _xerc20.changeMinterLimit(_amount, _user);
+    _xerc20.changeBurnerLimit(_amount, _user);
+    vm.stopPrank();
 
     vm.startPrank(_user);
     _xerc20.mint(_user, _amount);
@@ -81,34 +84,21 @@ contract UnitMintBurn is Base {
 
     assertEq(_xerc20.balanceOf(_user), 0);
   }
-
-  function testCanStillMintWhenLimitIsReached(uint256 _amount) public {
-    _amount = bound(_amount, 1, 10_000);
-    vm.prank(_owner);
-    _xerc20.changeLimit(_amount, _user);
-
-    vm.startPrank(_user);
-    _xerc20.mint(_user, _amount);
-    _xerc20.burn(_user, _amount);
-
-    _xerc20.mint(_user, _amount);
-    vm.stopPrank();
-
-    assertEq(_xerc20.balanceOf(_user), _amount);
-  }
 }
 
 contract UnitCreateParams is Base {
   function testChangeLimit(uint256 _amount, address _randomAddr) public {
     vm.startPrank(_owner);
-    _xerc20.changeLimit(_amount, _randomAddr);
+    _xerc20.changeMinterLimit(_amount, _randomAddr);
+    _xerc20.changeBurnerLimit(_amount, _randomAddr);
     vm.stopPrank();
-    assertEq(_xerc20.getMaxLimit(_randomAddr), _amount);
+    assertEq(_xerc20.getMinterMaxLimit(_randomAddr), _amount);
+    assertEq(_xerc20.getBurnerMaxLimit(_randomAddr), _amount);
   }
 
   function testRevertsWithWrongCaller() public {
     vm.expectRevert('Ownable: caller is not the owner');
-    _xerc20.changeLimit(1e18, _minter);
+    _xerc20.changeMinterLimit(1e18, _minter);
   }
 
   function testAddingMintersAndLimits(
@@ -135,40 +125,63 @@ contract UnitCreateParams is Base {
     _minters[1] = _user1;
     _minters[2] = _user2;
 
-    vm.prank(_owner);
-    _xerc20.createLimits(_limits, _minters);
+    vm.startPrank(_owner);
+    _xerc20.createMinterLimits(_limits, _minters);
+    _xerc20.createBurnerLimits(_limits, _minters);
+    vm.stopPrank();
 
-    assertEq(_xerc20.getMaxLimit(_user0), _amount0);
-    assertEq(_xerc20.getMaxLimit(_user1), _amount1);
-    assertEq(_xerc20.getMaxLimit(_user2), _amount2);
+    assertEq(_xerc20.getMinterMaxLimit(_user0), _amount0);
+    assertEq(_xerc20.getMinterMaxLimit(_user1), _amount1);
+    assertEq(_xerc20.getMinterMaxLimit(_user2), _amount2);
+    assertEq(_xerc20.getBurnerMaxLimit(_user0), _amount0);
+    assertEq(_xerc20.getBurnerMaxLimit(_user1), _amount1);
+    assertEq(_xerc20.getBurnerMaxLimit(_user2), _amount2);
   }
 
-  function testCreateLimitsEmitsEvent() public {
+  function testCreateMinterLimitsEmitsEvent() public {
     uint256[] memory _limits = new uint256[](0);
     address[] memory _minters = new address[](0);
 
     vm.expectEmit(true, true, true, true);
-    emit LimitsCreated(_limits, _minters);
+    emit MinterLimitsCreated(_limits, _minters);
     vm.prank(_owner);
-    _xerc20.createLimits(_limits, _minters);
+    _xerc20.createMinterLimits(_limits, _minters);
   }
 
-  function testChangeLimitEmitsEvent(uint256 _limit, address _minter) public {
+  function testCreateBurnerLimitsEmitsEvent() public {
+    uint256[] memory _limits = new uint256[](0);
+    address[] memory _minters = new address[](0);
+
+    vm.expectEmit(true, true, true, true);
+    emit BurnerLimitsCreated(_limits, _minters);
+    vm.prank(_owner);
+    _xerc20.createBurnerLimits(_limits, _minters);
+  }
+
+  function testChangeMinterLimitEmitsEvent(uint256 _limit, address _minter) public {
     vm.prank(_owner);
     vm.expectEmit(true, true, true, true);
-    emit LimitsChanged(0, _limit, _minter);
-    _xerc20.changeLimit(_limit, _minter);
+    emit MinterLimitsChanged(0, _limit, _minter);
+    _xerc20.changeMinterLimit(_limit, _minter);
   }
 
-  function testSettingLimitsToUnapprovedMinter(uint256 _amount) public {
+  function testChangeBurnerLimitEmitsEvent(uint256 _limit, address _minter) public {
+    vm.prank(_owner);
+    vm.expectEmit(true, true, true, true);
+    emit BurnerLimitsChanged(0, _limit, _minter);
+    _xerc20.changeBurnerLimit(_limit, _minter);
+  }
+
+  function testSettingLimitsToUnapprovedUser(uint256 _amount) public {
     vm.assume(_amount > 0);
 
     vm.startPrank(_owner);
-    _xerc20.changeLimit(_amount, _minter);
+    _xerc20.changeMinterLimit(_amount, _minter);
+    _xerc20.changeBurnerLimit(_amount, _minter);
     vm.stopPrank();
 
-    assertEq(_xerc20.getMaxLimit(_minter), _amount);
-    assertEq(_xerc20.isMinterApproved(_minter), true);
+    assertEq(_xerc20.getMinterMaxLimit(_minter), _amount);
+    assertEq(_xerc20.getBurnerMaxLimit(_minter), _amount);
   }
 
   function testUseLimitsUpdatesLimit(uint256 _limit, address _minter) public {
@@ -177,7 +190,8 @@ contract UnitCreateParams is Base {
     vm.warp(1_683_145_698); // current timestamp at the time of testing
 
     vm.startPrank(_owner);
-    _xerc20.changeLimit(_limit, _minter);
+    _xerc20.changeMinterLimit(_limit, _minter);
+    _xerc20.changeBurnerLimit(_limit, _minter);
     vm.stopPrank();
 
     vm.startPrank(_minter);
@@ -185,8 +199,10 @@ contract UnitCreateParams is Base {
     _xerc20.burn(_minter, _limit);
     vm.stopPrank();
 
-    assertEq(_xerc20.getMaxLimit(_minter), _limit);
-    assertEq(_xerc20.getCurrentLimit(_minter), 0);
+    assertEq(_xerc20.getMinterMaxLimit(_minter), _limit);
+    assertEq(_xerc20.getMinterCurrentLimit(_minter), 0);
+    assertEq(_xerc20.getBurnerMaxLimit(_minter), _limit);
+    assertEq(_xerc20.getBurnerCurrentLimit(_minter), 0);
   }
 
   function testCurrentLimitIsMaxLimitIfUnused(uint256 _limit, address _minter) public {
@@ -194,25 +210,35 @@ contract UnitCreateParams is Base {
     vm.warp(_currentTimestamp);
 
     vm.startPrank(_owner);
-    _xerc20.changeLimit(_limit, _minter);
+    _xerc20.changeMinterLimit(_limit, _minter);
+    _xerc20.changeBurnerLimit(_limit, _minter);
     vm.stopPrank();
 
     vm.warp(_currentTimestamp + 12 hours);
 
-    assertEq(_xerc20.getCurrentLimit(_minter), _limit);
+    assertEq(_xerc20.getMinterCurrentLimit(_minter), _limit);
+    assertEq(_xerc20.getBurnerCurrentLimit(_minter), _limit);
   }
 
   function testCurrentLimitIsMaxLimitIfOver24Hours(uint256 _limit, address _minter) public {
     uint256 _currentTimestamp = 1_683_145_698;
     vm.warp(_currentTimestamp);
+    vm.assume(_minter != address(0));
 
     vm.startPrank(_owner);
-    _xerc20.changeLimit(_limit, _minter);
+    _xerc20.changeMinterLimit(_limit, _minter);
+    _xerc20.changeBurnerLimit(_limit, _minter);
+    vm.stopPrank();
+
+    vm.startPrank(_minter);
+    _xerc20.mint(_minter, _limit);
+    _xerc20.burn(_minter, _limit);
     vm.stopPrank();
 
     vm.warp(_currentTimestamp + 30 hours);
 
-    assertEq(_xerc20.getCurrentLimit(_minter), _limit);
+    assertEq(_xerc20.getMinterCurrentLimit(_minter), _limit);
+    assertEq(_xerc20.getBurnerCurrentLimit(_minter), _limit);
   }
 
   function testLimitVestsLinearly(uint256 _limit, address _minter) public {
@@ -222,7 +248,8 @@ contract UnitCreateParams is Base {
     vm.warp(_currentTimestamp);
 
     vm.startPrank(_owner);
-    _xerc20.changeLimit(_limit, _minter);
+    _xerc20.changeMinterLimit(_limit, _minter);
+    _xerc20.changeBurnerLimit(_limit, _minter);
     vm.stopPrank();
 
     vm.startPrank(_minter);
@@ -232,7 +259,8 @@ contract UnitCreateParams is Base {
 
     vm.warp(_currentTimestamp + 12 hours);
 
-    assertApproxEqRel(_xerc20.getCurrentLimit(_minter), _limit / 2, 0.1 ether);
+    assertApproxEqRel(_xerc20.getMinterCurrentLimit(_minter), _limit / 2, 0.1 ether);
+    assertApproxEqRel(_xerc20.getBurnerCurrentLimit(_minter), _limit / 2, 0.1 ether);
   }
 
   function testOverflowLimitMakesItMax(uint256 _limit, address _minter, uint256 _usedLimit) public {
@@ -243,20 +271,22 @@ contract UnitCreateParams is Base {
     vm.warp(_currentTimestamp);
 
     vm.startPrank(_owner);
-    _xerc20.changeLimit(_limit, _minter);
+    _xerc20.changeMinterLimit(_limit, _minter);
+    _xerc20.changeBurnerLimit(_limit, _minter);
     vm.stopPrank();
 
     vm.startPrank(_minter);
-    _xerc20.mint(_minter, _limit);
+    _xerc20.mint(_minter, _usedLimit);
     _xerc20.burn(_minter, _usedLimit);
     vm.stopPrank();
 
     vm.warp(_currentTimestamp + 20 hours);
 
-    assertEq(_xerc20.getCurrentLimit(_minter), _limit);
+    assertEq(_xerc20.getMinterCurrentLimit(_minter), _limit);
+    assertEq(_xerc20.getBurnerCurrentLimit(_minter), _limit);
   }
 
-  function testChangeLimitIncreaseCurrentLimitByTheDifferenceItWasChanged(
+  function testChangeMinterLimitIncreaseCurrentLimitByTheDifferenceItWasChanged(
     uint256 _limit,
     address _minter,
     uint256 _usedLimit
@@ -268,23 +298,26 @@ contract UnitCreateParams is Base {
     uint256 _currentTimestamp = 1_683_145_698;
     vm.warp(_currentTimestamp);
 
-    vm.prank(_owner);
-    // Setting the limit at its original limit
-    _xerc20.changeLimit(_limit, _minter);
+    vm.startPrank(_owner);
+    _xerc20.changeMinterLimit(_limit, _minter);
+    _xerc20.changeBurnerLimit(_limit, _minter);
+    vm.stopPrank();
 
     vm.startPrank(_minter);
-    _xerc20.mint(_minter, _limit);
+    _xerc20.mint(_minter, _usedLimit);
     _xerc20.burn(_minter, _usedLimit);
     vm.stopPrank();
 
-    vm.prank(_owner);
+    vm.startPrank(_owner);
     // Adding 100k to the limit
-    _xerc20.changeLimit(_limit + 100_000, _minter);
+    _xerc20.changeMinterLimit(_limit + 100_000, _minter);
+    _xerc20.changeBurnerLimit(_limit + 100_000, _minter);
+    vm.stopPrank();
 
-    assertEq(_xerc20.getCurrentLimit(_minter), (_limit - _usedLimit) + 100_000);
+    assertEq(_xerc20.getMinterCurrentLimit(_minter), (_limit - _usedLimit) + 100_000);
   }
 
-  function testChangeLimitDecreaseCurrentLimitByTheDifferenceItWasChanged(
+  function testChangeMinterLimitDecreaseCurrentLimitByTheDifferenceItWasChanged(
     uint256 _limit,
     address _minter,
     uint256 _usedLimit
@@ -295,28 +328,35 @@ contract UnitCreateParams is Base {
     _limit = bound(_limit, 1e15, 1e40);
     _usedLimit = bound(_usedLimit, 100_000, 1e9);
 
-    vm.prank(_owner);
+    vm.startPrank(_owner);
     // Setting the limit at its original limit
-    _xerc20.changeLimit(_limit, _minter);
+    _xerc20.changeMinterLimit(_limit, _minter);
+    _xerc20.changeBurnerLimit(_limit, _minter);
+    vm.stopPrank();
 
     vm.startPrank(_minter);
-    _xerc20.mint(_minter, _limit);
+    _xerc20.mint(_minter, _usedLimit);
     _xerc20.burn(_minter, _usedLimit);
     vm.stopPrank();
 
-    vm.prank(_owner);
+    vm.startPrank(_owner);
     // Removing 100k to the limit
-    _xerc20.changeLimit(_limit - 100_000, _minter);
+    _xerc20.changeMinterLimit(_limit - 100_000, _minter);
+    _xerc20.changeBurnerLimit(_limit - 100_000, _minter);
+    vm.stopPrank();
 
-    assertEq(_xerc20.getCurrentLimit(_minter), (_limit - _usedLimit) - 100_000);
+    assertEq(_xerc20.getMinterCurrentLimit(_minter), (_limit - _usedLimit) - 100_000);
+    assertEq(_xerc20.getBurnerCurrentLimit(_minter), (_limit - _usedLimit) - 100_000);
   }
 
   function testCreateParamsUpdatesLimit(uint256 _originalLimit, uint256 _newLimit) public {
     vm.assume(_originalLimit > 0);
     vm.assume(_newLimit > 0 && _newLimit != _originalLimit);
 
-    vm.prank(_owner);
-    _xerc20.changeLimit(_originalLimit, _minter);
+    vm.startPrank(_owner);
+    _xerc20.changeMinterLimit(_originalLimit, _minter);
+    _xerc20.changeBurnerLimit(_originalLimit, _minter);
+    vm.stopPrank();
 
     uint256[] memory _limits = new uint256[](1);
     address[] memory _minters = new address[](1);
@@ -324,37 +364,36 @@ contract UnitCreateParams is Base {
     _limits[0] = _newLimit;
     _minters[0] = _minter;
 
-    vm.prank(_owner);
-    _xerc20.createLimits(_limits, _minters);
-
-    assertEq(_xerc20.getMaxLimit(_minter), _newLimit);
-  }
-
-  function changeLimitRemovesMinterRightsIfChangedToZero() public {
     vm.startPrank(_owner);
-    _xerc20.changeLimit(1, _minter);
-    _xerc20.changeLimit(0, _minter);
+    _xerc20.createMinterLimits(_limits, _minters);
+    _xerc20.createBurnerLimits(_limits, _minters);
     vm.stopPrank();
 
-    assertEq(_xerc20.isMinterApproved(_minter), false);
+    assertEq(_xerc20.getMinterMaxLimit(_minter), _newLimit);
+    assertEq(_xerc20.getBurnerMaxLimit(_minter), _newLimit);
   }
 
   function testChangingUsedLimitsToZero(uint256 _limit, uint256 _amount) public {
     _limit = bound(_limit, 1, 1e40);
     vm.assume(_amount < _limit);
-    vm.prank(_owner);
-    _xerc20.changeLimit(_limit, _minter);
+    vm.startPrank(_owner);
+    _xerc20.changeMinterLimit(_limit, _minter);
+    _xerc20.changeBurnerLimit(_limit, _minter);
+    vm.stopPrank();
 
     vm.startPrank(_minter);
     _xerc20.mint(_minter, _amount);
     _xerc20.burn(_minter, _amount);
     vm.stopPrank();
 
-    vm.prank(_owner);
-    _xerc20.changeLimit(0, _minter);
+    vm.startPrank(_owner);
+    _xerc20.changeMinterLimit(0, _minter);
+    _xerc20.changeBurnerLimit(0, _minter);
+    vm.stopPrank();
 
-    assertEq(_xerc20.isMinterApproved(_minter), false);
-    assertEq(_xerc20.getMaxLimit(_minter), 0);
-    assertEq(_xerc20.getCurrentLimit(_minter), 0);
+    assertEq(_xerc20.getMinterMaxLimit(_minter), 0);
+    assertEq(_xerc20.getMinterCurrentLimit(_minter), 0);
+    assertEq(_xerc20.getBurnerMaxLimit(_minter), 0);
+    assertEq(_xerc20.getBurnerCurrentLimit(_minter), 0);
   }
 }

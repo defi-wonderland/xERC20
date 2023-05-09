@@ -9,7 +9,7 @@ interface IXERC20 {
    * @param _minters The minters who will recieve the limits
    */
 
-  event LimitsCreated(uint256[] _limits, address[] _minters);
+  event MinterLimitsCreated(uint256[] _limits, address[] _minters);
 
   /**
    * @notice Emits when a new limit is added
@@ -19,7 +19,26 @@ interface IXERC20 {
    * @param _minter The address of the minter we are setting the limit too
    */
 
-  event LimitsChanged(uint256 _oldLimit, uint256 _newLimit, address _minter);
+  event MinterLimitsChanged(uint256 _oldLimit, uint256 _newLimit, address _minter);
+
+  /**
+   * @notice Emits when multiple limits are added
+   *
+   * @param _limits The limits to be added to the minters
+   * @param _burners The minters who will recieve the limits
+   */
+
+  event BurnerLimitsCreated(uint256[] _limits, address[] _burners);
+
+  /**
+   * @notice Emits when a new limit is added
+   *
+   * @param _oldLimit The old limit of the minter
+   * @param _newLimit The updated limit we are setting to the minter
+   * @param _burner The address of the minter we are setting the limit too
+   */
+
+  event BurnerLimitsChanged(uint256 _oldLimit, uint256 _newLimit, address _burner);
 
   /**
    * @notice Reverts when a user with too low of a limit tries to call mint/burn
@@ -56,7 +75,6 @@ interface IXERC20 {
     uint256 ratePerSecond;
     mapping(address => uint256) maxLimit;
     mapping(address => uint256) currentLimit;
-    mapping(address => bool) isMinter;
   }
 
   /**
@@ -66,7 +84,7 @@ interface IXERC20 {
    * @param _minters The minters who will recieve the limits
    */
 
-  function createLimits(uint256[] memory _limits, address[] memory _minters) external;
+  function createMinterLimits(uint256[] memory _limits, address[] memory _minters) external;
 
   /**
    * @notice Updates the limit of any minter
@@ -75,7 +93,7 @@ interface IXERC20 {
    * @param _minter The address of the minter we are setting the limit too
    */
 
-  function changeLimit(uint256 _limit, address _minter) external;
+  function changeMinterLimit(uint256 _limit, address _minter) external;
 
   /**
    * @notice Returns the max limit of a minter
@@ -83,7 +101,7 @@ interface IXERC20 {
    * @param _minter The minter we are viewing the limits of
    *  @return _limit The limit the minter has
    */
-  function getMaxLimit(address _minter) external view returns (uint256 _limit);
+  function getMinterMaxLimit(address _minter) external view returns (uint256 _limit);
 
   /**
    * @notice Returns the current limit of a minter
@@ -92,16 +110,7 @@ interface IXERC20 {
    * @return _limit The limit the minter has
    */
 
-  function getCurrentLimit(address _minter) external view returns (uint256 _limit);
-
-  /**
-   * @notice Returns the status of if a minter is approved to mint
-   *
-   * @param _minter The minter we are checking the status of
-   * @return _result The result of the check
-   */
-
-  function isMinterApproved(address _minter) external view returns (bool _result);
+  function getMinterCurrentLimit(address _minter) external view returns (uint256 _limit);
 
   /**
    * @notice Mints tokens for a user
