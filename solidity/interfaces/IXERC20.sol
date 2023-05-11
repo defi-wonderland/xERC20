@@ -52,29 +52,12 @@ interface IXERC20 {
 
   error IXERC20_NotFactory();
 
-  /**
-   * @notice Reverts when a user tries to mint who isn't approved
-   */
-
-  error IXERC20_NotApprovedMinter();
 
   /**
    * @notice Reverts when the length of parallel arrays are not equal
    */
 
   error IXERC20_IncompatibleLengths();
-
-  /**
-   * @notice Reverts when a caller is not the owner of an NFT
-   */
-
-  error IXERC20_NotOwner();
-
-  /**
-   * @notice Reverts when a caller is not the token address of the XERC20
-   */
-
-  error IXERC20_NotXERC20();
 
   struct Parameters {
     uint256 timestamp;

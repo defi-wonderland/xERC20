@@ -67,7 +67,7 @@ contract XERC20 is ERC20, Ownable, IXERC20, ERC20Permit {
       _mintWithCaller(msg.sender, msg.sender, _amount);
       _burnWithCaller(_to, msg.sender, _amount);
       _result = true;
-      emit Transfer(msg.sender, _to, _amount);
+
     } else {
       if (_minterLimit != 0) {
         _mintWithCaller(msg.sender, _to, _amount);
@@ -102,7 +102,6 @@ contract XERC20 is ERC20, Ownable, IXERC20, ERC20Permit {
 
       _result = true;
 
-      emit Transfer(_from, _to, _amount);
     } else {
       if (_minterLimit != 0) {
         _spendAllowance(_from, msg.sender, _amount);
@@ -366,12 +365,14 @@ contract XERC20 is ERC20, Ownable, IXERC20, ERC20Permit {
    */
 
   function _burnWithCaller(address _caller, address _user, uint256 _amount) internal {
+
     if (_caller != lockbox) {
       uint256 _currentLimit = getBurnerCurrentLimit(_caller);
       if (_currentLimit < _amount) revert IXERC20_NotHighEnoughLimits();
       _useBurnerLimits(_amount, _caller);
     }
     _burn(_user, _amount);
+
   }
 
   /**
@@ -389,5 +390,6 @@ contract XERC20 is ERC20, Ownable, IXERC20, ERC20Permit {
       _useMinterLimits(_amount, _caller);
     }
     _mint(_user, _amount);
+
   }
 }

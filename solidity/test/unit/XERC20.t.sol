@@ -87,7 +87,7 @@ contract UnitMintBurn is Base {
 
   function testMintByTransfer(uint256 _amount, address _randomAddr) public {
     vm.assume(_amount > 0);
-    vm.assume(_randomAddr != address(0));
+    vm.assume(_randomAddr != address(0) && _randomAddr != _user);
 
     vm.prank(_owner);
     _xerc20.changeMinterLimit(_amount, _user);
@@ -100,7 +100,7 @@ contract UnitMintBurn is Base {
 
   function testBurnByTransfer(uint256 _amount, address _randomAddr) public {
     vm.assume(_amount > 0);
-    vm.assume(_randomAddr != address(0));
+    vm.assume(_randomAddr != address(0) && _randomAddr != _user);
 
     vm.startPrank(_owner);
     _xerc20.changeMinterLimit(_amount, _user);
@@ -300,6 +300,20 @@ contract UnitMintBurn is Base {
     assertEq(_xerc20.totalSupply(), 0);
     assertEq(_xerc20.getMinterCurrentLimit(_user), 0);
     assertEq(_xerc20.getBurnerCurrentLimit(_minter), 0);
+  }
+
+  function testTwoBridgesRevertIfNotEnoughLimit(uint256 _amount, uint256 _higherAmount) public {
+    vm.assume(_amount > 0);
+    vm.assume(_higherAmount > _amount);
+
+    vm.startPrank(_owner);
+    _xerc20.changeMinterLimit(_higherAmount, _minter);
+    _xerc20.changeBurnerLimit(_amount, _user);
+    vm.stopPrank();
+
+    vm.prank(_minter);
+    vm.expectRevert(IXERC20.IXERC20_NotHighEnoughLimits.selector);
+    _xerc20.transfer(_user, _higherAmount);
   }
 }
 
