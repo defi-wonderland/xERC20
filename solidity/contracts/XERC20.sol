@@ -9,6 +9,8 @@ import {Ownable} from '@openzeppelin/contracts/access/Ownable.sol';
 contract XERC20 is ERC20, Ownable, IXERC20, ERC20Permit {
   uint256 private constant _DURATION = 1 days;
 
+  address public lockbox;
+  address public factory;
   Parameters public minterParams;
   Parameters public burnerParams;
 
@@ -17,14 +19,16 @@ contract XERC20 is ERC20, Ownable, IXERC20, ERC20Permit {
    *
    * @param _name The name of the token
    * @param _symbol The symbol of the token
+   * @param _factory The factory which deployed this contract
    */
 
   constructor(
     string memory _name,
     string memory _symbol,
-    address _owner
+    address _factory
   ) ERC20(string.concat('x', _name), string.concat('x', _symbol)) ERC20Permit(string.concat('x', _name)) {
-    _transferOwnership(_owner);
+    _transferOwnership(_factory);
+    factory = _factory;
   }
 
   /**
@@ -34,11 +38,8 @@ contract XERC20 is ERC20, Ownable, IXERC20, ERC20Permit {
    * @param _amount The amount of tokens being minted
    */
 
-  function mint(address _user, uint256 _amount) external {
-    uint256 _currentLimit = getMinterCurrentLimit(msg.sender);
-    if (_currentLimit < _amount) revert IXERC20_NotHighEnoughLimits();
-    _mint(_user, _amount);
-    _useMinterLimits(_amount, msg.sender);
+  function mint(address _user, uint256 _amount) public {
+    _mintWithCaller(msg.sender, _user, _amount);
   }
 
   /**
@@ -48,11 +49,88 @@ contract XERC20 is ERC20, Ownable, IXERC20, ERC20Permit {
    * @param _amount The amount of tokens being burned
    */
 
-  function burn(address _user, uint256 _amount) external {
-    uint256 _currentLimit = getBurnerCurrentLimit(msg.sender);
-    if (_currentLimit < _amount) revert IXERC20_NotHighEnoughLimits();
-    _burn(_user, _amount);
-    _useBurnerLimits(_amount, msg.sender);
+  function burn(address _user, uint256 _amount) public {
+    _burnWithCaller(msg.sender, _user, _amount);
+  }
+  /**
+   * @notice Overrides transfer to call burn/mint based on the recipient
+   * @dev Some bridges transfer instead of minting/burning. In that case, if you transfer tokens to a bridge we burn them and if the bridge transfers tokens we mint for the recipient, if neither apply we will just call the ERC20 transfer
+   * @param _to The address of the recipient
+   * @param _amount The amount of tokens to transfer
+   */
+
+  function transfer(address _to, uint256 _amount) public override returns (bool _result) {
+    uint256 _minterLimit = getMinterMaxLimit(msg.sender);
+    uint256 _burnLimit = getBurnerMaxLimit(_to);
+
+    if (_minterLimit != 0 && _burnLimit != 0) {
+      _mintWithCaller(msg.sender, msg.sender, _amount);
+      _burnWithCaller(_to, msg.sender, _amount);
+      _result = true;
+      emit Transfer(msg.sender, _to, _amount);
+    } else {
+      if (_minterLimit != 0) {
+        _mintWithCaller(msg.sender, _to, _amount);
+        _result = true;
+      }
+
+      if (_burnLimit != 0) {
+        _burnWithCaller(_to, msg.sender, _amount);
+        _result = true;
+      }
+    }
+
+    if (!_result) _result = super.transfer(_to, _amount);
+  }
+
+  /**
+   * _
+   * @notice Overrides transfer to call burn/mint based on the recipient
+   * @dev Some bridges transfer instead of minting/burning. In that case, if you transfer tokens to a bridge we burn them and if the bridge transfers tokens we mint for the recipient, if neither apply we will just call the ERC20 transferFrom
+   * @param _from The address of the sender
+   * @param _to The address of the recipient
+   * @param _amount The amount of tokens to transfer
+   */
+
+  function transferFrom(address _from, address _to, uint256 _amount) public override returns (bool _result) {
+    uint256 _minterLimit = getMinterMaxLimit(_from);
+    uint256 _burnLimit = getBurnerMaxLimit(_to);
+
+    if (_minterLimit != 0 && _burnLimit != 0) {
+      _mintWithCaller(msg.sender, msg.sender, _amount);
+      _burnWithCaller(_to, msg.sender, _amount);
+
+      _result = true;
+
+      emit Transfer(_from, _to, _amount);
+    } else {
+      if (_minterLimit != 0) {
+        _spendAllowance(_from, msg.sender, _amount);
+
+        _mintWithCaller(_from, _to, _amount);
+        _result = true;
+      }
+
+      if (_burnLimit != 0) {
+        _spendAllowance(_from, msg.sender, _amount);
+
+        _burnWithCaller(_to, _from, _amount);
+        _result = true;
+      }
+    }
+
+    if (!_result) _result = super.transferFrom(_from, _to, _amount);
+  }
+
+  /**
+   * @notice Sets the lockbox address
+   *
+   * @param _lockbox The address of the lockbox
+   */
+
+  function setLockbox(address _lockbox) public {
+    if (msg.sender != factory) revert IXERC20_NotFactory();
+    lockbox = _lockbox;
   }
 
   /**
@@ -277,5 +355,39 @@ contract XERC20 is ERC20, Ownable, IXERC20, ERC20Permit {
       uint256 _calculatedLimit = _limit + (_timePassed * _ratePerSecond);
       _limit = _calculatedLimit > _maxLimit ? _maxLimit : _calculatedLimit;
     }
+  }
+
+  /**
+   * @notice Internal function for burning tokens
+   *
+   * @param _caller The caller address
+   * @param _user The user address
+   * @param _amount The amount to burn
+   */
+
+  function _burnWithCaller(address _caller, address _user, uint256 _amount) internal {
+    if (_caller != lockbox) {
+      uint256 _currentLimit = getBurnerCurrentLimit(_caller);
+      if (_currentLimit < _amount) revert IXERC20_NotHighEnoughLimits();
+      _useBurnerLimits(_amount, _caller);
+    }
+    _burn(_user, _amount);
+  }
+
+  /**
+   * @notice Internal function for minting tokens
+   *
+   * @param _caller The caller address
+   * @param _user The user address
+   * @param _amount The amount to mint
+   */
+
+  function _mintWithCaller(address _caller, address _user, uint256 _amount) internal {
+    if (_caller != lockbox) {
+      uint256 _currentLimit = getMinterCurrentLimit(_caller);
+      if (_currentLimit < _amount) revert IXERC20_NotHighEnoughLimits();
+      _useMinterLimits(_amount, _caller);
+    }
+    _mint(_user, _amount);
   }
 }

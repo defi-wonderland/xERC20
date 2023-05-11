@@ -30,3 +30,5 @@ src = 'solidity/test'
 [rpc_endpoints]
 mainnet = "${MAINNET_RPC}"
 rinkeby = "${RINKEBY_RPC}"
+polygon = "${POLYGON_RPC}"
+optimism = "${OPTIMISM_RPC}"

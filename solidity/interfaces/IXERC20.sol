@@ -47,6 +47,12 @@ interface IXERC20 {
   error IXERC20_NotHighEnoughLimits();
 
   /**
+   * @notice Reverts when caller is not the factory
+   */
+
+  error IXERC20_NotFactory();
+
+  /**
    * @notice Reverts when a user tries to mint who isn't approved
    */
 
@@ -76,6 +82,14 @@ interface IXERC20 {
     mapping(address => uint256) maxLimit;
     mapping(address => uint256) currentLimit;
   }
+
+  /**
+   * @notice Sets the lockbox address
+   *
+   * @param _lockbox The address of the lockbox
+   */
+
+  function setLockbox(address _lockbox) external;
 
   /**
    * @notice Creates a parameter config and deploys the XERC20

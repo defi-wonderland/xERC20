@@ -21,9 +21,8 @@ contract XERC20Factory is IXERC20Factory {
    * @param _name The name of the token
    * @param _symbol The symbol of the token
    * @param _minterLimits The array of limits that you are adding (optional, can be an empty array)
-   * @param _minters The array of minters that you are adding (optional, can be an empty array)
    * @param _burnerLimits The array of limits that you are adding (optional, can be an empty array)
-   * @param _burners The array of burners that you are adding (optional, can be an empty array)
+   * @param _bridges The array of bridges that you are adding (optional, can be an empty array)
    * @param _baseToken The address of the base ERC20 token if you are deploying a lockbox (optional, put address(0) if you dont want to deploy one)
    */
 
@@ -31,16 +30,17 @@ contract XERC20Factory is IXERC20Factory {
     string memory _name,
     string memory _symbol,
     uint256[] memory _minterLimits,
-    address[] memory _minters,
     uint256[] memory _burnerLimits,
-    address[] memory _burners,
+    address[] memory _bridges,
     address _baseToken
   ) external returns (address _xerc20, address _lockbox) {
-    _xerc20 = _deployXERC20(_name, _symbol, _minterLimits, _minters, _burnerLimits, _burners);
-
     if (_baseToken != address(0)) {
-      _lockbox = _deployLockbox(_xerc20, _baseToken);
+      bytes32 _salt = keccak256(abi.encodePacked(_name, _symbol, msg.sender));
+      address _preComputedXERC20 = CREATE3.getDeployed(_salt);
+      _lockbox = _deployLockbox(_preComputedXERC20, _baseToken);
     }
+
+    _xerc20 = _deployXERC20(_name, _symbol, _minterLimits, _burnerLimits, _bridges, _lockbox);
   }
 
   /**
@@ -64,22 +64,22 @@ contract XERC20Factory is IXERC20Factory {
    * @param _name The name of the token
    * @param _symbol The symbol of the token
    * @param _minterLimits The array of limits that you are adding (optional, can be an empty array)
-   * @param _minters The array of minters that you are adding (optional, can be an empty array)
    * @param _burnerLimits The array of limits that you are adding (optional, can be an empty array)
-   * @param _burners The array of burners that you are adding (optional, can be an empty array)
+   * @param _bridges The array of burners that you are adding (optional, can be an empty array)
+   * @param _lockbox The address of the lockbox (If no lockbox is deployed will be address(0))
    */
 
   function _deployXERC20(
     string memory _name,
     string memory _symbol,
     uint256[] memory _minterLimits,
-    address[] memory _minters,
     uint256[] memory _burnerLimits,
-    address[] memory _burners
+    address[] memory _bridges,
+    address _lockbox
   ) internal returns (address _xerc20) {
     bytes32 _salt = keccak256(abi.encodePacked(_name, _symbol, msg.sender));
     bytes memory _creation = type(XERC20).creationCode;
-    bytes memory _bytecode = abi.encodePacked(_creation, abi.encode(_name, _symbol, msg.sender));
+    bytes memory _bytecode = abi.encodePacked(_creation, abi.encode(_name, _symbol, address(this)));
 
     _xerc20 = CREATE3.deploy(_salt, _bytecode, 0);
 
@@ -87,13 +87,16 @@ contract XERC20Factory is IXERC20Factory {
     xerc20Registry[_xerc20] = true;
 
     // if the user inputs empty arrays we dont waste gas calling these functions
-    if (_minterLimits.length != _minters.length && _minterLimits.length != 0) {
-      XERC20(_xerc20).createMinterLimits(_minterLimits, _minters);
+    if (_minterLimits.length == _bridges.length && _minterLimits.length != 0) {
+      XERC20(_xerc20).createMinterLimits(_minterLimits, _bridges);
     }
 
-    if (_burnerLimits.length != _burners.length && _burnerLimits.length != 0) {
-      XERC20(_xerc20).createBurnerLimits(_burnerLimits, _burners);
+    if (_burnerLimits.length == _bridges.length && _burnerLimits.length != 0) {
+      XERC20(_xerc20).createBurnerLimits(_burnerLimits, _bridges);
     }
+
+    XERC20(_xerc20).setLockbox(_lockbox);
+    XERC20(_xerc20).transferOwnership(msg.sender);
   }
 
   function _deployLockbox(address _xerc20, address _baseToken) internal returns (address _lockbox) {

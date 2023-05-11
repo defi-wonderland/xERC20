@@ -65,9 +65,9 @@ contract UnitMintBurn is Base {
     vm.prank(_owner);
     _xerc20.changeMinterLimit(_amount, _user);
     vm.prank(_user);
-    _xerc20.mint(_user, _amount);
+    _xerc20.mint(_minter, _amount);
 
-    assertEq(_xerc20.balanceOf(_user), _amount);
+    assertEq(_xerc20.balanceOf(_minter), _amount);
   }
 
   function testBurn(uint256 _amount) public {
@@ -84,10 +84,228 @@ contract UnitMintBurn is Base {
 
     assertEq(_xerc20.balanceOf(_user), 0);
   }
+
+  function testMintByTransfer(uint256 _amount, address _randomAddr) public {
+    vm.assume(_amount > 0);
+    vm.assume(_randomAddr != address(0));
+
+    vm.prank(_owner);
+    _xerc20.changeMinterLimit(_amount, _user);
+
+    vm.prank(_user);
+    _xerc20.transfer(_randomAddr, _amount);
+
+    assertEq(_xerc20.balanceOf(_randomAddr), _amount);
+  }
+
+  function testBurnByTransfer(uint256 _amount, address _randomAddr) public {
+    vm.assume(_amount > 0);
+    vm.assume(_randomAddr != address(0));
+
+    vm.startPrank(_owner);
+    _xerc20.changeMinterLimit(_amount, _user);
+    _xerc20.changeBurnerLimit(_amount, _user);
+    vm.stopPrank();
+
+    vm.prank(_user);
+    _xerc20.transfer(_randomAddr, _amount);
+
+    vm.prank(_randomAddr);
+    _xerc20.transfer(_user, _amount);
+
+    assertEq(_xerc20.totalSupply(), 0);
+  }
+
+  function testNormalTransferStillWorks(uint256 _amount, address _randomAddr) public {
+    vm.assume(_amount > 0);
+    vm.assume(_randomAddr != address(0));
+
+    vm.startPrank(_owner);
+    _xerc20.changeMinterLimit(_amount, _minter);
+    vm.stopPrank();
+
+    vm.prank(_minter);
+    _xerc20.mint(_user, _amount);
+
+    vm.prank(_user);
+    bool _success = _xerc20.transfer(_randomAddr, _amount);
+
+    assertEq(_success, true);
+    assertEq(_xerc20.balanceOf(_randomAddr), _amount);
+  }
+
+  function testTransferFromRevertsWithNoAllowance(uint256 _amount) public {
+    vm.assume(_amount > 0);
+
+    vm.startPrank(_owner);
+    _xerc20.changeMinterLimit(_amount, _minter);
+    _xerc20.changeBurnerLimit(_amount, _minter);
+    vm.stopPrank();
+
+    vm.prank(_minter);
+    vm.expectRevert('ERC20: insufficient allowance');
+    _xerc20.transferFrom(_owner, _minter, _amount);
+
+    vm.prank(_minter);
+    vm.expectRevert('ERC20: insufficient allowance');
+    _xerc20.transferFrom(_minter, _owner, _amount);
+  }
+
+  function testTransferFromCanMint(uint256 _amount) public {
+    vm.assume(_amount > 0);
+
+    vm.startPrank(_owner);
+    _xerc20.changeMinterLimit(_amount, _minter);
+    vm.stopPrank();
+
+    vm.prank(_minter);
+    _xerc20.approve(_minter, _amount);
+
+    vm.prank(_minter);
+    _xerc20.transferFrom(_minter, _user, _amount);
+
+    assertEq(_xerc20.balanceOf(_user), _amount);
+  }
+
+  function testTransferFromCanMintFromDifferentAddr(uint256 _amount) public {
+    vm.assume(_amount > 0);
+
+    vm.startPrank(_owner);
+    _xerc20.changeMinterLimit(_amount, _minter);
+    vm.stopPrank();
+
+    vm.prank(_minter);
+    _xerc20.approve(_user, _amount);
+
+    vm.prank(_user);
+    _xerc20.transferFrom(_minter, _owner, _amount);
+
+    assertEq(_xerc20.balanceOf(_owner), _amount);
+  }
+
+  function testTransferFromCanBurn(uint256 _amount) public {
+    vm.assume(_amount > 0);
+
+    vm.startPrank(_owner);
+    _xerc20.changeMinterLimit(_amount, _minter);
+    _xerc20.changeBurnerLimit(_amount, _minter);
+    vm.stopPrank();
+
+    vm.startPrank(_minter);
+    _xerc20.mint(_user, _amount);
+    vm.stopPrank();
+
+    vm.prank(_user);
+    _xerc20.approve(_minter, _amount);
+
+    vm.prank(_minter);
+    _xerc20.transferFrom(_user, _minter, _amount);
+
+    assertEq(_xerc20.totalSupply(), 0);
+  }
+
+  function testTransferShouldRevertIfLimitIsNotEnough(uint256 _amount) public {
+    _amount = bound(_amount, 1, 1e40);
+
+    vm.startPrank(_owner);
+    _xerc20.changeMinterLimit(_amount, _minter);
+    _xerc20.changeBurnerLimit(_amount, _minter);
+
+    _xerc20.changeMinterLimit(_amount + 1, _owner);
+    _xerc20.mint(_user, _amount + 1);
+    vm.stopPrank();
+
+    vm.prank(_minter);
+    vm.expectRevert(IXERC20.IXERC20_NotHighEnoughLimits.selector);
+    _xerc20.transfer(_user, _amount + 1);
+
+    vm.prank(_user);
+    vm.expectRevert(IXERC20.IXERC20_NotHighEnoughLimits.selector);
+    _xerc20.transfer(_minter, _amount + 1);
+  }
+
+  function testTransferFromShouldRevertIfLimitIsNotEnough(uint256 _amount) public {
+    _amount = bound(_amount, 1, 1e40);
+
+    vm.startPrank(_owner);
+    _xerc20.changeMinterLimit(_amount, _minter);
+    _xerc20.changeBurnerLimit(_amount, _minter);
+
+    _xerc20.changeMinterLimit(_amount + 1, _owner);
+    _xerc20.mint(_user, _amount + 1);
+    vm.stopPrank();
+
+    vm.prank(_minter);
+    _xerc20.approve(_minter, _amount + 1);
+
+    vm.prank(_user);
+    _xerc20.approve(_minter, _amount + 1);
+
+    vm.prank(_minter);
+    vm.expectRevert(IXERC20.IXERC20_NotHighEnoughLimits.selector);
+    _xerc20.transferFrom(_user, _minter, _amount + 1);
+
+    vm.prank(_minter);
+    vm.expectRevert(IXERC20.IXERC20_NotHighEnoughLimits.selector);
+    _xerc20.transferFrom(_minter, _user, _amount + 1);
+  }
+
+  function testTransferToBurnerFromMinter(uint256 _amount) public {
+    vm.assume(_amount > 0);
+
+    vm.startPrank(_owner);
+    _xerc20.changeMinterLimit(_amount, _minter);
+    _xerc20.changeBurnerLimit(_amount, _user);
+
+    vm.stopPrank();
+
+    vm.prank(_minter);
+    _xerc20.transfer(_user, _amount);
+
+    assertEq(_xerc20.totalSupply(), 0);
+    assertEq(_xerc20.getMinterCurrentLimit(_minter), 0);
+    assertEq(_xerc20.getBurnerCurrentLimit(_user), 0);
+  }
+
+  function testTransferFromToBurnerFromMinter(uint256 _amount) public {
+    vm.assume(_amount > 0);
+
+    vm.startPrank(_owner);
+    _xerc20.changeMinterLimit(_amount, _minter);
+    _xerc20.changeBurnerLimit(_amount, _user);
+    vm.stopPrank();
+
+    vm.startPrank(_minter);
+    _xerc20.approve(_minter, _amount);
+    _xerc20.transferFrom(_minter, _user, _amount);
+    vm.stopPrank();
+
+    assertEq(_xerc20.totalSupply(), 0);
+    assertEq(_xerc20.getMinterCurrentLimit(_minter), 0);
+    assertEq(_xerc20.getBurnerCurrentLimit(_user), 0);
+  }
+
+  function testTransferWhenBothHavePermissions(uint256 _amount) public {
+    vm.startPrank(_owner);
+    _xerc20.changeMinterLimit(_amount, _minter);
+    _xerc20.changeMinterLimit(_amount, _user);
+    _xerc20.changeBurnerLimit(_amount, _minter);
+    _xerc20.changeBurnerLimit(_amount, _user);
+
+    vm.stopPrank();
+
+    vm.prank(_user);
+    _xerc20.transfer(_minter, _amount);
+
+    assertEq(_xerc20.totalSupply(), 0);
+    assertEq(_xerc20.getMinterCurrentLimit(_user), 0);
+    assertEq(_xerc20.getBurnerCurrentLimit(_minter), 0);
+  }
 }
 
 contract UnitCreateParams is Base {
   function testChangeLimit(uint256 _amount, address _randomAddr) public {
+    vm.assume(_randomAddr != address(0));
     vm.startPrank(_owner);
     _xerc20.changeMinterLimit(_amount, _randomAddr);
     _xerc20.changeBurnerLimit(_amount, _randomAddr);
@@ -395,5 +613,25 @@ contract UnitCreateParams is Base {
     assertEq(_xerc20.getMinterCurrentLimit(_minter), 0);
     assertEq(_xerc20.getBurnerMaxLimit(_minter), 0);
     assertEq(_xerc20.getBurnerCurrentLimit(_minter), 0);
+  }
+
+  function testSetLockbox(address _lockbox) public {
+    vm.prank(_owner);
+    _xerc20.setLockbox(_lockbox);
+
+    assertEq(_xerc20.lockbox(), _lockbox);
+  }
+
+  function testLockboxDoesntNeedMinterRights(address _lockbox) public {
+    vm.assume(_lockbox != address(0));
+    vm.prank(_owner);
+    _xerc20.setLockbox(_lockbox);
+
+    vm.startPrank(_lockbox);
+    _xerc20.mint(_lockbox, 10);
+    assertEq(_xerc20.balanceOf(_lockbox), 10);
+    _xerc20.burn(_lockbox, 10);
+    assertEq(_xerc20.balanceOf(_lockbox), 0);
+    vm.stopPrank();
   }
 }
