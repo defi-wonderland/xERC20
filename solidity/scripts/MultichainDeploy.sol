@@ -11,12 +11,27 @@ import {XERC20Factory, IXERC20Factory} from 'contracts/XERC20Factory.sol';
 import {Script} from 'forge-std/Script.sol';
 
 contract MultichainDeploy is Script {
-  function run() external {
-    vm.startBroadcast();
+  uint256 public deployer = vm.envUint('DEPLOYER_PRIVATE_KEY');
+  string[] public chains = ['goerli', 'polygon', 'optimism'];
 
-    vm.createSelectFork(vm.rpcUrl('mainnet'));
-    address _mainnetFactory = address(new XERC20Factory());
-    console.log('ETH Mainnet Factory deployed to: ', _mainnetFactory);
-    vm.stopBroadcast();
+  function run() public {
+    bytes32 _salt = keccak256(abi.encodePacked('XERC20Factory', msg.sender));
+    address[] memory factories = new address[](chains.length);
+
+    for (uint256 i; i < chains.length; i++) {
+      vm.createSelectFork(vm.rpcUrl(chains[i]));
+      vm.startBroadcast(deployer);
+      address _deployedFactory = address(new XERC20Factory{salt: _salt}());
+      vm.stopBroadcast();
+      console.log(chains[i], 'factory deployed to:', address(_deployedFactory));
+      factories[i] = _deployedFactory;
+    }
+
+    if (chains.length > 1) {
+      for (uint256 i = 1; i < chains.length; i++) {
+        vm.assume(factories[i - 1] == factories[i]);
+        vm.assume(keccak256(factories[i - 1].code) == keccak256(factories[i].code));
+      }
+    }
   }
 }
