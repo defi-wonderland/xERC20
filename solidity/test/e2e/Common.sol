@@ -23,7 +23,7 @@ contract CommonE2EBase is Test {
   XERC20Factory internal _xerc20Factory;
 
   function setUp() public virtual {
-    vm.createSelectFork(vm.rpcUrl('mainnet'), _FORK_BLOCK);
+    vm.createSelectFork(vm.rpcUrl(vm.envString('MAINNET_RPC')), _FORK_BLOCK);
     uint256[] memory _minterLimits = new uint256[](1);
     uint256[] memory _burnerLimits = new uint256[](1);
     address[] memory _bridges = new address[](1);
