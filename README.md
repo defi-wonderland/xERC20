@@ -16,8 +16,7 @@ xTokens is a standard for bridged tokens. A common interface to be used across d
 <sup>*The adapter included is an example into how it would work. Any bridge can build their own.</sup>
 
 ### Flows
-<img width="909" alt="2222" src="https://github.com/defi-wonderland/xTokens-private/assets/106555513/c5bc6eaa-2ae6-44b4-8591-36e48bde3c8b">
-
+<img width="1269" alt="image" src="https://github.com/defi-wonderland/xTokens-private/assets/106555513/09418075-826c-4b7d-a88c-49e6e7b2465c">
 
 ## Setup
 
