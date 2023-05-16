@@ -83,17 +83,32 @@ yarn coverage
 
 Configure the `.env` variables.
 
-### Rinkeby
+Change the parameters inside the corresponding scripts you are running to deploy your XERC20
 
+You will need to set your custom `name` and `symbol` for your XERC20 to be deployed, no need to add an 'x' infront of it, the contract will do that for you.
+
+If you choose to deploy with some bridges to already have permissions to mint/burn you will also have the option to add that, and inside `MultichainCreateXERC20.sol` you will see notes on how to do so
+
+On line 14 of the `MultichainCreateXERC20.sol` and line 13 of the `MultichainDeploy.sol`, you will need to add the names of all the `.env` variables you would like to deploy to inside the `chains` array.
+
+1. To simulate the deployment of the XERC20Factory  you can run
 ```bash
-yarn deploy:rinkeby
+yarn script:DeployFactory
+```
+2. To simulate the deployment of an XERC20  you can run
+```bash
+yarn script:DeployXERC20
+```
+3. To deploy an XERC20 to all the chains you have in the array you can run
+```bash
+yarn script:DeployXERC20:broadcast
+```
+4. To deploy the XERC20Factory to all the chains you have in the array you can run
+```bash
+yarn script:DeployFactory:broadcast
 ```
 
-### Mainnet
 
-```bash
-yarn deploy:mainnet
-```
 
 The deployments are stored in ./broadcast
 
