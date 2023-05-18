@@ -9,10 +9,10 @@ interface IXERC20Factory {
   error IXERC20Factory_NotOwner();
 
   /**
-   * @notice Reverts when a token is address zero
+   * @notice Reverts when a lockbox is trying to be deployed from a malicious address
    */
 
-  error IXERC20Factory_TokenZeroAddress();
+  error IXERC20Factory_BadTokenAddress();
 
   /**
    * @notice Reverts when a lockbox is already deployed

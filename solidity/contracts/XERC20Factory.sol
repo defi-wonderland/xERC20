@@ -51,7 +51,7 @@ contract XERC20Factory is IXERC20Factory {
    */
 
   function deployLockbox(address _xerc20, address _baseToken) external returns (address _lockbox) {
-    if (_xerc20 == address(0) || _baseToken == address(0)) revert IXERC20Factory_TokenZeroAddress();
+    if (_baseToken == address(0) || !xerc20Registry[_xerc20]) revert IXERC20Factory_BadTokenAddress();
     if (XERC20(_xerc20).owner() != msg.sender) revert IXERC20Factory_NotOwner();
     if (lockboxRegistry[_xerc20] != address(0)) revert IXERC20Factory_LockboxAlreadyDeployed();
 

@@ -147,12 +147,15 @@ contract UnitDeploy is Base {
     _xerc20Factory.deployLockbox(_xerc20, _erc20);
   }
 
-  function testLockboxDeploymentRevertsIfAddressZero() public {
-    vm.expectRevert(IXERC20Factory.IXERC20Factory_TokenZeroAddress.selector);
+  function testLockboxDeploymentRevertsIfMaliciousAddress() public {
+    vm.expectRevert(IXERC20Factory.IXERC20Factory_BadTokenAddress.selector);
     _xerc20Factory.deployLockbox(address(0), _erc20);
 
-    vm.expectRevert(IXERC20Factory.IXERC20Factory_TokenZeroAddress.selector);
+    vm.expectRevert(IXERC20Factory.IXERC20Factory_BadTokenAddress.selector);
     _xerc20Factory.deployLockbox(_erc20, address(0));
+
+    vm.expectRevert(IXERC20Factory.IXERC20Factory_BadTokenAddress.selector);
+    _xerc20Factory.deployLockbox(address(111), _erc20);
   }
 
   function testCantDeployLockboxTwice() public {

@@ -52,7 +52,6 @@ interface IXERC20 {
 
   error IXERC20_NotFactory();
 
-
   /**
    * @notice Reverts when the length of parallel arrays are not equal
    */
@@ -62,8 +61,8 @@ interface IXERC20 {
   struct Parameters {
     uint256 timestamp;
     uint256 ratePerSecond;
-    mapping(address => uint256) maxLimit;
-    mapping(address => uint256) currentLimit;
+    uint256 maxLimit;
+    uint256 currentLimit;
   }
 
   /**

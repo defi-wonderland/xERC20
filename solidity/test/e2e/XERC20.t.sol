@@ -367,4 +367,100 @@ contract E2EParameterMath is CommonE2EBase {
     assertApproxEqRel(_xerc20.getMinterCurrentLimit(_owner), 20 ether + (100 ether / 2), 0.1 ether);
     assertEq(_xerc20.getBurnerCurrentLimit(_owner), 100 ether);
   }
+
+  function testMultipleBridgesHaveDifferentValue() public {
+    address _user = vm.addr(1);
+    uint256 _ownerLimit = 100 ether;
+    uint256 _userLimit = 50 ether;
+
+    vm.startPrank(_owner);
+    _xerc20.changeMinterLimit(_ownerLimit, _owner);
+    _xerc20.changeMinterLimit(_userLimit, _user);
+    _xerc20.changeBurnerLimit(_ownerLimit, _owner);
+    _xerc20.changeBurnerLimit(_userLimit, _user);
+    vm.stopPrank();
+
+    uint256 _ownerExpectedRps = _ownerLimit / (24 hours);
+    uint256 _userExpectedRps = _userLimit / (24 hours);
+
+    vm.startPrank(_owner);
+    _xerc20.mint(_user, 90 ether);
+    _xerc20.burn(_user, 90 ether);
+    vm.stopPrank();
+
+    vm.startPrank(_user);
+    _xerc20.mint(_owner, 40 ether);
+    _xerc20.burn(_owner, 40 ether);
+    vm.stopPrank();
+
+    (uint256 _ownerTimestamp, uint256 _ownerRps, uint256 _ownerMaxLimit, uint256 _ownerCurrentLimit) =
+      _xerc20.minterParams(_owner);
+    (uint256 _userTimestamp, uint256 _userRps, uint256 _userMaxLimit, uint256 _userCurrentLimit) =
+      _xerc20.minterParams(_user);
+
+    assertEq(_ownerMaxLimit, _ownerLimit);
+    assertEq(_ownerCurrentLimit, _ownerLimit - 90 ether);
+    assertEq(_userMaxLimit, _userLimit);
+    assertEq(_userCurrentLimit, _userLimit - 40 ether);
+    assertEq(_ownerTimestamp, block.timestamp);
+    assertEq(_userTimestamp, block.timestamp);
+    assertEq(_userRps, _userExpectedRps);
+    assertEq(_ownerRps, _ownerExpectedRps);
+
+    vm.warp(block.timestamp + 12 hours);
+
+    assertApproxEqRel(_xerc20.getMinterCurrentLimit(_owner), _ownerLimit - 90 ether + (_ownerLimit / 2), 0.1 ether);
+    assertApproxEqRel(_xerc20.getMinterCurrentLimit(_user), _userLimit - 40 ether + (_userLimit / 2), 0.1 ether);
+
+    assertApproxEqRel(_xerc20.getBurnerCurrentLimit(_owner), _ownerLimit - 90 ether + (_ownerLimit / 2), 0.1 ether);
+    assertApproxEqRel(_xerc20.getBurnerCurrentLimit(_user), _userLimit - 40 ether + (_userLimit / 2), 0.1 ether);
+  }
+
+  function testMultipleBridgesBurnsHaveDifferentValues() public {
+    address _user = vm.addr(1);
+    uint256 _ownerLimit = 100 ether;
+    uint256 _userLimit = 50 ether;
+
+    vm.startPrank(_owner);
+    _xerc20.changeMinterLimit(_ownerLimit, _owner);
+    _xerc20.changeMinterLimit(_userLimit, _user);
+    _xerc20.changeBurnerLimit(_ownerLimit, _owner);
+    _xerc20.changeBurnerLimit(_userLimit, _user);
+    vm.stopPrank();
+
+    uint256 _ownerExpectedRps = _ownerLimit / (24 hours);
+    uint256 _userExpectedRps = _userLimit / (24 hours);
+
+    vm.startPrank(_owner);
+    _xerc20.mint(_user, 90 ether);
+    _xerc20.burn(_user, 50 ether);
+    vm.stopPrank();
+
+    vm.startPrank(_user);
+    _xerc20.mint(_owner, 40 ether);
+    _xerc20.burn(_owner, 25 ether);
+    vm.stopPrank();
+
+    (uint256 _ownerTimestamp, uint256 _ownerRps, uint256 _ownerMaxLimit, uint256 _ownerCurrentLimit) =
+      _xerc20.burnerParams(_owner);
+    (uint256 _userTimestamp, uint256 _userRps, uint256 _userMaxLimit, uint256 _userCurrentLimit) =
+      _xerc20.burnerParams(_user);
+
+    assertEq(_ownerMaxLimit, _ownerLimit);
+    assertEq(_ownerCurrentLimit, _ownerLimit - 50 ether);
+    assertEq(_userMaxLimit, _userLimit);
+    assertEq(_userCurrentLimit, _userLimit - 25 ether);
+    assertEq(_ownerTimestamp, block.timestamp);
+    assertEq(_userTimestamp, block.timestamp);
+    assertEq(_userRps, _userExpectedRps);
+    assertEq(_ownerRps, _ownerExpectedRps);
+
+    vm.warp(block.timestamp + 12 hours);
+
+    assertApproxEqRel(_xerc20.getMinterCurrentLimit(_owner), _ownerLimit - 90 ether + (_ownerLimit / 2), 0.1 ether);
+    assertApproxEqRel(_xerc20.getMinterCurrentLimit(_user), _userLimit - 40 ether + (_userLimit / 2), 0.1 ether);
+
+    assertApproxEqRel(_xerc20.getBurnerCurrentLimit(_owner), _ownerLimit - 50 ether + (_ownerLimit / 2), 0.1 ether);
+    assertApproxEqRel(_xerc20.getBurnerCurrentLimit(_user), _userLimit - 25 ether + (_userLimit / 2), 0.1 ether);
+  }
 }
