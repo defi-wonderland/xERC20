@@ -87,11 +87,11 @@ contract XERC20Factory is IXERC20Factory {
     xerc20Registry[_xerc20] = true;
 
     // if the user inputs empty arrays we dont waste gas calling these functions
-    if (_minterLimits.length == _bridges.length && _minterLimits.length != 0) {
+    if (_minterLimits.length != 0) {
       XERC20(_xerc20).createMinterLimits(_minterLimits, _bridges);
     }
 
-    if (_burnerLimits.length == _bridges.length && _burnerLimits.length != 0) {
+    if (_burnerLimits.length != 0) {
       XERC20(_xerc20).createBurnerLimits(_burnerLimits, _bridges);
     }
 

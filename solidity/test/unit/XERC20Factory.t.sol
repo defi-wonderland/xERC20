@@ -167,4 +167,21 @@ contract UnitDeploy is Base {
     vm.expectRevert(IXERC20Factory.IXERC20Factory_LockboxAlreadyDeployed.selector);
     _xerc20Factory.deployLockbox(_xerc20, _erc20);
   }
+
+  function testNotParallelArraysRevert() public {
+    uint256[] memory _minterLimits = new uint256[](1);
+    uint256[] memory _burnerLimits = new uint256[](1);
+    uint256[] memory _empty = new uint256[](0);
+    address[] memory _minters = new address[](0);
+
+    _minterLimits[0] = 1;
+    _burnerLimits[0] = 1;
+
+    vm.prank(_owner);
+    vm.expectRevert(IXERC20.IXERC20_IncompatibleLengths.selector);
+    _xerc20Factory.deploy('Test', 'TST', _minterLimits, _empty, _minters, _erc20);
+
+    vm.expectRevert(IXERC20.IXERC20_IncompatibleLengths.selector);
+    _xerc20Factory.deploy('Test', 'TST', _empty, _burnerLimits, _minters, _erc20);
+  }
 }
