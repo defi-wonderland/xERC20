@@ -5,12 +5,18 @@ import {IXERC20} from 'interfaces/IXERC20.sol';
 import {ERC20} from '@openzeppelin/contracts/token/ERC20/ERC20.sol';
 import {ERC20Permit} from '@openzeppelin/contracts/token/ERC20/extensions/draft-ERC20Permit.sol';
 import {Ownable} from '@openzeppelin/contracts/access/Ownable.sol';
+import {EnumerableSet} from '@openzeppelin/contracts/utils/structs/EnumerableSet.sol';
 
 contract XERC20 is ERC20, Ownable, IXERC20, ERC20Permit {
-  uint256 private constant _DURATION = 1 days;
+  using EnumerableSet for EnumerableSet.AddressSet;
 
+  uint256 private constant _DURATION = 1 days;
+  address public immutable FACTORY;
   address public lockbox;
-  address public factory;
+
+  EnumerableSet.AddressSet internal _mintersSet;
+  EnumerableSet.AddressSet internal _burnersSet;
+
   mapping(address => Parameters) public minterParams;
   mapping(address => Parameters) public burnerParams;
 
@@ -28,7 +34,7 @@ contract XERC20 is ERC20, Ownable, IXERC20, ERC20Permit {
     address _factory
   ) ERC20(string.concat('x', _name), string.concat('x', _symbol)) ERC20Permit(string.concat('x', _name)) {
     _transferOwnership(_factory);
-    factory = _factory;
+    FACTORY = _factory;
   }
 
   /**
@@ -44,7 +50,7 @@ contract XERC20 is ERC20, Ownable, IXERC20, ERC20Permit {
 
   /**
    * @notice Burns tokens for a user
-   * @dev Can only be called by a minter
+   * @dev Can only be called by a burner
    * @param _user The address of the user who needs tokens burned
    * @param _amount The amount of tokens being burned
    */
@@ -60,20 +66,20 @@ contract XERC20 is ERC20, Ownable, IXERC20, ERC20Permit {
    */
 
   function transfer(address _to, uint256 _amount) public override returns (bool _result) {
-    uint256 _minterLimit = getMinterMaxLimit(msg.sender);
-    uint256 _burnLimit = getBurnerMaxLimit(_to);
+    bool _minterStatus = minterParams[msg.sender].isBridge;
+    bool _burnerStatus = burnerParams[_to].isBridge;
 
-    if (_minterLimit != 0 && _burnLimit != 0) {
+    if (_minterStatus && _burnerStatus) {
       _mintWithCaller(msg.sender, msg.sender, _amount);
       _burnWithCaller(_to, msg.sender, _amount);
       _result = true;
     } else {
-      if (_minterLimit != 0) {
+      if (_minterStatus) {
         _mintWithCaller(msg.sender, _to, _amount);
         _result = true;
       }
 
-      if (_burnLimit != 0) {
+      if (_burnerStatus) {
         _burnWithCaller(_to, msg.sender, _amount);
         _result = true;
       }
@@ -92,23 +98,23 @@ contract XERC20 is ERC20, Ownable, IXERC20, ERC20Permit {
    */
 
   function transferFrom(address _from, address _to, uint256 _amount) public override returns (bool _result) {
-    uint256 _minterLimit = getMinterMaxLimit(_from);
-    uint256 _burnLimit = getBurnerMaxLimit(_to);
+    bool _minterStatus = minterParams[_from].isBridge;
+    bool _burnerStatus = burnerParams[_to].isBridge;
 
-    if (_minterLimit != 0 && _burnLimit != 0) {
+    if (_minterStatus && _burnerStatus) {
       _mintWithCaller(msg.sender, msg.sender, _amount);
       _burnWithCaller(_to, msg.sender, _amount);
 
       _result = true;
     } else {
-      if (_minterLimit != 0) {
+      if (_minterStatus) {
         _spendAllowance(_from, msg.sender, _amount);
 
         _mintWithCaller(_from, _to, _amount);
         _result = true;
       }
 
-      if (_burnLimit != 0) {
+      if (_burnerStatus) {
         _spendAllowance(_from, msg.sender, _amount);
 
         _burnWithCaller(_to, _from, _amount);
@@ -126,7 +132,7 @@ contract XERC20 is ERC20, Ownable, IXERC20, ERC20Permit {
    */
 
   function setLockbox(address _lockbox) public {
-    if (msg.sender != factory) revert IXERC20_NotFactory();
+    if (msg.sender != FACTORY) revert IXERC20_NotFactory();
     lockbox = _lockbox;
   }
 
@@ -146,12 +152,15 @@ contract XERC20 is ERC20, Ownable, IXERC20, ERC20Permit {
       _currentBridge = _minters[_i];
       _currentLimit = _limits[_i];
       if (minterParams[_currentBridge].maxLimit != 0 || _currentLimit == 0) {
-        changeMinterLimit(_currentLimit, _currentBridge);
+        _changeMinterLimit(_currentLimit, _currentBridge);
       } else {
-        minterParams[_currentBridge].maxLimit = _currentLimit;
-        minterParams[_currentBridge].currentLimit = _currentLimit;
-        minterParams[_currentBridge].ratePerSecond = _currentLimit / _DURATION;
-        minterParams[_currentBridge].timestamp = block.timestamp;
+        minterParams[_currentBridge] = Parameters({
+          maxLimit: _currentLimit,
+          currentLimit: _currentLimit,
+          ratePerSecond: _currentLimit / _DURATION,
+          timestamp: block.timestamp,
+          isBridge: true
+        });
       }
 
       unchecked {
@@ -179,12 +188,15 @@ contract XERC20 is ERC20, Ownable, IXERC20, ERC20Permit {
       _currentBridge = _burners[_i];
       _currentLimit = _limits[_i];
       if (burnerParams[_currentBridge].maxLimit != 0 || _currentLimit == 0) {
-        changeBurnerLimit(_currentLimit, _currentBridge);
+        _changeBurnerLimit(_currentLimit, _currentBridge);
       } else {
-        burnerParams[_currentBridge].maxLimit = _currentLimit;
-        burnerParams[_currentBridge].currentLimit = _currentLimit;
-        burnerParams[_currentBridge].ratePerSecond = _currentLimit / _DURATION;
-        burnerParams[_currentBridge].timestamp = block.timestamp;
+        burnerParams[_currentBridge] = Parameters({
+          maxLimit: _currentLimit,
+          currentLimit: _currentLimit,
+          ratePerSecond: _currentLimit / _DURATION,
+          timestamp: block.timestamp,
+          isBridge: true
+        });
       }
 
       unchecked {
@@ -197,40 +209,44 @@ contract XERC20 is ERC20, Ownable, IXERC20, ERC20Permit {
 
   /**
    * @notice Updates the limit of any minter
-   * @dev Can only be called by the governance or owner
+   * @dev Can only be called by the owner
    * @param _limit The updated limit we are setting to the minter
    * @param _minter The address of the minter we are setting the limit too
    */
 
-  function changeMinterLimit(uint256 _limit, address _minter) public onlyOwner {
-    uint256 _oldLimit = minterParams[_minter].maxLimit;
-    uint256 _currentLimit = getMinterCurrentLimit(_minter);
-    minterParams[_minter].maxLimit = _limit;
-
-    minterParams[_minter].currentLimit = _calculateNewCurrentLimit(_limit, _oldLimit, _currentLimit);
-
-    minterParams[_minter].ratePerSecond = _limit / _DURATION;
-    minterParams[_minter].timestamp = block.timestamp;
-    emit MinterLimitsChanged(_oldLimit, _limit, _minter);
+  function changeMinterLimit(uint256 _limit, address _minter) external onlyOwner {
+    _changeMinterLimit(_limit, _minter);
   }
 
   /**
    * @notice Updates the limit of any burner
-   * @dev Can only be called by the governance or owner
+   * @dev Can only be called by the owner
    * @param _limit The updated limit we are setting to the minter
    * @param _burner The address of the burner we are setting the limit too
    */
 
-  function changeBurnerLimit(uint256 _limit, address _burner) public onlyOwner {
-    uint256 _oldLimit = burnerParams[_burner].maxLimit;
-    uint256 _currentLimit = getBurnerCurrentLimit(_burner);
-    burnerParams[_burner].maxLimit = _limit;
+  function changeBurnerLimit(uint256 _limit, address _burner) external onlyOwner {
+    _changeBurnerLimit(_limit, _burner);
+  }
 
-    burnerParams[_burner].currentLimit = _calculateNewCurrentLimit(_limit, _oldLimit, _currentLimit);
+  /**
+   * @notice Removes a minter
+   * @dev Can only be called by the owner
+   * @param _minter The minter we are removing
+   */
 
-    burnerParams[_burner].ratePerSecond = _limit / _DURATION;
-    burnerParams[_burner].timestamp = block.timestamp;
-    emit BurnerLimitsChanged(_oldLimit, _limit, _burner);
+  function removeMinter(address _minter) external onlyOwner {
+    delete minterParams[_minter];
+  }
+
+  /**
+   * @notice Removes a burner
+   * @dev Can only be called by the owner
+   * @param _burner The burner we are removing
+   */
+
+  function removeBurner(address _burner) external onlyOwner {
+    delete burnerParams[_burner];
   }
 
   /**
@@ -288,6 +304,50 @@ contract XERC20 is ERC20, Ownable, IXERC20, ERC20Permit {
   }
 
   /**
+   * @notice Loops through the array of minters
+   *
+   * @param _start The start of the loop
+   * @param _end The end of the loop
+   * @return _minters The array of minters from the start to the end of the loop
+   */
+
+  function getMinters(uint256 _start, uint256 _end) public view returns (address[] memory _minters) {
+    uint256 _mintersLength = EnumerableSet.length(_mintersSet);
+
+    if (_end > _mintersLength) _end = _mintersLength;
+
+    _minters = new address[](_end - _start);
+    for (uint256 _i; _i < _end;) {
+      _minters[_i] = EnumerableSet.at(_mintersSet, _start + _i);
+      unchecked {
+        ++_i;
+      }
+    }
+  }
+
+  /**
+   * @notice Loops through the array of burners
+   *
+   * @param _start The start of the loop
+   * @param _end The end of the loop
+   * @return _burners The array of burners from the start to the end of the loop
+   */
+
+  function getBurners(uint256 _start, uint256 _end) public view returns (address[] memory _burners) {
+    uint256 _burnersLength = EnumerableSet.length(_burnersSet);
+
+    if (_end > _burnersLength) _end = _burnersLength;
+
+    _burners = new address[](_end - _start);
+    for (uint256 _i; _i < _end;) {
+      _burners[_i] = EnumerableSet.at(_burnersSet, _start + _i);
+      unchecked {
+        ++_i;
+      }
+    }
+  }
+
+  /**
    * @notice Uses the limit of any minter
    * @param _change The change in the limit
    * @param _minter The address of the minter who is being changed
@@ -309,6 +369,54 @@ contract XERC20 is ERC20, Ownable, IXERC20, ERC20Permit {
     uint256 _currentLimit = getBurnerCurrentLimit(_burner);
     burnerParams[_burner].timestamp = block.timestamp;
     burnerParams[_burner].currentLimit = _currentLimit - _change;
+  }
+
+  /**
+   * @notice Updates the limit of any minter
+   * @dev Can only be called by the owner
+   * @param _limit The updated limit we are setting to the minter
+   * @param _minter The address of the minter we are setting the limit too
+   */
+
+  function _changeMinterLimit(uint256 _limit, address _minter) internal {
+    uint256 _oldLimit = minterParams[_minter].maxLimit;
+    uint256 _currentLimit = getMinterCurrentLimit(_minter);
+    minterParams[_minter].maxLimit = _limit;
+
+    if (_limit != 0 && !minterParams[_minter].isBridge) {
+      minterParams[_minter].isBridge = true;
+      EnumerableSet.add(_mintersSet, _minter);
+    }
+
+    minterParams[_minter].currentLimit = _calculateNewCurrentLimit(_limit, _oldLimit, _currentLimit);
+
+    minterParams[_minter].ratePerSecond = _limit / _DURATION;
+    minterParams[_minter].timestamp = block.timestamp;
+    emit MinterLimitsChanged(_oldLimit, _limit, _minter);
+  }
+
+  /**
+   * @notice Updates the limit of any burner
+   * @dev Can only be called by the owner
+   * @param _limit The updated limit we are setting to the minter
+   * @param _burner The address of the burner we are setting the limit too
+   */
+
+  function _changeBurnerLimit(uint256 _limit, address _burner) internal {
+    uint256 _oldLimit = burnerParams[_burner].maxLimit;
+    uint256 _currentLimit = getBurnerCurrentLimit(_burner);
+    burnerParams[_burner].maxLimit = _limit;
+
+    if (_limit != 0 && !burnerParams[_burner].isBridge) {
+      burnerParams[_burner].isBridge = true;
+      EnumerableSet.add(_burnersSet, _burner);
+    }
+
+    burnerParams[_burner].currentLimit = _calculateNewCurrentLimit(_limit, _oldLimit, _currentLimit);
+
+    burnerParams[_burner].ratePerSecond = _limit / _DURATION;
+    burnerParams[_burner].timestamp = block.timestamp;
+    emit BurnerLimitsChanged(_oldLimit, _limit, _burner);
   }
 
   /**

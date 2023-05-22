@@ -63,6 +63,7 @@ interface IXERC20 {
     uint256 ratePerSecond;
     uint256 maxLimit;
     uint256 currentLimit;
+    bool isBridge;
   }
 
   /**
@@ -92,6 +93,22 @@ interface IXERC20 {
   function changeMinterLimit(uint256 _limit, address _minter) external;
 
   /**
+   * @notice Removes a burner
+   * @dev Can only be called by the owner
+   * @param _burner The burner we are removing
+   */
+
+  function removeBurner(address _burner) external;
+
+  /**
+   * @notice Removes a minter
+   * @dev Can only be called by the owner
+   * @param _minter The minter we are removing
+   */
+
+  function removeMinter(address _minter) external;
+
+  /**
    * @notice Returns the max limit of a minter
    *
    * @param _minter The minter we are viewing the limits of
@@ -107,6 +124,26 @@ interface IXERC20 {
    */
 
   function getMinterCurrentLimit(address _minter) external view returns (uint256 _limit);
+
+  /**
+   * @notice Loops through the array of burners
+   *
+   * @param _start The start of the loop
+   * @param _end The end of the loop
+   * @return _burners The array of burners from the start to the end of the loop
+   */
+
+  function getBurners(uint256 _start, uint256 _end) external view returns (address[] memory _burners);
+
+  /**
+   * @notice Loops through the array of minters
+   *
+   * @param _start The start of the loop
+   * @param _end The end of the loop
+   * @return _minters The array of minters from the start to the end of the loop
+   */
+
+  function getMinters(uint256 _start, uint256 _end) external view returns (address[] memory _minters);
 
   /**
    * @notice Mints tokens for a user

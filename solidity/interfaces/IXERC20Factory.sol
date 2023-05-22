@@ -47,4 +47,42 @@ interface IXERC20Factory {
    */
 
   function deployLockbox(address _xerc20, address _baseToken) external returns (address _lockbox);
+
+  /**
+   * @notice Checks if an XERC20 is registered
+   *
+   * @param _xerc20 The address of the xerc20 that you want to check
+   * @return _result True if the xerc20 is registered, false if not
+   */
+
+  function isXERC20(address _xerc20) external view returns (bool _result);
+
+  /**
+   * @notice Loops through the xerc20RegistryArray
+   *
+   * @param _start The start of the loop
+   * @param _end The end of the loop
+   * @return _lockboxes The array of xerc20s from the start to the end of the loop
+   */
+
+  function getRegisteredLockboxes(uint256 _start, uint256 _end) external view returns (address[] memory _lockboxes);
+
+  /**
+   * @notice Loops through the xerc20RegistryArray
+   *
+   * @param _start The start of the loop
+   * @param _end The end of the loop
+   * @return _xerc20s The array of xerc20s from the start to the end of the loop
+   */
+
+  function getRegisteredXERC20(uint256 _start, uint256 _end) external view returns (address[] memory _xerc20s);
+
+  /**
+   * @notice Returns the address of the lockbox for a given XERC20
+   *
+   * @param _xerc20 The address of the XERC20
+   * @return _lockbox The address of the lockbox
+   */
+
+  function lockboxRegistry(address _xerc20) external view returns (address _lockbox);
 }

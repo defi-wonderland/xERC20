@@ -1,3 +1,6 @@
+// SPDX-License-Identifier: UNLICENSED
+pragma solidity >=0.8.4 <0.9.0;
+
 import {CommonE2EBase} from './Common.sol';
 import {XERC20Lockbox} from 'contracts/XERC20Lockbox.sol';
 import {XERC20} from 'contracts/XERC20.sol';
@@ -393,9 +396,9 @@ contract E2EParameterMath is CommonE2EBase {
     _xerc20.burn(_owner, 40 ether);
     vm.stopPrank();
 
-    (uint256 _ownerTimestamp, uint256 _ownerRps, uint256 _ownerMaxLimit, uint256 _ownerCurrentLimit) =
+    (uint256 _ownerTimestamp, uint256 _ownerRps, uint256 _ownerMaxLimit, uint256 _ownerCurrentLimit,) =
       _xerc20.minterParams(_owner);
-    (uint256 _userTimestamp, uint256 _userRps, uint256 _userMaxLimit, uint256 _userCurrentLimit) =
+    (uint256 _userTimestamp, uint256 _userRps, uint256 _userMaxLimit, uint256 _userCurrentLimit,) =
       _xerc20.minterParams(_user);
 
     assertEq(_ownerMaxLimit, _ownerLimit);
@@ -441,9 +444,9 @@ contract E2EParameterMath is CommonE2EBase {
     _xerc20.burn(_owner, 25 ether);
     vm.stopPrank();
 
-    (uint256 _ownerTimestamp, uint256 _ownerRps, uint256 _ownerMaxLimit, uint256 _ownerCurrentLimit) =
+    (uint256 _ownerTimestamp, uint256 _ownerRps, uint256 _ownerMaxLimit, uint256 _ownerCurrentLimit,) =
       _xerc20.burnerParams(_owner);
-    (uint256 _userTimestamp, uint256 _userRps, uint256 _userMaxLimit, uint256 _userCurrentLimit) =
+    (uint256 _userTimestamp, uint256 _userRps, uint256 _userMaxLimit, uint256 _userCurrentLimit,) =
       _xerc20.burnerParams(_user);
 
     assertEq(_ownerMaxLimit, _ownerLimit);

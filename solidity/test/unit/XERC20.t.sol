@@ -648,4 +648,112 @@ contract UnitCreateParams is Base {
     assertEq(_xerc20.balanceOf(_lockbox), 0);
     vm.stopPrank();
   }
+
+  function testGetMinters() public {
+    vm.startPrank(_owner);
+    _xerc20.changeMinterLimit(1e40, _minter);
+    // adding the same address twice to test that it doesnt save
+    _xerc20.changeMinterLimit(1e40, _minter);
+
+    _xerc20.changeMinterLimit(1e2, _user);
+    _xerc20.changeMinterLimit(1e5, _owner);
+
+    vm.stopPrank();
+
+    address[] memory _minters = _xerc20.getMinters(0, 5);
+    assertEq(_minters.length, 3);
+    assertEq(_minters[0], _minter);
+    assertEq(_minters[1], _user);
+    assertEq(_minters[2], _owner);
+  }
+
+  function testGetBurners() public {
+    vm.startPrank(_owner);
+    _xerc20.changeBurnerLimit(1e40, _minter);
+    // adding the same address twice to test that it doesnt save
+    _xerc20.changeBurnerLimit(1e40, _minter);
+
+    _xerc20.changeBurnerLimit(1e2, _user);
+    _xerc20.changeBurnerLimit(1e5, _owner);
+
+    vm.stopPrank();
+
+    address[] memory _burners = _xerc20.getBurners(0, 5);
+    assertEq(_burners.length, 3);
+    assertEq(_burners[0], _minter);
+    assertEq(_burners[1], _user);
+    assertEq(_burners[2], _owner);
+  }
+
+  function testApprovedBridgeWithNoLimitsRevertsOnTransfer(uint256 _limit) public {
+    vm.assume(_limit > 0);
+    vm.startPrank(_owner);
+    _xerc20.changeMinterLimit(_limit, _minter);
+    _xerc20.changeBurnerLimit(_limit, _minter);
+    vm.stopPrank();
+
+    vm.prank(_minter);
+    _xerc20.mint(_minter, _limit);
+
+    vm.expectRevert(IXERC20.IXERC20_NotHighEnoughLimits.selector);
+    vm.prank(_minter);
+    _xerc20.transfer(_owner, 1);
+
+    vm.prank(_minter);
+    _xerc20.burn(_minter, _limit);
+
+    vm.expectRevert(IXERC20.IXERC20_NotHighEnoughLimits.selector);
+    vm.prank(_owner);
+    _xerc20.transfer(_minter, 1);
+  }
+
+  function testApprovedBridgeWithNoLimitsRevertsOnTransferFrom(uint256 _limit) public {
+    vm.assume(_limit > 0);
+    vm.startPrank(_owner);
+    _xerc20.changeMinterLimit(_limit, _minter);
+    _xerc20.changeBurnerLimit(_limit, _minter);
+    vm.stopPrank();
+
+    vm.prank(_minter);
+    _xerc20.mint(_minter, _limit);
+
+    vm.startPrank(_minter);
+    _xerc20.approve(_minter, _limit);
+    vm.expectRevert(IXERC20.IXERC20_NotHighEnoughLimits.selector);
+    _xerc20.transferFrom(_minter, _owner, 1);
+    vm.stopPrank();
+
+    vm.prank(_minter);
+    _xerc20.burn(_minter, _limit);
+
+    vm.startPrank(_owner);
+    _xerc20.approve(_owner, 1);
+    vm.expectRevert(IXERC20.IXERC20_NotHighEnoughLimits.selector);
+    _xerc20.transferFrom(_owner, _minter, 1);
+    vm.stopPrank();
+  }
+
+  function testRemoveMinter(uint256 _limit) public {
+    vm.assume(_limit > 0);
+
+    vm.startPrank(_owner);
+    _xerc20.changeMinterLimit(_limit, _minter);
+    assertEq(_xerc20.getMinterMaxLimit(_minter), _limit);
+    _xerc20.removeMinter(_minter);
+    vm.stopPrank();
+
+    assertEq(_xerc20.getMinterMaxLimit(_minter), 0);
+  }
+
+  function testRemoveBurner(uint256 _limit) public {
+    vm.assume(_limit > 0);
+
+    vm.startPrank(_owner);
+    _xerc20.changeBurnerLimit(_limit, _minter);
+    assertEq(_xerc20.getBurnerMaxLimit(_minter), _limit);
+    _xerc20.removeBurner(_minter);
+    vm.stopPrank();
+
+    assertEq(_xerc20.getBurnerMaxLimit(_minter), 0);
+  }
 }

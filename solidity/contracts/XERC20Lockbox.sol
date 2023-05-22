@@ -2,15 +2,15 @@
 pragma solidity >=0.8.4 <0.9.0;
 
 import {IXERC20} from 'interfaces/IXERC20.sol';
-import {ERC20, IERC20} from '@openzeppelin/contracts/token/ERC20/ERC20.sol';
+import {IERC20} from '@openzeppelin/contracts/token/ERC20/ERC20.sol';
 import {SafeERC20} from '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
 import {IXERC20Lockbox} from 'interfaces/IXERC20Lockbox.sol';
 
 contract XERC20Lockbox is IXERC20Lockbox {
   using SafeERC20 for IERC20;
 
-  IXERC20 public xerc20;
-  IERC20 public erc20;
+  IXERC20 public immutable XERC20;
+  IERC20 public immutable ERC20;
 
   /**
    * @notice Constructor
@@ -20,8 +20,8 @@ contract XERC20Lockbox is IXERC20Lockbox {
    */
 
   constructor(address _xerc20, address _erc20) {
-    xerc20 = IXERC20(_xerc20);
-    erc20 = IERC20(_erc20);
+    XERC20 = IXERC20(_xerc20);
+    ERC20 = IERC20(_erc20);
   }
 
   /**
@@ -31,8 +31,8 @@ contract XERC20Lockbox is IXERC20Lockbox {
    */
 
   function deposit(uint256 _amount) external {
-    erc20.safeTransferFrom(msg.sender, address(this), _amount);
-    xerc20.mint(msg.sender, _amount);
+    ERC20.safeTransferFrom(msg.sender, address(this), _amount);
+    XERC20.mint(msg.sender, _amount);
 
     emit DepositedERC20(msg.sender, _amount);
   }
@@ -44,8 +44,8 @@ contract XERC20Lockbox is IXERC20Lockbox {
    */
 
   function withdraw(uint256 _amount) external {
-    erc20.safeTransfer(msg.sender, _amount);
-    xerc20.burn(msg.sender, _amount);
+    ERC20.safeTransfer(msg.sender, _amount);
+    XERC20.burn(msg.sender, _amount);
 
     emit WithdrawnERC20(msg.sender, _amount);
   }

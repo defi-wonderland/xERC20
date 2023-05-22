@@ -7,8 +7,8 @@ import {XERC20} from 'contracts/XERC20.sol';
 
 contract E2ELockbox is CommonE2EBase {
   function testLockbox() public {
-    assertEq(address(_lockbox.xerc20()), address(_xerc20));
-    assertEq(address(_lockbox.erc20()), address(_dai));
+    assertEq(address(_lockbox.XERC20()), address(_xerc20));
+    assertEq(address(_lockbox.ERC20()), address(_dai));
   }
 
   function testDeposit() public {

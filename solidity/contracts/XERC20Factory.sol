@@ -5,15 +5,16 @@ import {XERC20, IXERC20} from 'contracts/XERC20.sol';
 import {IXERC20Factory} from 'interfaces/IXERC20Factory.sol';
 import {XERC20Lockbox} from 'contracts/XERC20Lockbox.sol';
 import {CREATE3} from 'isolmate/utils/CREATE3.sol';
+import {EnumerableSet} from '@openzeppelin/contracts/utils/structs/EnumerableSet.sol';
 
 contract XERC20Factory is IXERC20Factory {
-  // address maps to the index inside the array
-  mapping(address => bool) public xerc20Registry;
-  // address of the xerc20 maps to its corresponding lockbox
+  using EnumerableSet for EnumerableSet.AddressSet;
+
+  // address of the xerc20 maps to the address of its lockbox if it has one
   mapping(address => address) public lockboxRegistry;
 
-  address[] public lockboxRegistryArray;
-  address[] public xerc20RegistryArray;
+  EnumerableSet.AddressSet internal _lockboxRegistryArray;
+  EnumerableSet.AddressSet internal _xerc20RegistryArray;
 
   /**
    * @notice Deploys an XERC20 contract using CREATE2
@@ -51,11 +52,68 @@ contract XERC20Factory is IXERC20Factory {
    */
 
   function deployLockbox(address _xerc20, address _baseToken) external returns (address _lockbox) {
-    if (_baseToken == address(0) || !xerc20Registry[_xerc20]) revert IXERC20Factory_BadTokenAddress();
+    if (_baseToken == address(0) || !EnumerableSet.contains(_xerc20RegistryArray, _xerc20)) {
+      revert IXERC20Factory_BadTokenAddress();
+    }
     if (XERC20(_xerc20).owner() != msg.sender) revert IXERC20Factory_NotOwner();
     if (lockboxRegistry[_xerc20] != address(0)) revert IXERC20Factory_LockboxAlreadyDeployed();
 
     _lockbox = _deployLockbox(_xerc20, _baseToken);
+  }
+
+  /**
+   * @notice Checks if an XERC20 is registered
+   *
+   * @param _xerc20 The address of the xerc20 that you want to check
+   * @return _result True if the xerc20 is registered, false if not
+   */
+
+  function isXERC20(address _xerc20) external view returns (bool _result) {
+    _result = EnumerableSet.contains(_xerc20RegistryArray, _xerc20);
+  }
+
+  /**
+   * @notice Loops through the xerc20RegistryArray
+   *
+   * @param _start The start of the loop
+   * @param _end The end of the loop
+   * @return _lockboxes The array of xerc20s from the start to the end of the loop
+   */
+
+  function getRegisteredLockboxes(uint256 _start, uint256 _end) public view returns (address[] memory _lockboxes) {
+    uint256 _mintersLength = EnumerableSet.length(_lockboxRegistryArray);
+
+    if (_end > _mintersLength) _end = _mintersLength;
+
+    _lockboxes = new address[](_end - _start);
+    for (uint256 _i; _i < _end;) {
+      _lockboxes[_i] = EnumerableSet.at(_lockboxRegistryArray, _start + _i);
+      unchecked {
+        ++_i;
+      }
+    }
+  }
+
+  /**
+   * @notice Loops through the xerc20RegistryArray
+   *
+   * @param _start The start of the loop
+   * @param _end The end of the loop
+   * @return _xerc20s The array of xerc20s from the start to the end of the loop
+   */
+
+  function getRegisteredXERC20(uint256 _start, uint256 _end) public view returns (address[] memory _xerc20s) {
+    uint256 _mintersLength = EnumerableSet.length(_xerc20RegistryArray);
+
+    if (_end > _mintersLength) _end = _mintersLength;
+
+    _xerc20s = new address[](_end - _start);
+    for (uint256 _i; _i < _end;) {
+      _xerc20s[_i] = EnumerableSet.at(_xerc20RegistryArray, _start + _i);
+      unchecked {
+        ++_i;
+      }
+    }
   }
 
   /**
@@ -83,8 +141,7 @@ contract XERC20Factory is IXERC20Factory {
 
     _xerc20 = CREATE3.deploy(_salt, _bytecode, 0);
 
-    xerc20RegistryArray.push(_xerc20);
-    xerc20Registry[_xerc20] = true;
+    EnumerableSet.add(_xerc20RegistryArray, _xerc20);
 
     // if the user inputs empty arrays we dont waste gas calling these functions
     if (_minterLimits.length != 0) {
@@ -106,7 +163,7 @@ contract XERC20Factory is IXERC20Factory {
 
     _lockbox = CREATE3.deploy(_salt, _bytecode, 0);
 
-    lockboxRegistryArray.push(_lockbox);
+    EnumerableSet.add(_lockboxRegistryArray, _lockbox);
     lockboxRegistry[_xerc20] = _lockbox;
   }
 }

@@ -64,15 +64,6 @@ contract UnitDeploy is Base {
     assertEq(_predictedAddress, _xerc20);
   }
 
-  function testRegistryIsStoredCorrectly() public {
-    uint256[] memory _limits = new uint256[](0);
-    address[] memory _minters = new address[](0);
-    (address _xerc20,) = _xerc20Factory.deploy('Test', 'TST', _limits, _limits, _minters, address(0));
-
-    assertEq(_xerc20Factory.xerc20Registry(_xerc20), true);
-    assertEq(_xerc20Factory.xerc20RegistryArray(0), _xerc20);
-  }
-
   function testDeploymentWithLockbox() public {
     uint256[] memory _limits = new uint256[](0);
     address[] memory _minters = new address[](0);
@@ -80,8 +71,8 @@ contract UnitDeploy is Base {
     (address _xerc20,) = _xerc20Factory.deploy('Test', 'TST', _limits, _limits, _minters, _erc20);
     address _lockbox = _xerc20Factory.lockboxRegistry(_xerc20);
 
-    assertEq(address(XERC20Lockbox(_lockbox).xerc20()), address(_xerc20));
-    assertEq(address(XERC20Lockbox(_lockbox).erc20()), _erc20);
+    assertEq(address(XERC20Lockbox(_lockbox).XERC20()), address(_xerc20));
+    assertEq(address(XERC20Lockbox(_lockbox).ERC20()), _erc20);
   }
 
   function testLockboxPrecomputedAddress() public {
@@ -107,7 +98,6 @@ contract UnitDeploy is Base {
     bytes32 _salt = keccak256(abi.encodePacked(_xerc20, _erc20, _owner));
 
     assertEq(_xerc20Factory.lockboxRegistry(_xerc20), _xerc20Factory.getDeployed(_salt));
-    assertEq(_xerc20Factory.lockboxRegistryArray(0), _xerc20Factory.getDeployed(_salt));
   }
 
   function testLockboxDoesntDeployWithBadParams() public {
@@ -131,8 +121,8 @@ contract UnitDeploy is Base {
     address _lockbox = _xerc20Factory.deployLockbox(_xerc20, _erc20);
     vm.stopPrank();
 
-    assertEq(address(XERC20Lockbox(_lockbox).xerc20()), _xerc20);
-    assertEq(address(XERC20Lockbox(_lockbox).erc20()), _erc20);
+    assertEq(address(XERC20Lockbox(_lockbox).XERC20()), _xerc20);
+    assertEq(address(XERC20Lockbox(_lockbox).ERC20()), _erc20);
   }
 
   function testLockboxSingleDeploymentRevertsIfNotOwner() public {
@@ -183,5 +173,49 @@ contract UnitDeploy is Base {
 
     vm.expectRevert(IXERC20.IXERC20_IncompatibleLengths.selector);
     _xerc20Factory.deploy('Test', 'TST', _empty, _burnerLimits, _minters, _erc20);
+  }
+
+  function testRegisteredXerc20ArraysAreStored() public {
+    uint256[] memory _limits = new uint256[](0);
+    address[] memory _minters = new address[](0);
+
+    (address _xerc1,) = _xerc20Factory.deploy('_xerc1', '_xerc1', _limits, _limits, _minters, _erc20);
+    (address _xerc2,) = _xerc20Factory.deploy('_xerc2', '_xerc2', _limits, _limits, _minters, _erc20);
+    (address _xerc3,) = _xerc20Factory.deploy('_xerc3', '_xerc3', _limits, _limits, _minters, _erc20);
+
+    address[] memory _xercs = _xerc20Factory.getRegisteredXERC20(0, 5);
+
+    assertEq(_xercs.length, 3);
+
+    assertEq(_xercs[0], _xerc1);
+    assertEq(_xercs[1], _xerc2);
+    assertEq(_xercs[2], _xerc3);
+  }
+
+  function testRegisteredLockboxArraysAreStored() public {
+    uint256[] memory _limits = new uint256[](0);
+    address[] memory _minters = new address[](0);
+
+    (, address _lockbox1) = _xerc20Factory.deploy('_xerc1', '_xerc1', _limits, _limits, _minters, _erc20);
+    (, address _lockbox2) = _xerc20Factory.deploy('_xerc2', '_xerc2', _limits, _limits, _minters, _erc20);
+    (, address _lockbox3) = _xerc20Factory.deploy('_xerc3', '_xerc3', _limits, _limits, _minters, _erc20);
+
+    address[] memory _lockboxes = _xerc20Factory.getRegisteredLockboxes(0, 5);
+
+    assertEq(_lockboxes.length, 3);
+
+    assertEq(_lockboxes[0], _lockbox1);
+    assertEq(_lockboxes[1], _lockbox2);
+    assertEq(_lockboxes[2], _lockbox3);
+  }
+
+  function testIsXERC20(address _randomAddr) public {
+    uint256[] memory _limits = new uint256[](0);
+    address[] memory _minters = new address[](0);
+
+    (address _token,) = _xerc20Factory.deploy('Test', 'TST', _limits, _limits, _minters, address(0));
+    vm.assume(_randomAddr != _token);
+    assertEq(_xerc20Factory.isXERC20(_randomAddr), false);
+    assertEq(_xerc20Factory.isXERC20(_token), true);
   }
 }
