@@ -3,42 +3,22 @@ pragma solidity >=0.8.4 <0.9.0;
 
 interface IXERC20 {
   /**
-   * @notice Emits when multiple limits are added
+   * @notice Emits when a limit is set
    *
-   * @param _limits The limits to be added to the minters
-   * @param _minters The minters who will recieve the limits
-   */
-
-  event MinterLimitsCreated(uint256[] _limits, address[] _minters);
-
-  /**
-   * @notice Emits when a new limit is added
-   *
-   * @param _oldLimit The old limit of the minter
    * @param _newLimit The updated limit we are setting to the minter
    * @param _minter The address of the minter we are setting the limit too
    */
 
-  event MinterLimitsChanged(uint256 _oldLimit, uint256 _newLimit, address _minter);
+  event MinterLimitsSet(uint256 _newLimit, address indexed _minter);
 
   /**
-   * @notice Emits when multiple limits are added
+   * @notice Emits when a limit is set
    *
-   * @param _limits The limits to be added to the minters
-   * @param _burners The minters who will recieve the limits
-   */
-
-  event BurnerLimitsCreated(uint256[] _limits, address[] _burners);
-
-  /**
-   * @notice Emits when a new limit is added
-   *
-   * @param _oldLimit The old limit of the minter
    * @param _newLimit The updated limit we are setting to the minter
    * @param _burner The address of the minter we are setting the limit too
    */
 
-  event BurnerLimitsChanged(uint256 _oldLimit, uint256 _newLimit, address _burner);
+  event BurnerLimitsSet(uint256 _newLimit, address indexed _burner);
 
   /**
    * @notice Reverts when a user with too low of a limit tries to call mint/burn

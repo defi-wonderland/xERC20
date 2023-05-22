@@ -15,10 +15,8 @@ abstract contract Base is Test {
 
   XERC20 internal _xerc20;
 
-  event MinterLimitsCreated(uint256[] _limits, address[] _minters);
-  event MinterLimitsChanged(uint256 _oldLimit, uint256 _newLimit, address _minter);
-  event BurnerLimitsCreated(uint256[] _limits, address[] _burners);
-  event BurnerLimitsChanged(uint256 _oldLimit, uint256 _newLimit, address _burner);
+  event MinterLimitsSet(uint256 _newLimit, address indexed _minter);
+  event BurnerLimitsSet(uint256 _newLimit, address indexed _burner);
 
   function setUp() public virtual {
     vm.startPrank(_owner);
@@ -370,22 +368,29 @@ contract UnitCreateParams is Base {
     assertEq(_xerc20.getBurnerMaxLimit(_user2), _amount2);
   }
 
-  function testCreateMinterLimitsEmitsEvent() public {
-    uint256[] memory _limits = new uint256[](0);
-    address[] memory _minters = new address[](0);
+  function testCreateMinterLimitsEmitsEvent(uint256 _limit) public {
+    vm.assume(_limit > 0);
+    uint256[] memory _limits = new uint256[](1);
+    address[] memory _minters = new address[](1);
 
+    _limits[0] = _limit;
+    _minters[0] = _minter;
     vm.expectEmit(true, true, true, true);
-    emit MinterLimitsCreated(_limits, _minters);
+    emit MinterLimitsSet(_limit, _minter);
     vm.prank(_owner);
     _xerc20.createMinterLimits(_limits, _minters);
   }
 
-  function testCreateBurnerLimitsEmitsEvent() public {
-    uint256[] memory _limits = new uint256[](0);
-    address[] memory _minters = new address[](0);
+  function testCreateBurnerLimitsEmitsEvent(uint256 _limit) public {
+    vm.assume(_limit > 0);
+    uint256[] memory _limits = new uint256[](1);
+    address[] memory _minters = new address[](1);
+
+    _limits[0] = _limit;
+    _minters[0] = _minter;
 
     vm.expectEmit(true, true, true, true);
-    emit BurnerLimitsCreated(_limits, _minters);
+    emit BurnerLimitsSet(_limit, _minter);
     vm.prank(_owner);
     _xerc20.createBurnerLimits(_limits, _minters);
   }
@@ -393,14 +398,14 @@ contract UnitCreateParams is Base {
   function testChangeMinterLimitEmitsEvent(uint256 _limit, address _minter) public {
     vm.prank(_owner);
     vm.expectEmit(true, true, true, true);
-    emit MinterLimitsChanged(0, _limit, _minter);
+    emit MinterLimitsSet(_limit, _minter);
     _xerc20.changeMinterLimit(_limit, _minter);
   }
 
   function testChangeBurnerLimitEmitsEvent(uint256 _limit, address _minter) public {
     vm.prank(_owner);
     vm.expectEmit(true, true, true, true);
-    emit BurnerLimitsChanged(0, _limit, _minter);
+    emit BurnerLimitsSet(_limit, _minter);
     _xerc20.changeBurnerLimit(_limit, _minter);
   }
 

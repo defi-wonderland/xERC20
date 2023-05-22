@@ -146,29 +146,13 @@ contract XERC20 is ERC20, Ownable, IXERC20, ERC20Permit {
   function createMinterLimits(uint256[] memory _limits, address[] memory _minters) external onlyOwner {
     uint256 _mintersLength = _minters.length;
     if (_limits.length != _mintersLength) revert IXERC20_IncompatibleLengths();
-    address _currentBridge;
-    uint256 _currentLimit;
-    for (uint256 _i; _i < _mintersLength;) {
-      _currentBridge = _minters[_i];
-      _currentLimit = _limits[_i];
-      if (minterParams[_currentBridge].maxLimit != 0 || _currentLimit == 0) {
-        _changeMinterLimit(_currentLimit, _currentBridge);
-      } else {
-        minterParams[_currentBridge] = Parameters({
-          maxLimit: _currentLimit,
-          currentLimit: _currentLimit,
-          ratePerSecond: _currentLimit / _DURATION,
-          timestamp: block.timestamp,
-          isBridge: true
-        });
-      }
 
+    for (uint256 _i; _i < _mintersLength;) {
+      _changeMinterLimit(_limits[_i], _minters[_i]);
       unchecked {
         ++_i;
       }
     }
-
-    emit MinterLimitsCreated(_limits, _minters);
   }
 
   /**
@@ -182,29 +166,13 @@ contract XERC20 is ERC20, Ownable, IXERC20, ERC20Permit {
     uint256 _burnersLength = _burners.length;
     if (_limits.length != _burnersLength) revert IXERC20_IncompatibleLengths();
 
-    address _currentBridge;
-    uint256 _currentLimit;
     for (uint256 _i; _i < _burnersLength;) {
-      _currentBridge = _burners[_i];
-      _currentLimit = _limits[_i];
-      if (burnerParams[_currentBridge].maxLimit != 0 || _currentLimit == 0) {
-        _changeBurnerLimit(_currentLimit, _currentBridge);
-      } else {
-        burnerParams[_currentBridge] = Parameters({
-          maxLimit: _currentLimit,
-          currentLimit: _currentLimit,
-          ratePerSecond: _currentLimit / _DURATION,
-          timestamp: block.timestamp,
-          isBridge: true
-        });
-      }
+      _changeBurnerLimit(_limits[_i], _burners[_i]);
 
       unchecked {
         ++_i;
       }
     }
-
-    emit BurnerLimitsCreated(_limits, _burners);
   }
 
   /**
@@ -392,7 +360,7 @@ contract XERC20 is ERC20, Ownable, IXERC20, ERC20Permit {
 
     minterParams[_minter].ratePerSecond = _limit / _DURATION;
     minterParams[_minter].timestamp = block.timestamp;
-    emit MinterLimitsChanged(_oldLimit, _limit, _minter);
+    emit MinterLimitsSet(_limit, _minter);
   }
 
   /**
@@ -416,7 +384,7 @@ contract XERC20 is ERC20, Ownable, IXERC20, ERC20Permit {
 
     burnerParams[_burner].ratePerSecond = _limit / _DURATION;
     burnerParams[_burner].timestamp = block.timestamp;
-    emit BurnerLimitsChanged(_oldLimit, _limit, _burner);
+    emit BurnerLimitsSet(_limit, _burner);
   }
 
   /**
