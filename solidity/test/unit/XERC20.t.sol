@@ -690,6 +690,40 @@ contract UnitCreateParams is Base {
     assertEq(_burners[2], _owner);
   }
 
+  function testGetBurnersForTheMiddleOfTheArray() public {
+    vm.startPrank(_owner);
+    _xerc20.changeBurnerLimit(1e40, _minter);
+    // adding the same address twice to test that it doesnt save
+    _xerc20.changeBurnerLimit(1e40, _minter);
+
+    _xerc20.changeBurnerLimit(1e2, _user);
+    _xerc20.changeBurnerLimit(1e5, _owner);
+
+    vm.stopPrank();
+
+    address[] memory _burners = _xerc20.getBurners(1, 2);
+    assertEq(_burners.length, 2);
+    assertEq(_burners[0], _user);
+    assertEq(_burners[1], _owner);
+  }
+
+  function testGetMintersForTheMiddleOfTheArray() public {
+    vm.startPrank(_owner);
+    _xerc20.changeMinterLimit(1e40, _minter);
+    // adding the same address twice to test that it doesnt save
+    _xerc20.changeMinterLimit(1e40, _minter);
+
+    _xerc20.changeMinterLimit(1e2, _user);
+    _xerc20.changeMinterLimit(1e5, _owner);
+
+    vm.stopPrank();
+
+    address[] memory _minters = _xerc20.getMinters(1, 2);
+    assertEq(_minters.length, 2);
+    assertEq(_minters[0], _user);
+    assertEq(_minters[1], _owner);
+  }
+
   function testApprovedBridgeWithNoLimitsRevertsOnTransfer(uint256 _limit) public {
     vm.assume(_limit > 0);
     vm.startPrank(_owner);

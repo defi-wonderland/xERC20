@@ -275,20 +275,23 @@ contract XERC20 is ERC20, Ownable, IXERC20, ERC20Permit {
    * @notice Loops through the array of minters
    *
    * @param _start The start of the loop
-   * @param _end The end of the loop
+   * @param _amount The amount of minters to loop through
    * @return _minters The array of minters from the start to the end of the loop
    */
 
-  function getMinters(uint256 _start, uint256 _end) public view returns (address[] memory _minters) {
+  function getMinters(uint256 _start, uint256 _amount) external view returns (address[] memory _minters) {
     uint256 _mintersLength = EnumerableSet.length(_mintersSet);
+    if (_amount > _mintersLength - _start) {
+      _amount = _mintersLength - _start;
+    }
 
-    if (_end > _mintersLength) _end = _mintersLength;
+    _minters = new address[](_amount);
+    uint256 _index;
+    while (_index < _amount) {
+      _minters[_index] = EnumerableSet.at(_mintersSet, _start + _index);
 
-    _minters = new address[](_end - _start);
-    for (uint256 _i; _i < _end;) {
-      _minters[_i] = EnumerableSet.at(_mintersSet, _start + _i);
       unchecked {
-        ++_i;
+        ++_index;
       }
     }
   }
@@ -297,20 +300,23 @@ contract XERC20 is ERC20, Ownable, IXERC20, ERC20Permit {
    * @notice Loops through the array of burners
    *
    * @param _start The start of the loop
-   * @param _end The end of the loop
+   * @param _amount The amount of burners to loop through
    * @return _burners The array of burners from the start to the end of the loop
    */
 
-  function getBurners(uint256 _start, uint256 _end) public view returns (address[] memory _burners) {
+  function getBurners(uint256 _start, uint256 _amount) public view returns (address[] memory _burners) {
     uint256 _burnersLength = EnumerableSet.length(_burnersSet);
+    if (_amount > _burnersLength - _start) {
+      _amount = _burnersLength - _start;
+    }
 
-    if (_end > _burnersLength) _end = _burnersLength;
+    _burners = new address[](_amount);
+    uint256 _index;
+    while (_index < _amount) {
+      _burners[_index] = EnumerableSet.at(_burnersSet, _start + _index);
 
-    _burners = new address[](_end - _start);
-    for (uint256 _i; _i < _end;) {
-      _burners[_i] = EnumerableSet.at(_burnersSet, _start + _i);
       unchecked {
-        ++_i;
+        ++_index;
       }
     }
   }
