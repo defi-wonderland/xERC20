@@ -3,6 +3,14 @@ pragma solidity >=0.8.4 <0.9.0;
 
 interface IXERC20 {
   /**
+   * @notice Emits when a lockbox is set
+   *
+   * @param _lockbox The address of the lockbox
+   */
+
+  event LockboxSet(address _lockbox);
+
+  /**
    * @notice Emits when a limit is set
    *
    * @param _newLimit The updated limit we are setting to the minter
@@ -109,21 +117,21 @@ interface IXERC20 {
    * @notice Loops through the array of burners
    *
    * @param _start The start of the loop
-   * @param _end The end of the loop
+   * @param _amount The amount of burners to loop through
    * @return _burners The array of burners from the start to the end of the loop
    */
 
-  function getBurners(uint256 _start, uint256 _end) external view returns (address[] memory _burners);
+  function getBurners(uint256 _start, uint256 _amount) external view returns (address[] memory _burners);
 
   /**
    * @notice Loops through the array of minters
    *
    * @param _start The start of the loop
-   * @param _end The end of the loop
+   * @param _amount The amount of minters to loop through
    * @return _minters The array of minters from the start to the end of the loop
    */
 
-  function getMinters(uint256 _start, uint256 _end) external view returns (address[] memory _minters);
+  function getMinters(uint256 _start, uint256 _amount) external view returns (address[] memory _minters);
 
   /**
    * @notice Mints tokens for a user

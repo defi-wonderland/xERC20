@@ -3,6 +3,18 @@ pragma solidity >=0.8.4 <0.9.0;
 
 interface IXERC20Factory {
   /**
+   * @notice Emitted when a new XERC20 is deployed
+   */
+
+  event XERC20Deployed(address _xerc20, address _lockbox);
+
+  /**
+   * @notice Emitted when a new XERC20Lockbox is deployed
+   */
+
+  event LockboxDeployed(address _lockbox);
+
+  /**
    * @notice Reverts when a non-owner attempts to call
    */
 
@@ -61,21 +73,21 @@ interface IXERC20Factory {
    * @notice Loops through the xerc20RegistryArray
    *
    * @param _start The start of the loop
-   * @param _end The end of the loop
-   * @return _lockboxes The array of xerc20s from the start to the end of the loop
+   * @param _amount The end of the loop
+   * @return _lockboxes The array of xerc20s from the start to start + amount
    */
 
-  function getRegisteredLockboxes(uint256 _start, uint256 _end) external view returns (address[] memory _lockboxes);
+  function getRegisteredLockboxes(uint256 _start, uint256 _amount) external view returns (address[] memory _lockboxes);
 
   /**
    * @notice Loops through the xerc20RegistryArray
    *
    * @param _start The start of the loop
-   * @param _end The end of the loop
-   * @return _xerc20s The array of xerc20s from the start to the end of the loop
+   * @param _amount The amount of xerc20s to loop through
+   * @return _xerc20s The array of xerc20s from the start to start + amount
    */
 
-  function getRegisteredXERC20(uint256 _start, uint256 _end) external view returns (address[] memory _xerc20s);
+  function getRegisteredXERC20(uint256 _start, uint256 _amount) external view returns (address[] memory _xerc20s);
 
   /**
    * @notice Returns the address of the lockbox for a given XERC20

@@ -17,6 +17,7 @@ abstract contract Base is Test {
 
   event MinterLimitsSet(uint256 _newLimit, address indexed _minter);
   event BurnerLimitsSet(uint256 _newLimit, address indexed _burner);
+  event LockboxSet(address _lockbox);
 
   function setUp() public virtual {
     vm.startPrank(_owner);
@@ -639,6 +640,13 @@ contract UnitCreateParams is Base {
     _xerc20.setLockbox(_lockbox);
 
     assertEq(_xerc20.lockbox(), _lockbox);
+  }
+
+  function testSetLockboxEmitsEvents(address _lockbox) public {
+    vm.expectEmit(true, true, true, true);
+    emit LockboxSet(_lockbox);
+    vm.prank(_owner);
+    _xerc20.setLockbox(_lockbox);
   }
 
   function testLockboxDoesntNeedMinterRights(address _lockbox) public {

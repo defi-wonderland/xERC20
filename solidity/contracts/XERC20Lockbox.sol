@@ -9,7 +9,14 @@ import {IXERC20Lockbox} from 'interfaces/IXERC20Lockbox.sol';
 contract XERC20Lockbox is IXERC20Lockbox {
   using SafeERC20 for IERC20;
 
+  /**
+   * @notice The XERC20 token of this contract
+   */
   IXERC20 public immutable XERC20;
+
+  /**
+   * @notice The ERC20 token of this contract
+   */
   IERC20 public immutable ERC20;
 
   /**
@@ -34,7 +41,7 @@ contract XERC20Lockbox is IXERC20Lockbox {
     ERC20.safeTransferFrom(msg.sender, address(this), _amount);
     XERC20.mint(msg.sender, _amount);
 
-    emit DepositedERC20(msg.sender, _amount);
+    emit Deposit(msg.sender, _amount);
   }
 
   /**
@@ -47,6 +54,6 @@ contract XERC20Lockbox is IXERC20Lockbox {
     ERC20.safeTransfer(msg.sender, _amount);
     XERC20.burn(msg.sender, _amount);
 
-    emit WithdrawnERC20(msg.sender, _amount);
+    emit Withdraw(msg.sender, _amount);
   }
 }

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity >=0.8.4 <0.9.0;
 
-import {XERC20, IXERC20} from 'contracts/XERC20.sol';
+import {XERC20} from 'contracts/XERC20.sol';
 import {IXERC20Factory} from 'interfaces/IXERC20Factory.sol';
 import {XERC20Lockbox} from 'contracts/XERC20Lockbox.sol';
 import {CREATE3} from 'isolmate/utils/CREATE3.sol';
@@ -10,10 +10,19 @@ import {EnumerableSet} from '@openzeppelin/contracts/utils/structs/EnumerableSet
 contract XERC20Factory is IXERC20Factory {
   using EnumerableSet for EnumerableSet.AddressSet;
 
-  // address of the xerc20 maps to the address of its lockbox if it has one
+  /**
+   * @notice Address of the xerc20 maps to the address of its lockbox if it has one
+   */
   mapping(address => address) public lockboxRegistry;
 
+  /**
+   * @notice The set of registered lockboxes
+   */
   EnumerableSet.AddressSet internal _lockboxRegistryArray;
+
+  /**
+   * @notice The set of registered XERC20 tokens
+   */
   EnumerableSet.AddressSet internal _xerc20RegistryArray;
 
   /**
@@ -42,6 +51,8 @@ contract XERC20Factory is IXERC20Factory {
     }
 
     _xerc20 = _deployXERC20(_name, _symbol, _minterLimits, _burnerLimits, _bridges, _lockbox);
+
+    emit XERC20Deployed(_xerc20, _lockbox);
   }
 
   /**
@@ -59,6 +70,8 @@ contract XERC20Factory is IXERC20Factory {
     if (lockboxRegistry[_xerc20] != address(0)) revert IXERC20Factory_LockboxAlreadyDeployed();
 
     _lockbox = _deployLockbox(_xerc20, _baseToken);
+
+    emit LockboxDeployed(_lockbox);
   }
 
   /**
@@ -76,20 +89,23 @@ contract XERC20Factory is IXERC20Factory {
    * @notice Loops through the xerc20RegistryArray
    *
    * @param _start The start of the loop
-   * @param _end The end of the loop
-   * @return _lockboxes The array of xerc20s from the start to the end of the loop
+   * @param _amount The end of the loop
+   * @return _lockboxes The array of xerc20s from the start to start + amount
    */
 
-  function getRegisteredLockboxes(uint256 _start, uint256 _end) public view returns (address[] memory _lockboxes) {
-    uint256 _mintersLength = EnumerableSet.length(_lockboxRegistryArray);
+  function getRegisteredLockboxes(uint256 _start, uint256 _amount) public view returns (address[] memory _lockboxes) {
+    uint256 _length = EnumerableSet.length(_lockboxRegistryArray);
+    if (_amount > _length - _start) {
+      _amount = _length - _start;
+    }
 
-    if (_end > _mintersLength) _end = _mintersLength;
+    _lockboxes = new address[](_amount);
+    uint256 _index;
+    while (_index < _amount) {
+      _lockboxes[_index] = EnumerableSet.at(_lockboxRegistryArray, _start + _index);
 
-    _lockboxes = new address[](_end - _start);
-    for (uint256 _i; _i < _end;) {
-      _lockboxes[_i] = EnumerableSet.at(_lockboxRegistryArray, _start + _i);
       unchecked {
-        ++_i;
+        ++_index;
       }
     }
   }
@@ -98,20 +114,23 @@ contract XERC20Factory is IXERC20Factory {
    * @notice Loops through the xerc20RegistryArray
    *
    * @param _start The start of the loop
-   * @param _end The end of the loop
-   * @return _xerc20s The array of xerc20s from the start to the end of the loop
+   * @param _amount The amount of xerc20s to loop through
+   * @return _xerc20s The array of xerc20s from the start to start + amount
    */
 
-  function getRegisteredXERC20(uint256 _start, uint256 _end) public view returns (address[] memory _xerc20s) {
-    uint256 _mintersLength = EnumerableSet.length(_xerc20RegistryArray);
+  function getRegisteredXERC20(uint256 _start, uint256 _amount) public view returns (address[] memory _xerc20s) {
+    uint256 _length = EnumerableSet.length(_xerc20RegistryArray);
+    if (_amount > _length - _start) {
+      _amount = _length - _start;
+    }
 
-    if (_end > _mintersLength) _end = _mintersLength;
+    _xerc20s = new address[](_amount);
+    uint256 _index;
+    while (_index < _amount) {
+      _xerc20s[_index] = EnumerableSet.at(_xerc20RegistryArray, _start + _index);
 
-    _xerc20s = new address[](_end - _start);
-    for (uint256 _i; _i < _end;) {
-      _xerc20s[_i] = EnumerableSet.at(_xerc20RegistryArray, _start + _i);
       unchecked {
-        ++_i;
+        ++_index;
       }
     }
   }

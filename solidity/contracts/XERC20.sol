@@ -10,14 +10,39 @@ import {EnumerableSet} from '@openzeppelin/contracts/utils/structs/EnumerableSet
 contract XERC20 is ERC20, Ownable, IXERC20, ERC20Permit {
   using EnumerableSet for EnumerableSet.AddressSet;
 
+  /**
+   * @notice The duration it takes for the limits to fully replenish
+   */
   uint256 private constant _DURATION = 1 days;
+
+  /**
+   * @notice The address of the factory which deployed this contract
+   */
   address public immutable FACTORY;
+
+  /**
+   * @notice The address of the lockbox contract
+   */
   address public lockbox;
 
+  /**
+   * @notice The set of whitelisted minters
+   */
   EnumerableSet.AddressSet internal _mintersSet;
+
+  /**
+   * @notice The set of whitelisted burners
+   */
   EnumerableSet.AddressSet internal _burnersSet;
 
+  /**
+   * @notice The address that maps to the parameters for a minter
+   */
   mapping(address => Parameters) public minterParams;
+
+  /**
+   * @notice The address that maps to the parameters for a burner
+   */
   mapping(address => Parameters) public burnerParams;
 
   /**
@@ -134,6 +159,8 @@ contract XERC20 is ERC20, Ownable, IXERC20, ERC20Permit {
   function setLockbox(address _lockbox) public {
     if (msg.sender != FACTORY) revert IXERC20_NotFactory();
     lockbox = _lockbox;
+
+    emit LockboxSet(_lockbox);
   }
 
   /**
@@ -229,7 +256,7 @@ contract XERC20 is ERC20, Ownable, IXERC20, ERC20Permit {
   }
 
   /**
-   * @notice Returns the max limit of a minter
+   * @notice Returns the max limit of a burner
    *
    * @param _burner The burner we are viewing the limits of
    * @return _limit The limit the burner has
@@ -256,7 +283,7 @@ contract XERC20 is ERC20, Ownable, IXERC20, ERC20Permit {
   }
 
   /**
-   * @notice Returns the current limit of a minter
+   * @notice Returns the current limit of a burner
    *
    * @param _burner The burner we are viewing the limits of
    * @return _limit The limit the minter has
@@ -276,7 +303,7 @@ contract XERC20 is ERC20, Ownable, IXERC20, ERC20Permit {
    *
    * @param _start The start of the loop
    * @param _amount The amount of minters to loop through
-   * @return _minters The array of minters from the start to the end of the loop
+   * @return _minters The array of minters from the start to start + amount
    */
 
   function getMinters(uint256 _start, uint256 _amount) external view returns (address[] memory _minters) {
@@ -301,7 +328,7 @@ contract XERC20 is ERC20, Ownable, IXERC20, ERC20Permit {
    *
    * @param _start The start of the loop
    * @param _amount The amount of burners to loop through
-   * @return _burners The array of burners from the start to the end of the loop
+   * @return _burners The array of burners from the start to start + amount
    */
 
   function getBurners(uint256 _start, uint256 _amount) public view returns (address[] memory _burners) {
@@ -334,9 +361,9 @@ contract XERC20 is ERC20, Ownable, IXERC20, ERC20Permit {
   }
 
   /**
-   * @notice Uses the limit of any minter
+   * @notice Uses the limit of any burner
    * @param _change The change in the limit
-   * @param _burner The address of the minter who is being changed
+   * @param _burner The address of the burner who is being changed
    */
 
   function _useBurnerLimits(uint256 _change, address _burner) internal {

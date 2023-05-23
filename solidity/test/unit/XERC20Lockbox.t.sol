@@ -18,8 +18,8 @@ abstract contract Base is DSTestFull {
   XERC20 internal _xerc20 = XERC20(vm.addr(4));
   IERC20 internal _erc20 = IERC20(vm.addr(5));
 
-  event DepositedERC20(address _sender, uint256 _amount);
-  event WithdrawnERC20(address _sender, uint256 _amount);
+  event Deposit(address _sender, uint256 _amount);
+  event Withdraw(address _sender, uint256 _amount);
 
   XERC20Lockbox internal _lockbox;
 
@@ -57,7 +57,7 @@ contract UnitDeposit is Base {
     vm.mockCall(address(_xerc20), abi.encodeWithSelector(IXERC20.mint.selector, _owner, _amount), abi.encode(true));
 
     vm.expectEmit(true, true, true, true);
-    emit DepositedERC20(_owner, _amount);
+    emit Deposit(_owner, _amount);
     vm.prank(_owner);
     _lockbox.deposit(_amount);
   }
@@ -81,7 +81,7 @@ contract UnitWithdraw is Base {
     vm.mockCall(address(_erc20), abi.encodeWithSelector(IERC20.transfer.selector, _owner, _amount), abi.encode(true));
 
     vm.expectEmit(true, true, true, true);
-    emit WithdrawnERC20(_owner, _amount);
+    emit Withdraw(_owner, _amount);
     vm.prank(_owner);
     _lockbox.withdraw(_amount);
   }

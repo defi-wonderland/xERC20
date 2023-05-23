@@ -24,6 +24,9 @@ abstract contract Base is DSTestFull {
 
   XERC20FactoryForTest internal _xerc20Factory;
 
+  event XERC20Deployed(address _xerc20, address _lockbox);
+  event LockboxDeployed(address _lockbox);
+
   function setUp() public virtual {
     _xerc20Factory = new XERC20FactoryForTest();
   }
@@ -217,5 +220,62 @@ contract UnitDeploy is Base {
     vm.assume(_randomAddr != _token);
     assertEq(_xerc20Factory.isXERC20(_randomAddr), false);
     assertEq(_xerc20Factory.isXERC20(_token), true);
+  }
+
+  function testGetMiddleOfRegisteredLockboxArrays() public {
+    uint256[] memory _limits = new uint256[](0);
+    address[] memory _minters = new address[](0);
+
+    _xerc20Factory.deploy('_xerc1', '_xerc1', _limits, _limits, _minters, _erc20);
+    (, address _lockbox2) = _xerc20Factory.deploy('_xerc2', '_xerc2', _limits, _limits, _minters, _erc20);
+    (, address _lockbox3) = _xerc20Factory.deploy('_xerc3', '_xerc3', _limits, _limits, _minters, _erc20);
+
+    address[] memory _lockboxes = _xerc20Factory.getRegisteredLockboxes(1, 2);
+
+    assertEq(_lockboxes.length, 2);
+
+    assertEq(_lockboxes[0], _lockbox2);
+    assertEq(_lockboxes[1], _lockbox3);
+  }
+
+  function testGetMiddleOfRegisteredXERC20s() public {
+    uint256[] memory _limits = new uint256[](0);
+    address[] memory _minters = new address[](0);
+
+    _xerc20Factory.deploy('_xerc1', '_xerc1', _limits, _limits, _minters, _erc20);
+    (address _xerc2,) = _xerc20Factory.deploy('_xerc2', '_xerc2', _limits, _limits, _minters, _erc20);
+    (address _xerc3,) = _xerc20Factory.deploy('_xerc3', '_xerc3', _limits, _limits, _minters, _erc20);
+
+    address[] memory _xercs = _xerc20Factory.getRegisteredXERC20(1, 2);
+
+    assertEq(_xercs.length, 2);
+
+    assertEq(_xercs[0], _xerc2);
+    assertEq(_xercs[1], _xerc3);
+  }
+
+  function testDeployEmitsEvent() public {
+    uint256[] memory _limits = new uint256[](0);
+    address[] memory _minters = new address[](0);
+
+    address _token = _xerc20Factory.getDeployed(keccak256(abi.encodePacked('Test', 'TST', _owner)));
+    address _lockbox = _xerc20Factory.getDeployed(keccak256(abi.encodePacked(_token, _erc20, _owner)));
+    vm.expectEmit(true, true, true, true);
+    emit XERC20Deployed(_token, _lockbox);
+    vm.prank(_owner);
+    _xerc20Factory.deploy('Test', 'TST', _limits, _limits, _minters, _erc20);
+  }
+
+  function testLockboxEmitsEvent() public {
+    uint256[] memory _limits = new uint256[](0);
+    address[] memory _minters = new address[](0);
+    vm.prank(_owner);
+    (address _token,) = _xerc20Factory.deploy('Test', 'TST', _limits, _limits, _minters, address(0));
+    address _lockbox = _xerc20Factory.getDeployed(keccak256(abi.encodePacked(_token, _erc20, _owner)));
+
+    vm.expectEmit(true, true, true, true);
+    emit LockboxDeployed(_lockbox);
+    vm.prank(_owner);
+    _xerc20Factory.deployLockbox(_token, _erc20);
   }
 }

@@ -6,13 +6,13 @@ interface IXERC20Lockbox {
    * @notice Emitted when tokens are deposited into the lockbox
    */
 
-  event DepositedERC20(address _sender, uint256 _amount);
+  event Deposit(address _sender, uint256 _amount);
 
   /**
    * @notice Emitted when tokens are withdrawn from the lockbox
    */
 
-  event WithdrawnERC20(address _sender, uint256 _amount);
+  event Withdraw(address _sender, uint256 _amount);
   /**
    * @notice Deposit ERC20 tokens into the lockbox
    *
