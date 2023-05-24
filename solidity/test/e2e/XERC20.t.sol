@@ -3,12 +3,12 @@ pragma solidity >=0.8.4 <0.9.0;
 
 import {CommonE2EBase} from './Common.sol';
 import {XERC20Lockbox} from 'contracts/XERC20Lockbox.sol';
-import {XERC20} from 'contracts/XERC20.sol';
+import {XERC20, IXERC20} from 'contracts/XERC20.sol';
 
 contract E2EMintAndBurn is CommonE2EBase {
   function testMint() public {
     vm.startPrank(_owner);
-    _xerc20.changeMinterLimit(100 ether, _owner);
+    _xerc20.changeBridgeMintingLimit(100 ether, _owner);
     _xerc20.mint(_user, 100 ether);
     vm.stopPrank();
 
@@ -17,8 +17,8 @@ contract E2EMintAndBurn is CommonE2EBase {
 
   function testBurn() public {
     vm.startPrank(_owner);
-    _xerc20.changeMinterLimit(100 ether, _owner);
-    _xerc20.changeBurnerLimit(100 ether, _owner);
+    _xerc20.changeBridgeMintingLimit(100 ether, _owner);
+    _xerc20.changeBridgeBurningLimit(100 ether, _owner);
     _xerc20.mint(_user, 100 ether);
     _xerc20.burn(_user, 100 ether);
     vm.stopPrank();
@@ -29,7 +29,7 @@ contract E2EMintAndBurn is CommonE2EBase {
 
   function testTransferMint() public {
     vm.startPrank(_owner);
-    _xerc20.changeMinterLimit(100 ether, _owner);
+    _xerc20.changeBridgeMintingLimit(100 ether, _owner);
     _xerc20.transfer(_user, 100 ether);
     vm.stopPrank();
 
@@ -38,8 +38,8 @@ contract E2EMintAndBurn is CommonE2EBase {
 
   function testTransferBurn() public {
     vm.startPrank(_owner);
-    _xerc20.changeMinterLimit(100 ether, _owner);
-    _xerc20.changeBurnerLimit(100 ether, _owner);
+    _xerc20.changeBridgeMintingLimit(100 ether, _owner);
+    _xerc20.changeBridgeBurningLimit(100 ether, _owner);
     _xerc20.transfer(_user, 100 ether);
     vm.stopPrank();
 
@@ -52,7 +52,7 @@ contract E2EMintAndBurn is CommonE2EBase {
 
   function testTransferFromMint() public {
     vm.startPrank(_owner);
-    _xerc20.changeMinterLimit(100 ether, _owner);
+    _xerc20.changeBridgeMintingLimit(100 ether, _owner);
     _xerc20.approve(_owner, 100 ether);
     _xerc20.transferFrom(_owner, _user, 100 ether);
     vm.stopPrank();
@@ -62,8 +62,8 @@ contract E2EMintAndBurn is CommonE2EBase {
 
   function testTransferFromBurn() public {
     vm.startPrank(_owner);
-    _xerc20.changeMinterLimit(100 ether, _owner);
-    _xerc20.changeBurnerLimit(100 ether, _owner);
+    _xerc20.changeBridgeMintingLimit(100 ether, _owner);
+    _xerc20.changeBridgeBurningLimit(100 ether, _owner);
     _xerc20.approve(_owner, 100 ether);
     _xerc20.transferFrom(_owner, _user, 100 ether);
     vm.stopPrank();
@@ -79,28 +79,28 @@ contract E2EMintAndBurn is CommonE2EBase {
 
   function testTwoBridgesTransfer() public {
     vm.startPrank(_owner);
-    _xerc20.changeMinterLimit(100 ether, _owner);
-    _xerc20.changeBurnerLimit(100 ether, _user);
+    _xerc20.changeBridgeMintingLimit(100 ether, _owner);
+    _xerc20.changeBridgeBurningLimit(100 ether, _user);
     _xerc20.transfer(_user, 100 ether);
     vm.stopPrank();
 
     assertEq(_xerc20.balanceOf(_user), 0);
     assertEq(_xerc20.balanceOf(_owner), 0);
     assertEq(_xerc20.totalSupply(), 0);
-    assertEq(_xerc20.getMinterCurrentLimit(_user), 0);
-    assertEq(_xerc20.getBurnerCurrentLimit(_owner), 0);
+    assertEq(_xerc20.getMintingCurrentLimit(_user), 0);
+    assertEq(_xerc20.getBurningCurrentLimit(_owner), 0);
   }
 }
 
 contract E2EParameterMath is CommonE2EBase {
   function testChangeLimit() public {
     vm.startPrank(_owner);
-    _xerc20.changeMinterLimit(100 ether, _owner);
-    _xerc20.changeBurnerLimit(100 ether, _owner);
+    _xerc20.changeBridgeMintingLimit(100 ether, _owner);
+    _xerc20.changeBridgeBurningLimit(100 ether, _owner);
     vm.stopPrank();
 
-    assertEq(_xerc20.getMinterMaxLimit(_owner), 100 ether);
-    assertEq(_xerc20.getBurnerMaxLimit(_owner), 100 ether);
+    assertEq(_xerc20.getMintingMaxLimit(_owner), 100 ether);
+    assertEq(_xerc20.getBurningMaxLimit(_owner), 100 ether);
   }
 
   function testAddingMintersAndLimits() public {
@@ -116,19 +116,19 @@ contract E2EParameterMath is CommonE2EBase {
     _minters[2] = vm.addr(3);
 
     vm.startPrank(_owner);
-    _xerc20.createMinterLimits(_limits, _minters);
-    _xerc20.createBurnerLimits(_limits, _minters);
+    _xerc20.createBridgeMintingLimits(_limits, _minters);
+    _xerc20.createBridgeBurningLimits(_limits, _minters);
     vm.stopPrank();
 
-    assertEq(_xerc20.getMinterMaxLimit(vm.addr(1)), 100 ether);
-    assertEq(_xerc20.getMinterMaxLimit(vm.addr(2)), 100 ether);
-    assertEq(_xerc20.getMinterMaxLimit(vm.addr(3)), 100 ether);
+    assertEq(_xerc20.getMintingMaxLimit(vm.addr(1)), 100 ether);
+    assertEq(_xerc20.getMintingMaxLimit(vm.addr(2)), 100 ether);
+    assertEq(_xerc20.getMintingMaxLimit(vm.addr(3)), 100 ether);
   }
 
   function testUseLimitsUpdatesLimit() public {
     vm.startPrank(_owner);
-    _xerc20.changeMinterLimit(100 ether, _owner);
-    _xerc20.changeBurnerLimit(100 ether, _owner);
+    _xerc20.changeBridgeMintingLimit(100 ether, _owner);
+    _xerc20.changeBridgeBurningLimit(100 ether, _owner);
     vm.stopPrank();
 
     vm.startPrank(_owner);
@@ -136,29 +136,29 @@ contract E2EParameterMath is CommonE2EBase {
     _xerc20.burn(_user, 100 ether);
     vm.stopPrank();
 
-    assertEq(_xerc20.getMinterCurrentLimit(_owner), 0);
-    assertEq(_xerc20.getBurnerCurrentLimit(_owner), 0);
+    assertEq(_xerc20.getMintingCurrentLimit(_owner), 0);
+    assertEq(_xerc20.getBurningCurrentLimit(_owner), 0);
   }
 
   function testChangingMaxLimitUpdatesCurrentLimit() public {
     vm.startPrank(_owner);
-    _xerc20.changeMinterLimit(100 ether, _owner);
-    _xerc20.changeBurnerLimit(100 ether, _owner);
+    _xerc20.changeBridgeMintingLimit(100 ether, _owner);
+    _xerc20.changeBridgeBurningLimit(100 ether, _owner);
     vm.stopPrank();
 
     vm.startPrank(_owner);
-    _xerc20.changeMinterLimit(50 ether, _owner);
-    _xerc20.changeBurnerLimit(50 ether, _owner);
+    _xerc20.changeBridgeMintingLimit(50 ether, _owner);
+    _xerc20.changeBridgeBurningLimit(50 ether, _owner);
     vm.stopPrank();
 
-    assertEq(_xerc20.getMinterCurrentLimit(_owner), 50 ether);
-    assertEq(_xerc20.getBurnerCurrentLimit(_owner), 50 ether);
+    assertEq(_xerc20.getMintingCurrentLimit(_owner), 50 ether);
+    assertEq(_xerc20.getBurningCurrentLimit(_owner), 50 ether);
   }
 
   function testChangingMaxLimitWhenLimitIsUsedUpdatesCurrentLimit() public {
     vm.startPrank(_owner);
-    _xerc20.changeMinterLimit(100 ether, _owner);
-    _xerc20.changeBurnerLimit(100 ether, _owner);
+    _xerc20.changeBridgeMintingLimit(100 ether, _owner);
+    _xerc20.changeBridgeBurningLimit(100 ether, _owner);
     vm.stopPrank();
 
     vm.startPrank(_owner);
@@ -167,18 +167,18 @@ contract E2EParameterMath is CommonE2EBase {
     vm.stopPrank();
 
     vm.startPrank(_owner);
-    _xerc20.changeMinterLimit(50 ether, _owner);
-    _xerc20.changeBurnerLimit(50 ether, _owner);
+    _xerc20.changeBridgeMintingLimit(50 ether, _owner);
+    _xerc20.changeBridgeBurningLimit(50 ether, _owner);
     vm.stopPrank();
 
-    assertEq(_xerc20.getMinterCurrentLimit(_owner), 0);
-    assertEq(_xerc20.getBurnerCurrentLimit(_owner), 0);
+    assertEq(_xerc20.getMintingCurrentLimit(_owner), 0);
+    assertEq(_xerc20.getBurningCurrentLimit(_owner), 0);
   }
 
   function testChangingPartialMaxLimitUpdatesCurrentLimitWhenUsed() public {
     vm.startPrank(_owner);
-    _xerc20.changeMinterLimit(100 ether, _owner);
-    _xerc20.changeBurnerLimit(100 ether, _owner);
+    _xerc20.changeBridgeMintingLimit(100 ether, _owner);
+    _xerc20.changeBridgeBurningLimit(100 ether, _owner);
     vm.stopPrank();
 
     vm.startPrank(_owner);
@@ -187,18 +187,18 @@ contract E2EParameterMath is CommonE2EBase {
     vm.stopPrank();
 
     vm.startPrank(_owner);
-    _xerc20.changeMinterLimit(50 ether, _owner);
-    _xerc20.changeBurnerLimit(50 ether, _owner);
+    _xerc20.changeBridgeMintingLimit(50 ether, _owner);
+    _xerc20.changeBridgeBurningLimit(50 ether, _owner);
     vm.stopPrank();
 
-    assertEq(_xerc20.getMinterCurrentLimit(_owner), 40 ether);
-    assertEq(_xerc20.getBurnerCurrentLimit(_owner), 40 ether);
+    assertEq(_xerc20.getMintingCurrentLimit(_owner), 40 ether);
+    assertEq(_xerc20.getBurningCurrentLimit(_owner), 40 ether);
   }
 
   function testChangingPartialMaxLimitUpdatesCurrentLimitWithIncrease() public {
     vm.startPrank(_owner);
-    _xerc20.changeMinterLimit(100 ether, _owner);
-    _xerc20.changeBurnerLimit(100 ether, _owner);
+    _xerc20.changeBridgeMintingLimit(100 ether, _owner);
+    _xerc20.changeBridgeBurningLimit(100 ether, _owner);
     vm.stopPrank();
 
     vm.startPrank(_owner);
@@ -207,18 +207,18 @@ contract E2EParameterMath is CommonE2EBase {
     vm.stopPrank();
 
     vm.startPrank(_owner);
-    _xerc20.changeMinterLimit(120 ether, _owner);
-    _xerc20.changeBurnerLimit(120 ether, _owner);
+    _xerc20.changeBridgeMintingLimit(120 ether, _owner);
+    _xerc20.changeBridgeBurningLimit(120 ether, _owner);
     vm.stopPrank();
 
-    assertEq(_xerc20.getMinterCurrentLimit(_owner), 110 ether);
-    assertEq(_xerc20.getBurnerCurrentLimit(_owner), 110 ether);
+    assertEq(_xerc20.getMintingCurrentLimit(_owner), 110 ether);
+    assertEq(_xerc20.getBurningCurrentLimit(_owner), 110 ether);
   }
 
   function testCurrentLimitIsUpdatedWithTime() public {
     vm.startPrank(_owner);
-    _xerc20.changeMinterLimit(100 ether, _owner);
-    _xerc20.changeBurnerLimit(100 ether, _owner);
+    _xerc20.changeBridgeMintingLimit(100 ether, _owner);
+    _xerc20.changeBridgeBurningLimit(100 ether, _owner);
     vm.stopPrank();
 
     vm.startPrank(_owner);
@@ -229,14 +229,14 @@ contract E2EParameterMath is CommonE2EBase {
     // Move block.timestamp forward 12 hours
     vm.warp(block.timestamp + 12 hours);
 
-    assertApproxEqRel(_xerc20.getMinterCurrentLimit(_owner), 100 ether / 2, 0.1 ether);
-    assertApproxEqRel(_xerc20.getBurnerCurrentLimit(_owner), 100 ether / 2, 0.1 ether);
+    assertApproxEqRel(_xerc20.getMintingCurrentLimit(_owner), 100 ether / 2, 0.1 ether);
+    assertApproxEqRel(_xerc20.getBurningCurrentLimit(_owner), 100 ether / 2, 0.1 ether);
   }
 
   function testCurrentLimitIsMaxAfterDuration() public {
     vm.startPrank(_owner);
-    _xerc20.changeMinterLimit(100 ether, _owner);
-    _xerc20.changeBurnerLimit(100 ether, _owner);
+    _xerc20.changeBridgeMintingLimit(100 ether, _owner);
+    _xerc20.changeBridgeBurningLimit(100 ether, _owner);
     vm.stopPrank();
 
     vm.startPrank(_owner);
@@ -247,21 +247,21 @@ contract E2EParameterMath is CommonE2EBase {
     // Move block.timestamp forward 25 hours
     vm.warp(block.timestamp + 25 hours);
 
-    assertEq(_xerc20.getMinterCurrentLimit(_owner), 100 ether);
-    assertEq(_xerc20.getBurnerCurrentLimit(_owner), 100 ether);
+    assertEq(_xerc20.getMintingCurrentLimit(_owner), 100 ether);
+    assertEq(_xerc20.getBurningCurrentLimit(_owner), 100 ether);
   }
 
   function testCurrentLimitIsSameIfUnused() public {
     vm.startPrank(_owner);
-    _xerc20.changeMinterLimit(100 ether, _owner);
-    _xerc20.changeBurnerLimit(100 ether, _owner);
+    _xerc20.changeBridgeMintingLimit(100 ether, _owner);
+    _xerc20.changeBridgeBurningLimit(100 ether, _owner);
     vm.stopPrank();
 
     // Move block.timestamp forward 12 hours
     vm.warp(block.timestamp + 12 hours);
 
-    assertEq(_xerc20.getMinterCurrentLimit(_owner), 100 ether);
-    assertEq(_xerc20.getBurnerCurrentLimit(_owner), 100 ether);
+    assertEq(_xerc20.getMintingCurrentLimit(_owner), 100 ether);
+    assertEq(_xerc20.getBurningCurrentLimit(_owner), 100 ether);
   }
 
   function testMultipleUsersUseBridge() public {
@@ -272,8 +272,8 @@ contract E2EParameterMath is CommonE2EBase {
     address _user4 = vm.addr(5);
 
     vm.startPrank(_owner);
-    _xerc20.changeMinterLimit(100 ether, _owner);
-    _xerc20.changeBurnerLimit(100 ether, _owner);
+    _xerc20.changeBridgeMintingLimit(100 ether, _owner);
+    _xerc20.changeBridgeBurningLimit(100 ether, _owner);
     vm.stopPrank();
 
     vm.startPrank(_owner);
@@ -284,11 +284,11 @@ contract E2EParameterMath is CommonE2EBase {
     _xerc20.mint(_user4, 10 ether);
     vm.stopPrank();
 
-    assertEq(_xerc20.getMinterCurrentLimit(_owner), 50 ether);
+    assertEq(_xerc20.getMintingCurrentLimit(_owner), 50 ether);
 
     vm.warp(block.timestamp + 12 hours);
 
-    assertApproxEqRel(_xerc20.getMinterCurrentLimit(_owner), 50 ether + (100 ether / 2), 0.1 ether);
+    assertApproxEqRel(_xerc20.getMintingCurrentLimit(_owner), 50 ether + (100 ether / 2), 0.1 ether);
   }
 
   function testMultipleMintsAndBurns() public {
@@ -299,8 +299,8 @@ contract E2EParameterMath is CommonE2EBase {
     address _user4 = vm.addr(5);
 
     vm.startPrank(_owner);
-    _xerc20.changeMinterLimit(100 ether, _owner);
-    _xerc20.changeBurnerLimit(100 ether, _owner);
+    _xerc20.changeBridgeMintingLimit(100 ether, _owner);
+    _xerc20.changeBridgeBurningLimit(100 ether, _owner);
     vm.stopPrank();
 
     vm.startPrank(_owner);
@@ -311,7 +311,7 @@ contract E2EParameterMath is CommonE2EBase {
     _xerc20.mint(_user4, 20 ether);
     vm.stopPrank();
 
-    assertEq(_xerc20.getMinterCurrentLimit(_owner), 20 ether);
+    assertEq(_xerc20.getMintingCurrentLimit(_owner), 20 ether);
 
     vm.startPrank(_owner);
     _xerc20.burn(_user0, 5 ether);
@@ -321,12 +321,12 @@ contract E2EParameterMath is CommonE2EBase {
     _xerc20.burn(_user4, 5 ether);
     vm.stopPrank();
 
-    assertEq(_xerc20.getBurnerCurrentLimit(_owner), 75 ether);
+    assertEq(_xerc20.getBurningCurrentLimit(_owner), 75 ether);
 
     vm.warp(block.timestamp + 12 hours);
 
-    assertApproxEqRel(_xerc20.getMinterCurrentLimit(_owner), 20 ether + (100 ether / 2), 0.1 ether);
-    assertEq(_xerc20.getBurnerCurrentLimit(_owner), 100 ether);
+    assertApproxEqRel(_xerc20.getMintingCurrentLimit(_owner), 20 ether + (100 ether / 2), 0.1 ether);
+    assertEq(_xerc20.getBurningCurrentLimit(_owner), 100 ether);
   }
 
   function testTransferAndMintAreInterchangeable() public {
@@ -337,8 +337,8 @@ contract E2EParameterMath is CommonE2EBase {
     address _user4 = vm.addr(5);
 
     vm.startPrank(_owner);
-    _xerc20.changeMinterLimit(100 ether, _owner);
-    _xerc20.changeBurnerLimit(100 ether, _owner);
+    _xerc20.changeBridgeMintingLimit(100 ether, _owner);
+    _xerc20.changeBridgeBurningLimit(100 ether, _owner);
     vm.stopPrank();
 
     vm.startPrank(_owner);
@@ -349,7 +349,7 @@ contract E2EParameterMath is CommonE2EBase {
     _xerc20.transfer(_user4, 20 ether);
     vm.stopPrank();
 
-    assertEq(_xerc20.getMinterCurrentLimit(_owner), 20 ether);
+    assertEq(_xerc20.getMintingCurrentLimit(_owner), 20 ether);
 
     vm.startPrank(_owner);
     _xerc20.burn(_user0, 5 ether);
@@ -363,12 +363,12 @@ contract E2EParameterMath is CommonE2EBase {
     vm.prank(_user4);
     _xerc20.transfer(_owner, 5 ether);
 
-    assertEq(_xerc20.getBurnerCurrentLimit(_owner), 75 ether);
+    assertEq(_xerc20.getBurningCurrentLimit(_owner), 75 ether);
 
     vm.warp(block.timestamp + 12 hours);
 
-    assertApproxEqRel(_xerc20.getMinterCurrentLimit(_owner), 20 ether + (100 ether / 2), 0.1 ether);
-    assertEq(_xerc20.getBurnerCurrentLimit(_owner), 100 ether);
+    assertApproxEqRel(_xerc20.getMintingCurrentLimit(_owner), 20 ether + (100 ether / 2), 0.1 ether);
+    assertEq(_xerc20.getBurningCurrentLimit(_owner), 100 ether);
   }
 
   function testMultipleBridgesHaveDifferentValue() public {
@@ -377,10 +377,10 @@ contract E2EParameterMath is CommonE2EBase {
     uint256 _userLimit = 50 ether;
 
     vm.startPrank(_owner);
-    _xerc20.changeMinterLimit(_ownerLimit, _owner);
-    _xerc20.changeMinterLimit(_userLimit, _user);
-    _xerc20.changeBurnerLimit(_ownerLimit, _owner);
-    _xerc20.changeBurnerLimit(_userLimit, _user);
+    _xerc20.changeBridgeMintingLimit(_ownerLimit, _owner);
+    _xerc20.changeBridgeMintingLimit(_userLimit, _user);
+    _xerc20.changeBridgeBurningLimit(_ownerLimit, _owner);
+    _xerc20.changeBridgeBurningLimit(_userLimit, _user);
     vm.stopPrank();
 
     uint256 _ownerExpectedRps = _ownerLimit / (24 hours);
@@ -396,27 +396,25 @@ contract E2EParameterMath is CommonE2EBase {
     _xerc20.burn(_owner, 40 ether);
     vm.stopPrank();
 
-    (uint256 _ownerTimestamp, uint256 _ownerRps, uint256 _ownerMaxLimit, uint256 _ownerCurrentLimit,) =
-      _xerc20.minterParams(_owner);
-    (uint256 _userTimestamp, uint256 _userRps, uint256 _userMaxLimit, uint256 _userCurrentLimit,) =
-      _xerc20.minterParams(_user);
+    (, IXERC20.BridgeParameters memory _ownerMinterParams,) = _xerc20.bridges(_owner);
+    (, IXERC20.BridgeParameters memory _userMinterParams,) = _xerc20.bridges(_user);
 
-    assertEq(_ownerMaxLimit, _ownerLimit);
-    assertEq(_ownerCurrentLimit, _ownerLimit - 90 ether);
-    assertEq(_userMaxLimit, _userLimit);
-    assertEq(_userCurrentLimit, _userLimit - 40 ether);
-    assertEq(_ownerTimestamp, block.timestamp);
-    assertEq(_userTimestamp, block.timestamp);
-    assertEq(_userRps, _userExpectedRps);
-    assertEq(_ownerRps, _ownerExpectedRps);
+    assertEq(_ownerMinterParams.maxLimit, _ownerLimit);
+    assertEq(_ownerMinterParams.currentLimit, _ownerLimit - 90 ether);
+    assertEq(_userMinterParams.maxLimit, _userLimit);
+    assertEq(_userMinterParams.currentLimit, _userLimit - 40 ether);
+    assertEq(_ownerMinterParams.timestamp, block.timestamp);
+    assertEq(_userMinterParams.timestamp, block.timestamp);
+    assertEq(_userMinterParams.ratePerSecond, _userExpectedRps);
+    assertEq(_ownerMinterParams.ratePerSecond, _ownerExpectedRps);
 
     vm.warp(block.timestamp + 12 hours);
 
-    assertApproxEqRel(_xerc20.getMinterCurrentLimit(_owner), _ownerLimit - 90 ether + (_ownerLimit / 2), 0.1 ether);
-    assertApproxEqRel(_xerc20.getMinterCurrentLimit(_user), _userLimit - 40 ether + (_userLimit / 2), 0.1 ether);
+    assertApproxEqRel(_xerc20.getMintingCurrentLimit(_owner), _ownerLimit - 90 ether + (_ownerLimit / 2), 0.1 ether);
+    assertApproxEqRel(_xerc20.getMintingCurrentLimit(_user), _userLimit - 40 ether + (_userLimit / 2), 0.1 ether);
 
-    assertApproxEqRel(_xerc20.getBurnerCurrentLimit(_owner), _ownerLimit - 90 ether + (_ownerLimit / 2), 0.1 ether);
-    assertApproxEqRel(_xerc20.getBurnerCurrentLimit(_user), _userLimit - 40 ether + (_userLimit / 2), 0.1 ether);
+    assertApproxEqRel(_xerc20.getBurningCurrentLimit(_owner), _ownerLimit - 90 ether + (_ownerLimit / 2), 0.1 ether);
+    assertApproxEqRel(_xerc20.getBurningCurrentLimit(_user), _userLimit - 40 ether + (_userLimit / 2), 0.1 ether);
   }
 
   function testMultipleBridgesBurnsHaveDifferentValues() public {
@@ -425,10 +423,10 @@ contract E2EParameterMath is CommonE2EBase {
     uint256 _userLimit = 50 ether;
 
     vm.startPrank(_owner);
-    _xerc20.changeMinterLimit(_ownerLimit, _owner);
-    _xerc20.changeMinterLimit(_userLimit, _user);
-    _xerc20.changeBurnerLimit(_ownerLimit, _owner);
-    _xerc20.changeBurnerLimit(_userLimit, _user);
+    _xerc20.changeBridgeMintingLimit(_ownerLimit, _owner);
+    _xerc20.changeBridgeMintingLimit(_userLimit, _user);
+    _xerc20.changeBridgeBurningLimit(_ownerLimit, _owner);
+    _xerc20.changeBridgeBurningLimit(_userLimit, _user);
     vm.stopPrank();
 
     uint256 _ownerExpectedRps = _ownerLimit / (24 hours);
@@ -444,26 +442,24 @@ contract E2EParameterMath is CommonE2EBase {
     _xerc20.burn(_owner, 25 ether);
     vm.stopPrank();
 
-    (uint256 _ownerTimestamp, uint256 _ownerRps, uint256 _ownerMaxLimit, uint256 _ownerCurrentLimit,) =
-      _xerc20.burnerParams(_owner);
-    (uint256 _userTimestamp, uint256 _userRps, uint256 _userMaxLimit, uint256 _userCurrentLimit,) =
-      _xerc20.burnerParams(_user);
+    (,, IXERC20.BridgeParameters memory _ownerBurnerParams) = _xerc20.bridges(_owner);
+    (,, IXERC20.BridgeParameters memory _userBurnerParams) = _xerc20.bridges(_user);
 
-    assertEq(_ownerMaxLimit, _ownerLimit);
-    assertEq(_ownerCurrentLimit, _ownerLimit - 50 ether);
-    assertEq(_userMaxLimit, _userLimit);
-    assertEq(_userCurrentLimit, _userLimit - 25 ether);
-    assertEq(_ownerTimestamp, block.timestamp);
-    assertEq(_userTimestamp, block.timestamp);
-    assertEq(_userRps, _userExpectedRps);
-    assertEq(_ownerRps, _ownerExpectedRps);
+    assertEq(_ownerBurnerParams.maxLimit, _ownerLimit);
+    assertEq(_ownerBurnerParams.currentLimit, _ownerLimit - 50 ether);
+    assertEq(_userBurnerParams.maxLimit, _userLimit);
+    assertEq(_userBurnerParams.currentLimit, _userLimit - 25 ether);
+    assertEq(_ownerBurnerParams.timestamp, block.timestamp);
+    assertEq(_userBurnerParams.timestamp, block.timestamp);
+    assertEq(_userBurnerParams.ratePerSecond, _userExpectedRps);
+    assertEq(_ownerBurnerParams.ratePerSecond, _ownerExpectedRps);
 
     vm.warp(block.timestamp + 12 hours);
 
-    assertApproxEqRel(_xerc20.getMinterCurrentLimit(_owner), _ownerLimit - 90 ether + (_ownerLimit / 2), 0.1 ether);
-    assertApproxEqRel(_xerc20.getMinterCurrentLimit(_user), _userLimit - 40 ether + (_userLimit / 2), 0.1 ether);
+    assertApproxEqRel(_xerc20.getMintingCurrentLimit(_owner), _ownerLimit - 90 ether + (_ownerLimit / 2), 0.1 ether);
+    assertApproxEqRel(_xerc20.getMintingCurrentLimit(_user), _userLimit - 40 ether + (_userLimit / 2), 0.1 ether);
 
-    assertApproxEqRel(_xerc20.getBurnerCurrentLimit(_owner), _ownerLimit - 50 ether + (_ownerLimit / 2), 0.1 ether);
-    assertApproxEqRel(_xerc20.getBurnerCurrentLimit(_user), _userLimit - 25 ether + (_userLimit / 2), 0.1 ether);
+    assertApproxEqRel(_xerc20.getBurningCurrentLimit(_owner), _ownerLimit - 50 ether + (_ownerLimit / 2), 0.1 ether);
+    assertApproxEqRel(_xerc20.getBurningCurrentLimit(_user), _userLimit - 25 ether + (_userLimit / 2), 0.1 ether);
   }
 }

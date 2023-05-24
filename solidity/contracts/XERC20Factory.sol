@@ -164,11 +164,11 @@ contract XERC20Factory is IXERC20Factory {
 
     // if the user inputs empty arrays we dont waste gas calling these functions
     if (_minterLimits.length != 0) {
-      XERC20(_xerc20).createMinterLimits(_minterLimits, _bridges);
+      XERC20(_xerc20).createBridgeMintingLimits(_minterLimits, _bridges);
     }
 
     if (_burnerLimits.length != 0) {
-      XERC20(_xerc20).createBurnerLimits(_burnerLimits, _bridges);
+      XERC20(_xerc20).createBridgeBurningLimits(_burnerLimits, _bridges);
     }
 
     XERC20(_xerc20).setLockbox(_lockbox);
