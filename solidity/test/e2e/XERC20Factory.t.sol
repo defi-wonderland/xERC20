@@ -14,8 +14,8 @@ contract E2EDeployment is CommonE2EBase {
     assertEq(_xerc20.FACTORY(), address(_xerc20Factory));
     assertEq(address(_lockbox.XERC20()), address(_xerc20));
     assertEq(address(_lockbox.ERC20()), address(_dai));
-    assertEq(_xerc20.getBurningMaxLimit(_testMinter), 50 ether);
-    assertEq(_xerc20.getMintingMaxLimit(_testMinter), 100 ether);
+    assertEq(_xerc20.burningMaxLimitOf(_testMinter), 50 ether);
+    assertEq(_xerc20.mintingMaxLimitOf(_testMinter), 100 ether);
   }
 
   function testDeployLockbox() public {

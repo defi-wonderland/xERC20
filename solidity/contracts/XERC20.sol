@@ -232,7 +232,7 @@ contract XERC20 is ERC20, Ownable, IXERC20, ERC20Permit {
    * @return _limit The limit the bridge has
    */
 
-  function getMintingMaxLimit(address _bridge) public view returns (uint256 _limit) {
+  function mintingMaxLimitOf(address _bridge) public view returns (uint256 _limit) {
     _limit = bridges[_bridge].minterParams.maxLimit;
   }
 
@@ -243,7 +243,7 @@ contract XERC20 is ERC20, Ownable, IXERC20, ERC20Permit {
    * @return _limit The limit the bridge has
    */
 
-  function getBurningMaxLimit(address _bridge) public view returns (uint256 _limit) {
+  function burningMaxLimitOf(address _bridge) public view returns (uint256 _limit) {
     _limit = bridges[_bridge].burnerParams.maxLimit;
   }
 
@@ -254,7 +254,7 @@ contract XERC20 is ERC20, Ownable, IXERC20, ERC20Permit {
    * @return _limit The limit the bridge has
    */
 
-  function getMintingCurrentLimit(address _bridge) public view returns (uint256 _limit) {
+  function mintingCurrentLimitOf(address _bridge) public view returns (uint256 _limit) {
     _limit = _getCurrentLimit(
       bridges[_bridge].minterParams.currentLimit,
       bridges[_bridge].minterParams.maxLimit,
@@ -270,7 +270,7 @@ contract XERC20 is ERC20, Ownable, IXERC20, ERC20Permit {
    * @return _limit The limit the bridge has
    */
 
-  function getBurningCurrentLimit(address _bridge) public view returns (uint256 _limit) {
+  function burningCurrentLimitOf(address _bridge) public view returns (uint256 _limit) {
     _limit = _getCurrentLimit(
       bridges[_bridge].burnerParams.currentLimit,
       bridges[_bridge].burnerParams.maxLimit,
@@ -311,7 +311,7 @@ contract XERC20 is ERC20, Ownable, IXERC20, ERC20Permit {
    */
 
   function _useMinterLimits(uint256 _change, address _bridge) internal {
-    uint256 _currentLimit = getMintingCurrentLimit(_bridge);
+    uint256 _currentLimit = mintingCurrentLimitOf(_bridge);
     bridges[_bridge].minterParams.timestamp = block.timestamp;
     bridges[_bridge].minterParams.currentLimit = _currentLimit - _change;
   }
@@ -323,7 +323,7 @@ contract XERC20 is ERC20, Ownable, IXERC20, ERC20Permit {
    */
 
   function _useBurnerLimits(uint256 _change, address _bridge) internal {
-    uint256 _currentLimit = getBurningCurrentLimit(_bridge);
+    uint256 _currentLimit = burningCurrentLimitOf(_bridge);
     bridges[_bridge].burnerParams.timestamp = block.timestamp;
     bridges[_bridge].burnerParams.currentLimit = _currentLimit - _change;
   }
@@ -337,7 +337,7 @@ contract XERC20 is ERC20, Ownable, IXERC20, ERC20Permit {
 
   function _changeMinterLimit(uint256 _limit, address _bridge) internal {
     uint256 _oldLimit = bridges[_bridge].minterParams.maxLimit;
-    uint256 _currentLimit = getMintingCurrentLimit(_bridge);
+    uint256 _currentLimit = mintingCurrentLimitOf(_bridge);
     bridges[_bridge].minterParams.maxLimit = _limit;
 
     bridges[_bridge].minterParams.currentLimit = _calculateNewCurrentLimit(_limit, _oldLimit, _currentLimit);
@@ -356,7 +356,7 @@ contract XERC20 is ERC20, Ownable, IXERC20, ERC20Permit {
 
   function _changeBurnerLimit(uint256 _limit, address _bridge) internal {
     uint256 _oldLimit = bridges[_bridge].burnerParams.maxLimit;
-    uint256 _currentLimit = getBurningCurrentLimit(_bridge);
+    uint256 _currentLimit = burningCurrentLimitOf(_bridge);
     bridges[_bridge].burnerParams.maxLimit = _limit;
 
     bridges[_bridge].burnerParams.currentLimit = _calculateNewCurrentLimit(_limit, _oldLimit, _currentLimit);
@@ -448,7 +448,7 @@ contract XERC20 is ERC20, Ownable, IXERC20, ERC20Permit {
 
   function _burnWithCaller(address _caller, address _user, uint256 _amount) internal {
     if (_caller != lockbox) {
-      uint256 _currentLimit = getBurningCurrentLimit(_caller);
+      uint256 _currentLimit = burningCurrentLimitOf(_caller);
       if (_currentLimit < _amount) revert IXERC20_NotHighEnoughLimits();
       _useBurnerLimits(_amount, _caller);
     }
@@ -465,7 +465,7 @@ contract XERC20 is ERC20, Ownable, IXERC20, ERC20Permit {
 
   function _mintWithCaller(address _caller, address _user, uint256 _amount) internal {
     if (_caller != lockbox) {
-      uint256 _currentLimit = getMintingCurrentLimit(_caller);
+      uint256 _currentLimit = mintingCurrentLimitOf(_caller);
       if (_currentLimit < _amount) revert IXERC20_NotHighEnoughLimits();
       _useMinterLimits(_amount, _caller);
     }

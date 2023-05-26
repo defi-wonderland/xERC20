@@ -118,7 +118,7 @@ interface IXERC20 {
    * @param _minter The minter we are viewing the limits of
    *  @return _limit The limit the minter has
    */
-  function getMintingMaxLimit(address _minter) external view returns (uint256 _limit);
+  function mintingMaxLimitOf(address _minter) external view returns (uint256 _limit);
 
   /**
    * @notice Returns the max limit of a bridge
@@ -127,7 +127,7 @@ interface IXERC20 {
    * @return _limit The limit the bridge has
    */
 
-  function getBurningMaxLimit(address _bridge) external view returns (uint256 _limit);
+  function burningMaxLimitOf(address _bridge) external view returns (uint256 _limit);
 
   /**
    * @notice Returns the current limit of a minter
@@ -136,7 +136,7 @@ interface IXERC20 {
    * @return _limit The limit the minter has
    */
 
-  function getMintingCurrentLimit(address _minter) external view returns (uint256 _limit);
+  function mintingCurrentLimitOf(address _minter) external view returns (uint256 _limit);
 
   /**
    * @notice Returns the current limit of a bridge
@@ -145,7 +145,7 @@ interface IXERC20 {
    * @return _limit The limit the bridge has
    */
 
-  function getBurningCurrentLimit(address _bridge) external view returns (uint256 _limit);
+  function burningCurrentLimitOf(address _bridge) external view returns (uint256 _limit);
 
   /**
    * @notice Loops through the array of bridges
