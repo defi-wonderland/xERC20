@@ -13,6 +13,25 @@ interface IXERC20Lockbox {
    */
 
   event Withdraw(address _sender, uint256 _amount);
+
+  /**
+   * @notice Reverts when a user tries to deposit native tokens on a non-native lockbox
+   */
+
+  error IXERC20Lockbox_NotNative();
+
+  /**
+   * @notice Reverts when a user tries to deposit non-native tokens on a native lockbox
+   */
+
+  error IXERC20Lockbox_Native();
+
+  /**
+   * @notice Reverts when a user tries to withdraw and the call fails
+   */
+
+  error IXERC20Lockbox_WithdrawFailed();
+
   /**
    * @notice Deposit ERC20 tokens into the lockbox
    *

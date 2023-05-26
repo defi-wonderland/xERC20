@@ -20,15 +20,33 @@ contract XERC20Lockbox is IXERC20Lockbox {
   IERC20 public immutable ERC20;
 
   /**
+   * @notice Whether the ERC20 token is the native gas token of this chain
+   */
+
+  bool public immutable IS_NATIVE;
+
+  /**
    * @notice Constructor
    *
    * @param _xerc20 The address of the XERC20 contract
    * @param _erc20 The address of the ERC20 contract
    */
 
-  constructor(address _xerc20, address _erc20) {
+  constructor(address _xerc20, address _erc20, bool _isNative) {
     XERC20 = IXERC20(_xerc20);
     ERC20 = IERC20(_erc20);
+    IS_NATIVE = _isNative;
+  }
+
+  /**
+   * @notice Deposit native tokens into the lockbox
+   */
+
+  function deposit() public payable {
+    if (!IS_NATIVE) revert IXERC20Lockbox_NotNative();
+    XERC20.mint(msg.sender, msg.value);
+
+    emit Deposit(msg.sender, msg.value);
   }
 
   /**
@@ -38,6 +56,8 @@ contract XERC20Lockbox is IXERC20Lockbox {
    */
 
   function deposit(uint256 _amount) external {
+    if (IS_NATIVE) revert IXERC20Lockbox_Native();
+
     ERC20.safeTransferFrom(msg.sender, address(this), _amount);
     XERC20.mint(msg.sender, _amount);
 
@@ -51,9 +71,19 @@ contract XERC20Lockbox is IXERC20Lockbox {
    */
 
   function withdraw(uint256 _amount) external {
-    ERC20.safeTransfer(msg.sender, _amount);
     XERC20.burn(msg.sender, _amount);
 
+    if (IS_NATIVE) {
+      (bool _success,) = payable(msg.sender).call{value: _amount}('');
+      if (!_success) revert IXERC20Lockbox_WithdrawFailed();
+    } else {
+      ERC20.safeTransfer(msg.sender, _amount);
+    }
+
     emit Withdraw(msg.sender, _amount);
+  }
+
+  receive() external payable {
+    deposit();
   }
 }

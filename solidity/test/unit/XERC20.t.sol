@@ -118,6 +118,7 @@ contract UnitMintBurn is Base {
   function testNormalTransferStillWorks(uint256 _amount, address _randomAddr) public {
     vm.assume(_amount > 0);
     vm.assume(_randomAddr != address(0));
+    vm.assume(_randomAddr != _minter);
 
     vm.startPrank(_owner);
     _xerc20.changeBridgeMintingLimit(_amount, _minter);
@@ -313,6 +314,19 @@ contract UnitMintBurn is Base {
     vm.prank(_minter);
     vm.expectRevert(IXERC20.IXERC20_NotHighEnoughLimits.selector);
     _xerc20.transfer(_user, _higherAmount);
+  }
+
+  function testBridgeOnBridgeRequiresAllowance(uint256 _limit) public {
+    vm.assume(_limit > 0);
+
+    vm.startPrank(_owner);
+    _xerc20.changeBridgeMintingLimit(_limit, _user);
+    _xerc20.changeBridgeBurningLimit(_limit, _minter);
+    vm.stopPrank();
+
+    vm.prank(_owner);
+    vm.expectRevert('ERC20: insufficient allowance');
+    _xerc20.transferFrom(_user, _minter, _limit);
   }
 }
 

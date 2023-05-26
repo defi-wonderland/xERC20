@@ -117,6 +117,7 @@ contract XERC20 is ERC20, Ownable, IXERC20, ERC20Permit {
     bool _receiverIsBridge = bridges[_to].isBridge;
 
     if (_senderIsBridge && _receiverIsBridge) {
+      _spendAllowance(_from, msg.sender, _amount);
       _mintWithCaller(msg.sender, msg.sender, _amount);
       _burnWithCaller(_to, msg.sender, _amount);
 
