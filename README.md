@@ -11,12 +11,12 @@ xTokens is a standard for bridged tokens. A common interface to be used across d
 *XERC20Factory*: The factory is used as a helper to deploy an xToken. It allows the owner to deploy the XERC20 and the Lockbox in one transaction while keeping the same token address on every chain used.
 
 ### Architectural Spec
-<img width="863" alt="Untitled" src="https://github.com/defi-wonderland/xTokens-private/assets/106555513/18428447-eaec-445f-9573-d3711beaedfc">
+<img width="863" src="./assets/architectural-specs.png?raw=true">
 
 <sup>*The adapter included is an example into how it would work. Any bridge can build their own.</sup>
 
 ### Flows
-<img width="1269" alt="image" src="https://github.com/defi-wonderland/xTokens-private/assets/106555513/09418075-826c-4b7d-a88c-49e6e7b2465c">
+<img width="1269" src="./assets/flows.png?raw=true">
 
 ## Setup
 
