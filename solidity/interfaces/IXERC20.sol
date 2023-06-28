@@ -40,14 +40,7 @@ interface IXERC20 {
 
   error IXERC20_NotFactory();
 
-  /**
-   * @notice Reverts when the length of parallel arrays are not equal
-   */
-
-  error IXERC20_IncompatibleLengths();
-
   struct Bridge {
-    bool isBridge;
     BridgeParameters minterParams;
     BridgeParameters burnerParams;
   }
@@ -57,7 +50,6 @@ interface IXERC20 {
     uint256 ratePerSecond;
     uint256 maxLimit;
     uint256 currentLimit;
-    bool isBridge;
   }
 
   /**
@@ -69,48 +61,13 @@ interface IXERC20 {
   function setLockbox(address _lockbox) external;
 
   /**
-   * @notice Creates limits for bridges
-   * @dev _limits and _bridges are parallel arrays and should be the same length
-   * @param _limits The limits to be added to the bridges
-   * @param _bridges the bridges who will recieve the limits
-   */
-
-  function createBridgeMintingLimits(uint256[] memory _limits, address[] memory _bridges) external;
-
-  /**
-   * @notice Creates limits for bridges
-   * @dev _limits and _bridges are parallel arrays and should be the same length
-   * @param _limits The limits to be added to the bridges
-   * @param _bridges the bridges who will recieve the limits
-   */
-
-  function createBridgeBurningLimits(uint256[] memory _limits, address[] memory _bridges) external;
-
-  /**
-   * @notice Updates the limit of any bridge
+   * @notice Updates the limits of any bridge
    * @dev Can only be called by the owner
-   * @param _limit The updated limit we are setting to the bridge
-   * @param _bridge The address of the bridge we are setting the limit too
+   * @param _mintingLimit The updated minting limit we are setting to the bridge
+   * @param _burningLimit The updated burning limit we are setting to the bridge
+   * @param _bridge The address of the bridge we are setting the limits too
    */
-
-  function changeBridgeMintingLimit(uint256 _limit, address _bridge) external;
-
-  /**
-   * @notice Updates the limit of any bridge
-   * @dev Can only be called by the owner
-   * @param _limit The updated limit we are setting to the bridge
-   * @param _bridge The address of the bridge we are setting the limit too
-   */
-
-  function changeBridgeBurningLimit(uint256 _limit, address _bridge) external;
-
-  /**
-   * @notice Removes a bridge
-   * @dev Can only be called by the owner
-   * @param _bridge The bridge we are removing
-   */
-
-  function removeBridge(address _bridge) external;
+  function setLimits(address _bridge, uint256 _mintingLimit, uint256 _burningLimit) external;
 
   /**
    * @notice Returns the max limit of a minter
@@ -146,16 +103,6 @@ interface IXERC20 {
    */
 
   function burningCurrentLimitOf(address _bridge) external view returns (uint256 _limit);
-
-  /**
-   * @notice Loops through the array of bridges
-   *
-   * @param _start The start of the loop
-   * @param _amount The amount of bridges to loop through
-   * @return _bridges The array of bridges from the start to the end of the loop
-   */
-
-  function getBridges(uint256 _start, uint256 _amount) external view returns (address[] memory _bridges);
 
   /**
    * @notice Mints tokens for a user

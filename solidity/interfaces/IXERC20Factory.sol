@@ -33,6 +33,11 @@ interface IXERC20Factory {
   error IXERC20Factory_LockboxAlreadyDeployed();
 
   /**
+   * @notice Reverts when a the length of arrays sent is incorrect
+   */
+  error IXERC20Factory_InvalidLength();
+
+  /**
    * @notice Deploys an XERC20 contract using CREATE3
    * @dev _limits and _minters must be the same length
    * @param _name The name of the token

@@ -148,6 +148,10 @@ contract XERC20Factory is IXERC20Factory {
     uint256[] memory _burnerLimits,
     address[] memory _bridges
   ) internal returns (address _xerc20) {
+    uint256 _bridgesLength = _bridges.length;
+    if (_minterLimits.length != _bridgesLength || _burnerLimits.length != _bridgesLength) {
+      revert IXERC20Factory_InvalidLength();
+    }
     bytes32 _salt = keccak256(abi.encodePacked(_name, _symbol, msg.sender));
     bytes memory _creation = type(XERC20).creationCode;
     bytes memory _bytecode = abi.encodePacked(_creation, abi.encode(_name, _symbol, address(this)));
@@ -156,13 +160,8 @@ contract XERC20Factory is IXERC20Factory {
 
     EnumerableSet.add(_xerc20RegistryArray, _xerc20);
 
-    // if the user inputs empty arrays we dont waste gas calling these functions
-    if (_minterLimits.length != 0) {
-      XERC20(_xerc20).createBridgeMintingLimits(_minterLimits, _bridges);
-    }
-
-    if (_burnerLimits.length != 0) {
-      XERC20(_xerc20).createBridgeBurningLimits(_burnerLimits, _bridges);
+    for (uint256 _i; _i < _bridgesLength; ++_i) {
+      XERC20(_xerc20).setLimits(_bridges[_i], _minterLimits[_i], _burnerLimits[_i]);
     }
 
     XERC20(_xerc20).transferOwnership(msg.sender);

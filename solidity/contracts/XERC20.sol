@@ -5,11 +5,8 @@ import {IXERC20} from 'interfaces/IXERC20.sol';
 import {ERC20} from '@openzeppelin/contracts/token/ERC20/ERC20.sol';
 import {ERC20Permit} from '@openzeppelin/contracts/token/ERC20/extensions/draft-ERC20Permit.sol';
 import {Ownable} from '@openzeppelin/contracts/access/Ownable.sol';
-import {EnumerableSet} from '@openzeppelin/contracts/utils/structs/EnumerableSet.sol';
 
 contract XERC20 is ERC20, Ownable, IXERC20, ERC20Permit {
-  using EnumerableSet for EnumerableSet.AddressSet;
-
   /**
    * @notice The duration it takes for the limits to fully replenish
    */
@@ -24,11 +21,6 @@ contract XERC20 is ERC20, Ownable, IXERC20, ERC20Permit {
    * @notice The address of the lockbox contract
    */
   address public lockbox;
-
-  /**
-   * @notice The set of whitelisted bridges
-   */
-  EnumerableSet.AddressSet internal _bridgesSet;
 
   /**
    * @notice Maps bridge address to bridge configurations
@@ -73,73 +65,6 @@ contract XERC20 is ERC20, Ownable, IXERC20, ERC20Permit {
   function burn(address _user, uint256 _amount) public {
     _burnWithCaller(msg.sender, _user, _amount);
   }
-  /**
-   * @notice Overrides transfer to call burn/mint based on the recipient
-   * @dev Some bridges transfer instead of minting/burning. In that case, if you transfer tokens to a bridges we burn them and if the bridges transfers tokens we mint for the recipient, if neither apply we will just call the ERC20 transfer
-   * @param _to The address of the recipient
-   * @param _amount The amount of tokens to transfer
-   */
-
-  function transfer(address _to, uint256 _amount) public override returns (bool _result) {
-    bool _senderIsBridge = bridges[msg.sender].isBridge;
-    bool _receiverIsBridge = bridges[_to].isBridge;
-
-    if (_senderIsBridge && _receiverIsBridge) {
-      _mintWithCaller(msg.sender, msg.sender, _amount);
-      _burnWithCaller(_to, msg.sender, _amount);
-      _result = true;
-    } else {
-      if (_senderIsBridge) {
-        _mintWithCaller(msg.sender, _to, _amount);
-        _result = true;
-      }
-
-      if (_receiverIsBridge) {
-        _burnWithCaller(_to, msg.sender, _amount);
-        _result = true;
-      }
-    }
-
-    if (!_result) _result = super.transfer(_to, _amount);
-  }
-
-  /**
-   * _
-   * @notice Overrides transfer to call burn/mint based on the recipient
-   * @dev Some bridges transfer instead of minting/burning. In that case, if you transfer tokens to a bridges we burn them and if the bridges transfers tokens we mint for the recipient, if neither apply we will just call the ERC20 transferFrom
-   * @param _from The address of the sender
-   * @param _to The address of the recipient
-   * @param _amount The amount of tokens to transfer
-   */
-
-  function transferFrom(address _from, address _to, uint256 _amount) public override returns (bool _result) {
-    bool _senderIsBridge = bridges[_from].isBridge;
-    bool _receiverIsBridge = bridges[_to].isBridge;
-
-    if (_senderIsBridge && _receiverIsBridge) {
-      _spendAllowance(_from, msg.sender, _amount);
-      _mintWithCaller(msg.sender, msg.sender, _amount);
-      _burnWithCaller(_to, msg.sender, _amount);
-
-      _result = true;
-    } else {
-      if (_senderIsBridge) {
-        _spendAllowance(_from, msg.sender, _amount);
-
-        _mintWithCaller(_from, _to, _amount);
-        _result = true;
-      }
-
-      if (_receiverIsBridge) {
-        _spendAllowance(_from, msg.sender, _amount);
-
-        _burnWithCaller(_to, _from, _amount);
-        _result = true;
-      }
-    }
-
-    if (!_result) _result = super.transferFrom(_from, _to, _amount);
-  }
 
   /**
    * @notice Sets the lockbox address
@@ -155,75 +80,15 @@ contract XERC20 is ERC20, Ownable, IXERC20, ERC20Permit {
   }
 
   /**
-   * @notice Creates limits for bridges
-   * @dev _limits and _bridges are parallel arrays and should be the same length
-   * @param _limits The limits to be added to the bridges
-   * @param _bridges the bridges who will recieve the limits
-   */
-
-  function createBridgeMintingLimits(uint256[] memory _limits, address[] memory _bridges) external onlyOwner {
-    uint256 _bridgesLength = _bridges.length;
-    if (_limits.length != _bridgesLength) revert IXERC20_IncompatibleLengths();
-
-    for (uint256 _i; _i < _bridgesLength;) {
-      _changeLimit(_limits[_i], _bridges[_i], true);
-      unchecked {
-        ++_i;
-      }
-    }
-  }
-
-  /**
-   * @notice Creates limits for bridges
-   * @dev _limits and _bridges are parallel arrays and should be the same length
-   * @param _limits The limits to be added to the bridges
-   * @param _bridges the bridges who will recieve the limits
-   */
-
-  function createBridgeBurningLimits(uint256[] memory _limits, address[] memory _bridges) external onlyOwner {
-    uint256 _bridgesLength = _bridges.length;
-    if (_limits.length != _bridgesLength) revert IXERC20_IncompatibleLengths();
-
-    for (uint256 _i; _i < _bridgesLength;) {
-      _changeLimit(_limits[_i], _bridges[_i], false);
-
-      unchecked {
-        ++_i;
-      }
-    }
-  }
-
-  /**
-   * @notice Updates the limit of any bridge
+   * @notice Updates the limits of any bridge
    * @dev Can only be called by the owner
-   * @param _limit The updated limit we are setting to the bridge
-   * @param _bridge The address of the bridge we are setting the limit too
+   * @param _mintingLimit The updated minting limit we are setting to the bridge
+   * @param _burningLimit The updated burning limit we are setting to the bridge
+   * @param _bridge The address of the bridge we are setting the limits too
    */
-
-  function changeBridgeMintingLimit(uint256 _limit, address _bridge) external onlyOwner {
-    _changeLimit(_limit, _bridge, true);
-  }
-
-  /**
-   * @notice Updates the limit of any bridge
-   * @dev Can only be called by the owner
-   * @param _limit The updated limit we are setting to the bridge
-   * @param _bridge The address of the bridge we are setting the limit too
-   */
-
-  function changeBridgeBurningLimit(uint256 _limit, address _bridge) external onlyOwner {
-    _changeLimit(_limit, _bridge, false);
-  }
-
-  /**
-   * @notice Removes a bridge
-   * @dev Can only be called by the owner
-   * @dev @dev Calling removeBridge transforms a bridge into a normal user. Meaning that they will be able to receive/send tokens as a normal user. If you want to pause operations for a bridge minting/burning limits should be set to 0.
-   * @param _bridge The bridge we are removing
-   */
-
-  function removeBridge(address _bridge) external onlyOwner {
-    delete bridges[_bridge];
+  function setLimits(address _bridge, uint256 _mintingLimit, uint256 _burningLimit) external onlyOwner {
+    _changeLimit(_mintingLimit, _bridge, true);
+    _changeLimit(_burningLimit, _bridge, false);
   }
 
   /**
@@ -278,31 +143,6 @@ contract XERC20 is ERC20, Ownable, IXERC20, ERC20Permit {
       bridges[_bridge].burnerParams.timestamp,
       bridges[_bridge].burnerParams.ratePerSecond
     );
-  }
-
-  /**
-   * @notice Loops through the array of bridges
-   *
-   * @param _start The start of the loop
-   * @param _amount The amount of bridges to loop through
-   * @return _bridges The array of bridges from the start to start + amount
-   */
-
-  function getBridges(uint256 _start, uint256 _amount) external view returns (address[] memory _bridges) {
-    uint256 _bridgesLength = EnumerableSet.length(_bridgesSet);
-    if (_amount > _bridgesLength - _start) {
-      _amount = _bridgesLength - _start;
-    }
-
-    _bridges = new address[](_amount);
-    uint256 _index;
-    while (_index < _amount) {
-      _bridges[_index] = EnumerableSet.at(_bridgesSet, _start + _index);
-
-      unchecked {
-        ++_index;
-      }
-    }
   }
 
   /**
@@ -376,11 +216,6 @@ contract XERC20 is ERC20, Ownable, IXERC20, ERC20Permit {
    */
 
   function _changeLimit(uint256 _newLimit, address _bridge, bool _mintingLimit) internal {
-    if (_newLimit != 0 && !bridges[_bridge].isBridge) {
-      bridges[_bridge].isBridge = true;
-      EnumerableSet.add(_bridgesSet, _bridge);
-    }
-
     if (_mintingLimit) {
       _changeMinterLimit(_newLimit, _bridge);
     } else {

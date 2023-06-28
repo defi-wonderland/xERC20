@@ -147,10 +147,10 @@ contract UnitDeploy is Base {
     _burnerLimits[0] = 1;
 
     vm.prank(_owner);
-    vm.expectRevert(IXERC20.IXERC20_IncompatibleLengths.selector);
+    vm.expectRevert(IXERC20Factory.IXERC20Factory_InvalidLength.selector);
     _xerc20Factory.deployXERC20('Test', 'TST', _minterLimits, _empty, _minters);
 
-    vm.expectRevert(IXERC20.IXERC20_IncompatibleLengths.selector);
+    vm.expectRevert(IXERC20Factory.IXERC20Factory_InvalidLength.selector);
     _xerc20Factory.deployXERC20('Test', 'TST', _empty, _burnerLimits, _minters);
   }
 
