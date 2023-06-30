@@ -1,32 +1,22 @@
-<img src="https://raw.githubusercontent.com/defi-wonderland/brand/v1.0.0/external/solidity-foundry-boilerplate-banner.png" alt="wonderland banner" align="center" />
-<br />
+# xTokens
 
-<div align="center"><strong>Start your next Solidity project with Foundry in seconds</strong></div>
-<div align="center">A highly scalable foundation focused on DX and best practices</div>
+xTokens is a standard for bridged tokens. A common interface to be used across different implementations of bridges to keep liquidity concentrated and improve user experience on-chain. 
 
-<br />
+### Contracts
 
-## Features
+*XERC20*: The main logic behind the xTokens. XERC20 is a standard for bridges to manage the same liquidity when bridging. It allows its owner to approve bridges and add limits to them for minting and burning the XERC20 token. The XERC20 standard is compatible with two different types of bridge behaviours, bridges calling mint/burn from the user (or other function names through adapters) and bridges that transfer from the user to the bridge contract. On the latter, XERC20 tokens that are received by the bridge get burned and when a bridge transfers tokens out, they get minted again.
 
-<dl>
-  <dt>Sample contracts</dt>
-  <dd>Basic Greeter contract with an external interface.</dd>
+*XERC20Lockbox*: The lockbox works as a wrapper of an ERC20. It mints XERC20 tokens at a 1:1 ratio when receiving ERC20 tokens and it unlocks the ERC20 the other way around. The lockbox can be deployed on any chain that has a canonical token representation, chains that do not currently have a canonical representation can avoid deploying a Lockbox and use the XERC20 as the default implementation for the chain.
 
-  <dt>Foundry setup</dt>
-  <dd>Foundry configuration with multiple custom profiles and remappings.</dd>
+*XERC20Factory*: The factory is used as a helper to deploy an xToken. It allows the owner to deploy the XERC20 and the Lockbox in one transaction while keeping the same token address on every chain used.
 
-  <dt>Deployment scripts</dt>
-  <dd>Sample scripts to deploy contracts on both mainnet and testnet.</dd>
+### Architectural Spec
+<img width="863" src="./assets/architectural-specs.png?raw=true">
 
-  <dt>Sample e2e & unit tests</dt>
-  <dd>Example tests showcasing mocking, assertions and configuration for mainnet forking. As well it includes everything needed in order to check code coverage.</dd>
+<sup>*The adapter included is an example into how it would work. Any bridge can build their own.</sup>
 
-  <dt>Linter</dt>
-  <dd>Simple and fast solidity linting thanks to forge fmt</a>.</dd>
-
-  <dt>Github workflows CI</dt>
-  <dd>Run all tests and see the coverage as you push your changes.</dd>
-</dl>
+### Flows
+<img width="1269" src="./assets/flows.png?raw=true">
 
 ## Setup
 
@@ -93,17 +83,32 @@ yarn coverage
 
 Configure the `.env` variables.
 
-### Rinkeby
+Change the parameters inside the corresponding scripts you are running to deploy your XERC20
 
+You will need to set your custom `name` and `symbol` for your XERC20 to be deployed, no need to add an 'x' infront of it, the contract will do that for you.
+
+If you choose to deploy with some bridges to already have permissions to mint/burn you will also have the option to add that, and inside `MultichainCreateXERC20.sol` you will see notes on how to do so
+
+On line 14 of the `MultichainCreateXERC20.sol` and line 13 of the `MultichainDeploy.sol`, you will need to add the names of all the `.env` variables you would like to deploy to inside the `chains` array.
+
+1. To simulate the deployment of the XERC20Factory  you can run
 ```bash
-yarn deploy:rinkeby
+yarn script:DeployFactory
+```
+2. To simulate the deployment of an XERC20  you can run
+```bash
+yarn script:DeployXERC20
+```
+3. To deploy an XERC20 to all the chains you have in the array you can run
+```bash
+yarn script:DeployXERC20:broadcast
+```
+4. To deploy the XERC20Factory to all the chains you have in the array you can run
+```bash
+yarn script:DeployFactory:broadcast
 ```
 
-### Mainnet
 
-```bash
-yarn deploy:mainnet
-```
 
 The deployments are stored in ./broadcast
 

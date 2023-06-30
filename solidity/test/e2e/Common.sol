@@ -4,22 +4,41 @@ pragma solidity >=0.8.4 <0.9.0;
 import {DSTestFull} from 'test/utils/DSTestFull.sol';
 import {console} from 'forge-std/console.sol';
 import {IERC20} from 'isolmate/interfaces/tokens/IERC20.sol';
+import {Test} from 'forge-std/Test.sol';
+import {XERC20} from 'contracts/XERC20.sol';
+import {XERC20Lockbox} from 'contracts/XERC20Lockbox.sol';
 
-import {Greeter, IGreeter} from 'contracts/Greeter.sol';
+import {XERC20Factory, IXERC20Factory} from 'contracts/XERC20Factory.sol';
 
-contract CommonE2EBase is DSTestFull {
-  uint256 internal constant _FORK_BLOCK = 15_452_788;
+contract CommonE2EBase is Test {
+  uint256 internal constant _FORK_BLOCK = 17_218_458;
+  address internal _user = vm.addr(100);
+  address internal _owner = vm.addr(200);
+  address internal _testMinter = vm.addr(123_456_789);
 
-  string internal _initialGreeting = 'hola';
-  address internal _user = _label('user');
-  address internal _owner = _label('owner');
-  address internal _daiWhale = 0x42f8CA49E88A8fd8F0bfA2C739e648468b8f9dec;
   IERC20 internal _dai = IERC20(0x6B175474E89094C44Da98b954EedeAC495271d0F);
-  IGreeter internal _greeter;
+  XERC20 internal _xerc20;
+  XERC20Lockbox internal _lockbox;
 
-  function setUp() public {
-    vm.createSelectFork(vm.rpcUrl('mainnet'), _FORK_BLOCK);
-    vm.prank(_owner);
-    _greeter = new Greeter(_initialGreeting, _dai);
+  XERC20Factory internal _xerc20Factory;
+
+  function setUp() public virtual {
+    vm.createSelectFork(vm.rpcUrl(vm.envString('MAINNET_RPC')), _FORK_BLOCK);
+    uint256[] memory _minterLimits = new uint256[](1);
+    uint256[] memory _burnerLimits = new uint256[](1);
+    address[] memory _bridges = new address[](1);
+
+    _bridges[0] = _testMinter;
+    _minterLimits[0] = 100 ether;
+    _burnerLimits[0] = 50 ether;
+
+    vm.startPrank(_owner);
+    _xerc20Factory = new XERC20Factory();
+    address _token = _xerc20Factory.deployXERC20(_dai.name(), _dai.symbol(), _minterLimits, _burnerLimits, _bridges);
+    address payable _lock = _xerc20Factory.deployLockbox(_token, address(_dai), false);
+
+    _xerc20 = XERC20(_token);
+    _lockbox = XERC20Lockbox(_lock);
+    vm.stopPrank();
   }
 }
