@@ -15,8 +15,7 @@ abstract contract Base is Test {
 
   XERC20 internal _xerc20;
 
-  event MinterLimitsSet(uint256 _newLimit, address indexed _minter);
-  event BurnerLimitsSet(uint256 _newLimit, address indexed _burner);
+  event BridgeLimitsSet(uint256 _mintingLimit, uint256 _burningLimit, address indexed _bridge);
   event LockboxSet(address _lockbox);
 
   function setUp() public virtual {
@@ -140,14 +139,14 @@ contract UnitCreateParams is Base {
   function testchangeBridgeMintingLimitEmitsEvent(uint256 _limit, address _minter) public {
     vm.prank(_owner);
     vm.expectEmit(true, true, true, true);
-    emit MinterLimitsSet(_limit, _minter);
+    emit BridgeLimitsSet(_limit, 0, _minter);
     _xerc20.setLimits(_minter, _limit, 0);
   }
 
   function testchangeBridgeBurningLimitEmitsEvent(uint256 _limit, address _minter) public {
     vm.prank(_owner);
     vm.expectEmit(true, true, true, true);
-    emit BurnerLimitsSet(_limit, _minter);
+    emit BridgeLimitsSet(0, _limit, _minter);
     _xerc20.setLimits(_minter, 0, _limit);
   }
 
