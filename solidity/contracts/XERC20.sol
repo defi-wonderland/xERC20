@@ -87,8 +87,9 @@ contract XERC20 is ERC20, Ownable, IXERC20, ERC20Permit {
    * @param _bridge The address of the bridge we are setting the limits too
    */
   function setLimits(address _bridge, uint256 _mintingLimit, uint256 _burningLimit) external onlyOwner {
-    _changeLimit(_mintingLimit, _bridge, true);
-    _changeLimit(_burningLimit, _bridge, false);
+    _changeMinterLimit(_mintingLimit, _bridge);
+    _changeBurnerLimit(_burningLimit, _bridge);
+    emit BridgeLimitsSet(_mintingLimit, _burningLimit, _bridge);
   }
 
   /**
@@ -185,7 +186,6 @@ contract XERC20 is ERC20, Ownable, IXERC20, ERC20Permit {
 
     bridges[_bridge].minterParams.ratePerSecond = _limit / _DURATION;
     bridges[_bridge].minterParams.timestamp = block.timestamp;
-    emit MinterLimitsSet(_limit, _bridge);
   }
 
   /**
@@ -204,23 +204,6 @@ contract XERC20 is ERC20, Ownable, IXERC20, ERC20Permit {
 
     bridges[_bridge].burnerParams.ratePerSecond = _limit / _DURATION;
     bridges[_bridge].burnerParams.timestamp = block.timestamp;
-    emit BurnerLimitsSet(_limit, _bridge);
-  }
-
-  /**
-   * @notice Updates the limit of any bridge
-   *
-   * @param _newLimit The updated limit we are setting to the bridge
-   * @param _bridge The address of the bridge we are setting the limit too
-   * @param _mintingLimit Whether or not we are updating the minting limit
-   */
-
-  function _changeLimit(uint256 _newLimit, address _bridge, bool _mintingLimit) internal {
-    if (_mintingLimit) {
-      _changeMinterLimit(_newLimit, _bridge);
-    } else {
-      _changeBurnerLimit(_newLimit, _bridge);
-    }
   }
 
   /**

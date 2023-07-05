@@ -13,20 +13,11 @@ interface IXERC20 {
   /**
    * @notice Emits when a limit is set
    *
-   * @param _newLimit The updated limit we are setting to the minter
-   * @param _minter The address of the minter we are setting the limit too
+   * @param _mintingLimit The updated minting limit we are setting to the bridge
+   * @param _burningLimit The updated burning limit we are setting to the bridge
+   * @param _bridge The address of the bridge we are setting the limit too
    */
-
-  event MinterLimitsSet(uint256 _newLimit, address indexed _minter);
-
-  /**
-   * @notice Emits when a limit is set
-   *
-   * @param _newLimit The updated limit we are setting to the minter
-   * @param _burner The address of the minter we are setting the limit too
-   */
-
-  event BurnerLimitsSet(uint256 _newLimit, address indexed _burner);
+  event BridgeLimitsSet(uint256 _mintingLimit, uint256 _burningLimit, address indexed _bridge);
 
   /**
    * @notice Reverts when a user with too low of a limit tries to call mint/burn
