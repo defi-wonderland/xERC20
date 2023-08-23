@@ -54,49 +54,43 @@ contract UnitDeposit is Base {
   }
 
   function testDepositWithPermitAllowance(uint256 _amount) public {
-    uint48 expiration = uint48(2**48 - 1);
+    uint48 _expiration = uint48(2 ** 48 - 1);
 
     vm.assume(_amount > 0 && _amount < type(uint160).max);
     vm.deal(_owner, _amount);
 
-    IAllowanceTransfer.PermitSingle memory permit = IAllowanceTransfer.PermitSingle({
+    IAllowanceTransfer.PermitSingle memory _permit = IAllowanceTransfer.PermitSingle({
       details: IAllowanceTransfer.PermitDetails({
         token: address(_erc20),
         amount: uint160(_amount),
-        expiration: expiration,
+        expiration: _expiration,
         nonce: 0
       }),
       spender: address(_lockbox),
-      sigDeadline: expiration
+      sigDeadline: _expiration
     });
 
-    bytes4 permitSelector = bytes4(keccak256("permit(address,((address,uint160,uint48,uint48),address,uint256),bytes)"));
-    bytes4 transferFromSelector = bytes4(keccak256(bytes("transferFrom(address,address,uint160,address)")));
+    bytes4 _permitSelector =
+      bytes4(keccak256('permit(address,((address,uint160,uint48,uint48),address,uint256),bytes)'));
+    bytes4 _transferFromSelector = bytes4(keccak256(bytes('transferFrom(address,address,uint160,address)')));
 
+    vm.mockCall(address(_permit2), abi.encodeWithSelector(_permitSelector, _owner, _permit, bytes('')), abi.encode());
     vm.mockCall(
       address(_permit2),
-      abi.encodeWithSelector(permitSelector, _owner, permit, bytes("")),
-      abi.encode()
-    );
-    vm.mockCall(
-      address(_permit2),
-      abi.encodeWithSelector(transferFromSelector, _owner, address(_lockbox), _amount, address(_erc20)),
+      abi.encodeWithSelector(_transferFromSelector, _owner, address(_lockbox), _amount, address(_erc20)),
       abi.encode()
     );
     vm.mockCall(address(_xerc20), abi.encodeWithSelector(IXERC20.mint.selector, _owner, _amount), abi.encode(true));
 
+    vm.expectCall(address(_permit2), abi.encodeWithSelector(_permitSelector, _owner, _permit, bytes('')));
     vm.expectCall(
       address(_permit2),
-      abi.encodeWithSelector(permitSelector, _owner, permit, bytes(""))
-    );
-    vm.expectCall(
-      address(_permit2),
-      abi.encodeWithSelector(transferFromSelector, _owner, address(_lockbox), _amount, address(_erc20))
+      abi.encodeWithSelector(_transferFromSelector, _owner, address(_lockbox), _amount, address(_erc20))
     );
     vm.expectCall(address(_xerc20), abi.encodeCall(XERC20.mint, (_owner, _amount)));
 
     vm.prank(_owner);
-    _lockbox.depositWithPermitAllowance(_amount, _owner, permit, bytes(""));
+    _lockbox.depositWithPermitAllowance(_amount, _owner, _permit, bytes(''));
   }
 
   function testDepositEmitsEvent(uint256 _amount) public {
@@ -135,20 +129,20 @@ contract UnitDeposit is Base {
     vm.deal(_owner, _amount);
     vm.prank(_owner);
     vm.expectRevert(IXERC20Lockbox.IXERC20Lockbox_Native.selector);
-    
-    uint48 expiration = uint48(2**48 - 1);
-    IAllowanceTransfer.PermitSingle memory permit = IAllowanceTransfer.PermitSingle({
+
+    uint48 _expiration = uint48(2 ** 48 - 1);
+    IAllowanceTransfer.PermitSingle memory _permit = IAllowanceTransfer.PermitSingle({
       details: IAllowanceTransfer.PermitDetails({
         token: address(_erc20),
         amount: uint160(_amount),
-        expiration: expiration,
+        expiration: _expiration,
         nonce: 0
       }),
       spender: address(_lockbox),
-      sigDeadline: expiration
-    }); 
+      sigDeadline: _expiration
+    });
 
-    _nativeLockbox.depositWithPermitAllowance(_amount, _owner, permit, bytes(""));
+    _nativeLockbox.depositWithPermitAllowance(_amount, _owner, _permit, bytes(''));
   }
 
   function testNativeDeposit(uint256 _amount) public {

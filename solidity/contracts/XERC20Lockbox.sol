@@ -5,8 +5,7 @@ import {IXERC20} from 'interfaces/IXERC20.sol';
 import {IERC20} from '@openzeppelin/contracts/token/ERC20/ERC20.sol';
 import {SafeERC20} from '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
 import {SafeCast} from '@openzeppelin/contracts/utils/math/SafeCast.sol';
-import {IXERC20Lockbox} from 'interfaces/IXERC20Lockbox.sol';
-import {IAllowanceTransfer} from 'permit2/src/interfaces/IAllowanceTransfer.sol';
+import {IXERC20Lockbox, IAllowanceTransfer} from 'interfaces/IXERC20Lockbox.sol';
 import {IPermit2} from 'permit2/src/interfaces/IPermit2.sol';
 
 contract XERC20Lockbox is IXERC20Lockbox {
@@ -79,21 +78,19 @@ contract XERC20Lockbox is IXERC20Lockbox {
    *
    * @param _amount The amount of tokens to deposit
    * @param _owner The owner of the tokens being deposited
+   * @param _permit The permit data
+   * @param _signature The signature approving the permit
    */
 
   function depositWithPermitAllowance(
     uint256 _amount,
     address _owner,
     IAllowanceTransfer.PermitSingle calldata _permit,
-    bytes calldata signature
+    bytes calldata _signature
   ) external {
     if (IS_NATIVE) revert IXERC20Lockbox_Native();
 
-    PERMIT2.permit(
-      _owner,
-      _permit,
-      signature
-    );
+    PERMIT2.permit(_owner, _permit, _signature);
 
     PERMIT2.transferFrom(_owner, address(this), _amount.toUint160(), address(ERC20));
     XERC20.mint(_owner, _amount);

@@ -31,14 +31,14 @@ contract E2ELockbox is CommonE2EBase, PermitSignature {
     address _permit2 = address(_lockbox.PERMIT2());
     bytes32 _domainSeparator = IEIP712(_permit2).DOMAIN_SEPARATOR();
     uint256 _amount = 100 ether;
-    uint48 _expiration = uint48(2**48 - 1);
+    uint48 _expiration = uint48(2 ** 48 - 1);
 
     deal(address(_dai), _user, _amount);
     vm.startPrank(_user);
     _dai.approve(_permit2, _amount);
     vm.stopPrank();
 
-    IAllowanceTransfer.PermitSingle memory permit = IAllowanceTransfer.PermitSingle({
+    IAllowanceTransfer.PermitSingle memory _permit = IAllowanceTransfer.PermitSingle({
       details: IAllowanceTransfer.PermitDetails({
         token: address(_dai),
         amount: uint160(_amount),
@@ -49,10 +49,10 @@ contract E2ELockbox is CommonE2EBase, PermitSignature {
       sigDeadline: _expiration
     });
 
-    bytes memory signature = getPermitSignature(permit, _userPrivateKey, _domainSeparator);
+    bytes memory _signature = getPermitSignature(_permit, _userPrivateKey, _domainSeparator);
 
     vm.startPrank(_multicall);
-    _lockbox.depositWithPermitAllowance(_amount, _user, permit, signature);
+    _lockbox.depositWithPermitAllowance(_amount, _user, _permit, _signature);
     vm.stopPrank();
 
     assertEq(XERC20(_xerc20).balanceOf(_user), _amount);
