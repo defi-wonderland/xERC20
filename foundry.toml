@@ -9,7 +9,7 @@ multiline_func_header = 'params_first'
 fs_permissions = [{ access = "read-write", path = "./"}]
 
 [profile.default]
-solc = '0.8.14'
+solc = '0.8.17'
 src = 'solidity'
 test = 'solidity/test'
 out = 'out'
