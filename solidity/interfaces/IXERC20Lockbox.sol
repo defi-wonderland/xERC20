@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity >=0.8.4 <0.9.0;
 
+import {IAllowanceTransfer} from 'permit2/src/interfaces/IAllowanceTransfer.sol';
+
 interface IXERC20Lockbox {
   /**
    * @notice Emitted when tokens are deposited into the lockbox
@@ -47,4 +49,20 @@ interface IXERC20Lockbox {
    */
 
   function withdraw(uint256 _amount) external;
+
+  /**
+   * @notice Deposit ERC20 tokens into the lockbox using Permit2
+   *
+   * @param _amount The amount of tokens to deposit
+   * @param _owner The owner of the tokens being deposited
+   * @param _permit The permit data
+   * @param _signature The signature approving the permit
+   */
+
+  function depositWithPermitAllowance(
+    uint256 _amount,
+    address _owner,
+    IAllowanceTransfer.PermitSingle calldata _permit,
+    bytes calldata _signature
+  ) external;
 }

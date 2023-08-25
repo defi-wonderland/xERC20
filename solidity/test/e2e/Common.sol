@@ -12,8 +12,10 @@ import {XERC20Factory, IXERC20Factory} from 'contracts/XERC20Factory.sol';
 
 contract CommonE2EBase is Test {
   uint256 internal constant _FORK_BLOCK = 17_218_458;
-  address internal _user = vm.addr(100);
+  uint256 internal _userPrivateKey = 0x1234;
+  address internal _user = vm.addr(_userPrivateKey);
   address internal _owner = vm.addr(200);
+  address internal _multicall = vm.addr(300);
   address internal _testMinter = vm.addr(123_456_789);
 
   IERC20 internal _dai = IERC20(0x6B175474E89094C44Da98b954EedeAC495271d0F);
