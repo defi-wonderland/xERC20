@@ -3,12 +3,12 @@ pragma solidity >=0.8.4 <0.9.0;
 
 import {Test} from 'forge-std/Test.sol';
 import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
-import {DSTestFull} from 'test/utils/DSTestFull.sol';
-import {XERC20} from 'contracts/XERC20.sol';
-import {XERC20Factory} from 'contracts/XERC20Factory.sol';
-import {XERC20Lockbox} from 'contracts/XERC20Lockbox.sol';
-import {IXERC20} from 'interfaces/IXERC20.sol';
-import {IXERC20Factory} from 'interfaces/IXERC20Factory.sol';
+import {DSTestFull} from '../../test/utils/DSTestFull.sol';
+import {XERC20} from '../../contracts/XERC20.sol';
+import {XERC20Factory} from '../../contracts/XERC20Factory.sol';
+import {XERC20Lockbox} from '../../contracts/XERC20Lockbox.sol';
+import {IXERC20} from '../../interfaces/IXERC20.sol';
+import {IXERC20Factory} from '../../interfaces/IXERC20Factory.sol';
 import {CREATE3} from 'isolmate/utils/CREATE3.sol';
 
 contract XERC20FactoryForTest is XERC20Factory {

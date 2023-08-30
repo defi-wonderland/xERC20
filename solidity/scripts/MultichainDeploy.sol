@@ -3,7 +3,7 @@ pragma solidity >=0.8.4 <0.9.0;
 
 import {console} from 'forge-std/console.sol';
 import {Test} from 'forge-std/Test.sol';
-import {XERC20Factory, IXERC20Factory} from 'contracts/XERC20Factory.sol';
+import {XERC20Factory, IXERC20Factory} from '../contracts/XERC20Factory.sol';
 import {Script} from 'forge-std/Script.sol';
 import {ScriptingLibrary} from './ScriptingLibrary/ScriptingLibrary.sol';
 

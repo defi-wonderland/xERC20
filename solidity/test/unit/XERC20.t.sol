@@ -3,10 +3,10 @@ pragma solidity >=0.8.4 <0.9.0;
 
 import {Test} from 'forge-std/Test.sol';
 import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
-import {DSTestFull} from 'test/utils/DSTestFull.sol';
-import {XERC20} from 'contracts/XERC20.sol';
-import {IXERC20Factory} from 'interfaces/IXERC20Factory.sol';
-import {IXERC20} from 'interfaces/IXERC20.sol';
+import {DSTestFull} from '../../test/utils/DSTestFull.sol';
+import {XERC20} from '../../contracts/XERC20.sol';
+import {IXERC20Factory} from '../../interfaces/IXERC20Factory.sol';
+import {IXERC20} from '../../interfaces/IXERC20.sol';
 
 abstract contract Base is Test {
   address internal _owner = vm.addr(1);
