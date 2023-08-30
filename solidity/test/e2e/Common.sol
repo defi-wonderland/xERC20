@@ -1,14 +1,14 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.4 <0.9.0;
 
-import {DSTestFull} from 'test/utils/DSTestFull.sol';
+import {DSTestFull} from '../../test/utils/DSTestFull.sol';
 import {console} from 'forge-std/console.sol';
 import {IERC20} from 'isolmate/interfaces/tokens/IERC20.sol';
 import {Test} from 'forge-std/Test.sol';
-import {XERC20} from 'contracts/XERC20.sol';
-import {XERC20Lockbox} from 'contracts/XERC20Lockbox.sol';
+import {XERC20} from '../../contracts/XERC20.sol';
+import {XERC20Lockbox} from '../../contracts/XERC20Lockbox.sol';
 
-import {XERC20Factory, IXERC20Factory} from 'contracts/XERC20Factory.sol';
+import {XERC20Factory, IXERC20Factory} from '../../contracts/XERC20Factory.sol';
 
 contract CommonE2EBase is Test {
   uint256 internal constant _FORK_BLOCK = 17_218_458;

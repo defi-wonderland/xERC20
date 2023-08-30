@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity >=0.8.4 <0.9.0;
 
-import {XERC20} from 'contracts/XERC20.sol';
-import {IXERC20Factory} from 'interfaces/IXERC20Factory.sol';
-import {XERC20Lockbox} from 'contracts/XERC20Lockbox.sol';
+import {XERC20} from '../contracts/XERC20.sol';
+import {IXERC20Factory} from '../interfaces/IXERC20Factory.sol';
+import {XERC20Lockbox} from '../contracts/XERC20Lockbox.sol';
 import {CREATE3} from 'isolmate/utils/CREATE3.sol';
 import {EnumerableSet} from '@openzeppelin/contracts/utils/structs/EnumerableSet.sol';
 

@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity >=0.8.4 <0.9.0;
 
-import {IXERC20} from 'interfaces/IXERC20.sol';
+import {IXERC20} from '../interfaces/IXERC20.sol';
 import {ERC20} from '@openzeppelin/contracts/token/ERC20/ERC20.sol';
 import {ERC20Permit} from '@openzeppelin/contracts/token/ERC20/extensions/draft-ERC20Permit.sol';
 import {Ownable} from '@openzeppelin/contracts/access/Ownable.sol';
