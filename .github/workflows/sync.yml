@@ -8,7 +8,7 @@ on:
 
 jobs:
   sync:
-    if: github.repository == 'defi-wonderland/xTokens-private'
+    if: github.repository == 'defi-wonderland/xERC20-private'
     runs-on: ubuntu-latest
     steps:
       - name: Check out github repository
@@ -22,7 +22,7 @@ jobs:
           ssh-private-key: ${{ secrets.SYNC_SSH_PRIVATE_KEY }}
 
       - name: Add Remote
-        run: git remote add public git@github.com:defi-wonderland/xTokens.git
+        run: git remote add public git@github.com:defi-wonderland/xERC20.git
 
       - name: Sync branch
         run: git push public ${{ github.ref_name }}
