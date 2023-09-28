@@ -12,6 +12,8 @@ import {IXERC20Factory} from '../../interfaces/IXERC20Factory.sol';
 import {CREATE3} from 'isolmate/utils/CREATE3.sol';
 
 contract XERC20FactoryForTest is XERC20Factory {
+  constructor(address _oldFactory) XERC20Factory(_oldFactory) {}
+  
   function getDeployed(bytes32 _salt) public view returns (address _precomputedAddress) {
     _precomputedAddress = CREATE3.getDeployed(_salt);
   }
@@ -23,12 +25,14 @@ abstract contract Base is DSTestFull {
   address internal _erc20 = vm.addr(3);
 
   XERC20FactoryForTest internal _xerc20Factory;
+  XERC20FactoryForTest internal _newXerc20Factory;
 
   event XERC20Deployed(address _xerc20);
   event LockboxDeployed(address payable _lockbox);
 
   function setUp() public virtual {
-    _xerc20Factory = new XERC20FactoryForTest();
+    _xerc20Factory = new XERC20FactoryForTest(address(0));
+    _newXerc20Factory = new XERC20FactoryForTest(address(_xerc20Factory));
   }
 }
 
@@ -252,15 +256,37 @@ contract UnitDeploy is Base {
     _xerc20Factory.deployLockbox(_token, _erc20, false);
   }
 
-  function testIsRegisteredXERC20(address _randomAddr) public {
+  function testIsRegisteredXERC20() public {
     uint256[] memory _limits = new uint256[](0);
     address[] memory _minters = new address[](0);
     vm.prank(_owner);
     address _xerc20 = _xerc20Factory.deployXERC20('Test', 'TST', _limits, _limits, _minters);
 
-    vm.assume(_randomAddr != _xerc20);
-
     assertEq(_xerc20Factory.isRegisteredXERC20(_xerc20), true);
-    assertEq(_xerc20Factory.isRegisteredXERC20(_randomAddr), false);
+  }
+
+  function testIsRegisteredLockbox() public {
+    uint256[] memory _limits = new uint256[](0);
+    address[] memory _minters = new address[](0);
+    vm.startPrank(_owner);
+    address _xerc20 = _xerc20Factory.deployXERC20('Test', 'TST', _limits, _limits, _minters);
+    address payable _lockbox = payable(_xerc20Factory.deployLockbox(_xerc20, _erc20, false));
+    vm.stopPrank();
+
+
+    assertEq(_xerc20Factory.isRegisteredLockbox(_lockbox), true);
+  }
+
+  function testChainingFactoryRegistries() public {
+    uint256[] memory _limits = new uint256[](0);
+    address[] memory _minters = new address[](0);
+    vm.startPrank(_owner);
+    address _xerc20 = _xerc20Factory.deployXERC20('Test', 'TST', _limits, _limits, _minters);
+    address payable _lockbox = payable(_xerc20Factory.deployLockbox(_xerc20, _erc20, false));
+    vm.stopPrank();
+
+    assertEq(_newXerc20Factory.isRegisteredXERC20(_xerc20), true);
+    assertEq(_newXerc20Factory.isRegisteredLockbox(_lockbox), true);
+    assertEq(_newXerc20Factory.lockboxRegistry(_xerc20), _lockbox);
   }
 }

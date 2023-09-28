@@ -51,7 +51,7 @@ contract XERC20Lockbox is IXERC20Lockbox {
    * @notice Deposit native tokens into the lockbox
    */
 
-  function deposit() public payable {
+  function depositNative() public payable {
     if (!IS_NATIVE) revert IXERC20Lockbox_NotNative();
     XERC20.mint(msg.sender, msg.value);
 
@@ -105,6 +105,8 @@ contract XERC20Lockbox is IXERC20Lockbox {
    */
 
   function withdraw(uint256 _amount) external {
+    emit Withdraw(msg.sender, _amount);
+
     XERC20.burn(msg.sender, _amount);
 
     if (IS_NATIVE) {
@@ -113,11 +115,9 @@ contract XERC20Lockbox is IXERC20Lockbox {
     } else {
       ERC20.safeTransfer(msg.sender, _amount);
     }
-
-    emit Withdraw(msg.sender, _amount);
   }
 
   receive() external payable {
-    deposit();
+    depositNative();
   }
 }

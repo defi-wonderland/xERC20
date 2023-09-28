@@ -17,6 +17,7 @@ abstract contract Base is Test {
 
   event BridgeLimitsSet(uint256 _mintingLimit, uint256 _burningLimit, address indexed _bridge);
   event LockboxSet(address _lockbox);
+  event SetLimitsDelay(uint256 _delay);
 
   function setUp() public virtual {
     vm.startPrank(_owner);

@@ -98,6 +98,15 @@ interface IXERC20Factory {
   function isRegisteredXERC20(address _xerc20) external view returns (bool _result);
 
   /**
+   * @notice Returns if a lockbox is registered
+   *
+   * @param _lockbox The address of the lockbox
+   * @return _result If the lockbox is registered
+   */
+
+  function isRegisteredLockbox(address _lockbox) external view returns (bool _result);
+
+  /**
    * @notice Returns the address of the lockbox for a given XERC20
    *
    * @param _xerc20 The address of the XERC20

@@ -113,7 +113,7 @@ contract UnitDeposit is Base {
     vm.deal(_owner, _amount);
     vm.prank(_owner);
     vm.expectRevert(IXERC20Lockbox.IXERC20Lockbox_NotNative.selector);
-    _lockbox.deposit{value: _amount}();
+    _lockbox.depositNative{value: _amount}();
   }
 
   function testNativeRevertsIfDepositIntoNonNative(uint256 _amount) public {
@@ -152,7 +152,7 @@ contract UnitDeposit is Base {
     vm.mockCall(address(_xerc20), abi.encodeWithSelector(IXERC20.mint.selector, _owner, _amount), abi.encode(true));
 
     vm.expectCall(address(_xerc20), abi.encodeCall(XERC20.mint, (_owner, _amount)));
-    _nativeLockbox.deposit{value: _amount}();
+    _nativeLockbox.depositNative{value: _amount}();
   }
 
   function testSendingNativeDepositByTransfer(uint256 _amount) public {
@@ -196,7 +196,7 @@ contract UnitWithdraw is Base {
 
     vm.startPrank(_owner);
     vm.mockCall(address(_xerc20), abi.encodeWithSelector(IXERC20.mint.selector, _owner, _amount), abi.encode(true));
-    _nativeLockbox.deposit{value: _amount}();
+    _nativeLockbox.depositNative{value: _amount}();
     _nativeLockbox.withdraw(_amount);
     vm.stopPrank();
 
