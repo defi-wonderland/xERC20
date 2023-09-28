@@ -91,24 +91,16 @@ If you choose to deploy with some bridges to already have permissions to mint/bu
 
 On line 14 of the `MultichainCreateXERC20.sol` and line 13 of the `MultichainDeploy.sol`, you will need to add the names of all the `.env` variables you would like to deploy to inside the `chains` array.
 
-1. To simulate the deployment of the XERC20Factory  you can run
-```bash
-yarn script:DeployFactory
-```
-2. To simulate the deployment of an XERC20  you can run
+### Deploy your XERC20
+
+1. To simulate the deployment of an XERC20  you can run
 ```bash
 yarn script:DeployXERC20
 ```
-3. To deploy an XERC20 to all the chains you have in the array you can run
+2. To deploy an XERC20 to all the chains you have in the array you can run
 ```bash
 yarn script:DeployXERC20:broadcast
 ```
-4. To deploy the XERC20Factory to all the chains you have in the array you can run
-```bash
-yarn script:DeployFactory:broadcast
-```
-
-
 
 The deployments are stored in ./broadcast
 
