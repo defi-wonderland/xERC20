@@ -67,6 +67,7 @@ contract E2ELockbox is CommonE2EBase, PermitSignature {
     vm.stopPrank();
 
     vm.startPrank(_user);
+    _xerc20.approve(address(_lockbox), 100 ether);
     _lockbox.withdraw(100 ether);
     vm.stopPrank();
 

@@ -76,11 +76,46 @@ contract UnitMintBurn is Base {
     vm.stopPrank();
 
     vm.startPrank(_user);
+
     _xerc20.mint(_user, _amount);
     _xerc20.burn(_user, _amount);
     vm.stopPrank();
 
     assertEq(_xerc20.balanceOf(_user), 0);
+  }
+
+    function testBurnRevertsWithoutApproval(uint256 _amount) public {
+    _amount = bound(_amount, 1, 1e40);
+
+    vm.prank(_owner);
+    _xerc20.setLimits(_owner, _amount, _amount);
+
+
+    vm.startPrank(_owner);
+    vm.expectRevert('ERC20: insufficient allowance');
+    _xerc20.burn(_user, _amount);
+    vm.stopPrank();
+
+    assertEq(_xerc20.balanceOf(_user), 0);
+  }
+
+  function testBurnReducesAllowance(uint256 _amount, uint256 _approvalAmount) public {
+    _amount = bound(_amount, 1, 1e40);
+    _approvalAmount = bound(_approvalAmount, _amount, 1e45);
+
+    vm.prank(_owner);
+    _xerc20.setLimits(_minter, _amount, _amount);
+
+
+    vm.prank(_user);
+    _xerc20.approve(_minter, _approvalAmount);
+
+    vm.startPrank(_minter);
+    _xerc20.mint(_user, _amount);
+    _xerc20.burn(_user, _amount);
+    vm.stopPrank();
+
+    assertEq(_xerc20.allowance(_user, _minter), _approvalAmount - _amount);
   }
 }
 
