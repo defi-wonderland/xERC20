@@ -15,8 +15,7 @@ contract MultichainDeploy is Script, ScriptingLibrary {
   function run() public {
     //TODO: Change salt from this test to prod before release
     bytes32 _salt = keccak256(abi.encodePacked('xxxsdsdd23ewXERewewCewew20Factoewewry', msg.sender));
-    //TODO: Add old factory address here before deploying
-    address _oldFactory = address(0);
+    address _oldFactory = vm.envAddress('OLD_FACTORY');
     address[] memory factories = new address[](chains.length);
 
     for (uint256 i; i < chains.length; i++) {
@@ -27,7 +26,7 @@ contract MultichainDeploy is Script, ScriptingLibrary {
       address _deployedFactory = getAddress(_bytecode, _salt, CREATE2);
 
       XERC20Factory fact = new XERC20Factory{salt: _salt}(_oldFactory);
-      
+
       require(address(fact) == _deployedFactory, 'Factory address does not match');
 
       vm.stopBroadcast();
@@ -38,9 +37,7 @@ contract MultichainDeploy is Script, ScriptingLibrary {
     if (chains.length > 1) {
       for (uint256 i = 1; i < chains.length; i++) {
         vm.assume(factories[i - 1] == factories[i]);
-        vm.assume(
-          keccak256(factories[i - 1].code) == keccak256(factories[i].code)
-        );
+        vm.assume(keccak256(factories[i - 1].code) == keccak256(factories[i].code));
       }
     }
   }
