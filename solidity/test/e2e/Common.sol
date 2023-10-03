@@ -11,7 +11,7 @@ import {XERC20Lockbox} from '../../contracts/XERC20Lockbox.sol';
 import {XERC20Factory, IXERC20Factory} from '../../contracts/XERC20Factory.sol';
 
 contract CommonE2EBase is Test {
-  uint256 internal constant _FORK_BLOCK = 17_218_458;
+  uint256 internal constant _FORK_BLOCK = 18213198;
   uint256 internal _userPrivateKey = 0x1234;
   address internal _user = vm.addr(_userPrivateKey);
   address internal _owner = vm.addr(200);
@@ -21,7 +21,7 @@ contract CommonE2EBase is Test {
   IERC20 internal _dai = IERC20(0x6B175474E89094C44Da98b954EedeAC495271d0F);
   XERC20 internal _xerc20;
   XERC20Lockbox internal _lockbox;
-
+  IXERC20Factory internal _oldFactory = IXERC20Factory(0xF5FF5024F7E783D91D4A4D54334a96bF48C897ca);
   XERC20Factory internal _xerc20Factory;
 
   function setUp() public virtual {
@@ -35,7 +35,7 @@ contract CommonE2EBase is Test {
     _burnerLimits[0] = 50 ether;
 
     vm.startPrank(_owner);
-    _xerc20Factory = new XERC20Factory(address(0));
+    _xerc20Factory = new XERC20Factory(address(_oldFactory));
     address _token = _xerc20Factory.deployXERC20(_dai.name(), _dai.symbol(), _minterLimits, _burnerLimits, _bridges);
     address payable _lock = _xerc20Factory.deployLockbox(_token, address(_dai), false);
 
