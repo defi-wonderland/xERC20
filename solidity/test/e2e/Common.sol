@@ -11,7 +11,7 @@ import {XERC20Lockbox} from '../../contracts/XERC20Lockbox.sol';
 import {XERC20Factory, IXERC20Factory} from '../../contracts/XERC20Factory.sol';
 
 contract CommonE2EBase is Test {
-  uint256 internal constant _FORK_BLOCK = 18213198;
+  uint256 internal constant _FORK_BLOCK = 18_213_198;
   uint256 internal _userPrivateKey = 0x1234;
   address internal _user = vm.addr(_userPrivateKey);
   address internal _owner = vm.addr(200);

@@ -22,7 +22,7 @@ contract E2EMintAndBurn is CommonE2EBase {
     _xerc20.mint(_user, 100 ether);
     vm.stopPrank();
 
-    vm.prank(_user); 
+    vm.prank(_user);
     _xerc20.approve(_owner, 100 ether);
 
     vm.prank(_owner);
@@ -101,7 +101,7 @@ contract E2EParameterMath is CommonE2EBase {
     _xerc20.setLimits(_owner, 100 ether, 100 ether);
     vm.stopPrank();
 
-    vm.prank(_user); 
+    vm.prank(_user);
     _xerc20.approve(_owner, 100 ether);
 
     vm.startPrank(_owner);
@@ -122,7 +122,7 @@ contract E2EParameterMath is CommonE2EBase {
     _xerc20.setLimits(_owner, 100 ether, 100 ether);
     vm.stopPrank();
 
-    vm.prank(_user); 
+    vm.prank(_user);
     _xerc20.approve(_owner, 100 ether);
 
     vm.startPrank(_owner);
@@ -143,7 +143,7 @@ contract E2EParameterMath is CommonE2EBase {
     _xerc20.setLimits(_owner, 100 ether, 100 ether);
     vm.stopPrank();
 
-    vm.prank(_user); 
+    vm.prank(_user);
     _xerc20.approve(_owner, 100 ether);
 
     vm.startPrank(_owner);
@@ -164,10 +164,10 @@ contract E2EParameterMath is CommonE2EBase {
     _xerc20.setLimits(_owner, 100 ether, 100 ether);
     vm.stopPrank();
 
-    vm.prank(_user); 
+    vm.prank(_user);
     _xerc20.approve(_owner, 100 ether);
 
-    vm.prank(_user); 
+    vm.prank(_user);
     _xerc20.approve(_owner, 100 ether);
 
     vm.startPrank(_owner);
@@ -187,7 +187,7 @@ contract E2EParameterMath is CommonE2EBase {
     _xerc20.setLimits(_owner, 100 ether, 100 ether);
     vm.stopPrank();
 
-    vm.prank(_user); 
+    vm.prank(_user);
     _xerc20.approve(_owner, 100 ether);
 
     vm.startPrank(_owner);
@@ -261,21 +261,20 @@ contract E2EParameterMath is CommonE2EBase {
 
     assertEq(_xerc20.mintingCurrentLimitOf(_owner), 20 ether);
 
-    vm.prank(_user0); 
+    vm.prank(_user0);
     _xerc20.approve(_owner, 100 ether);
 
-    vm.prank(_user1); 
+    vm.prank(_user1);
     _xerc20.approve(_owner, 100 ether);
 
-    vm.prank(_user2); 
+    vm.prank(_user2);
     _xerc20.approve(_owner, 100 ether);
 
-    vm.prank(_user3); 
+    vm.prank(_user3);
     _xerc20.approve(_owner, 100 ether);
 
-    vm.prank(_user4); 
+    vm.prank(_user4);
     _xerc20.approve(_owner, 100 ether);
-
 
     vm.startPrank(_owner);
     _xerc20.burn(_user0, 5 ether);
@@ -303,10 +302,10 @@ contract E2EParameterMath is CommonE2EBase {
     _xerc20.setLimits(_user, _userLimit, _userLimit);
     vm.stopPrank();
 
-    vm.prank(_user); 
+    vm.prank(_user);
     _xerc20.approve(_owner, 100 ether);
 
-    vm.prank(_owner); 
+    vm.prank(_owner);
     _xerc20.approve(_user, 100 ether);
 
     vm.startPrank(_owner);
@@ -344,12 +343,11 @@ contract E2EParameterMath is CommonE2EBase {
     uint256 _ownerLimit = 100 ether;
     uint256 _userLimit = 50 ether;
 
-    vm.prank(_user); 
+    vm.prank(_user);
     _xerc20.approve(_owner, 100 ether);
 
-    vm.prank(_owner); 
+    vm.prank(_owner);
     _xerc20.approve(_user, 100 ether);
-
 
     vm.startPrank(_owner);
     _xerc20.setLimits(_owner, _ownerLimit, _ownerLimit);

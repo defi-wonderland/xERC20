@@ -27,7 +27,6 @@ contract XERC20 is ERC20, Ownable, IXERC20, ERC20Permit {
    */
   mapping(address => Bridge) public bridges;
 
-
   /**
    * @notice Constructs the initial config of the XERC20
    *
@@ -64,10 +63,10 @@ contract XERC20 is ERC20, Ownable, IXERC20, ERC20Permit {
    */
 
   function burn(address _user, uint256 _amount) public {
-    if(msg.sender != _user) {
+    if (msg.sender != _user) {
       _spendAllowance(_user, msg.sender, _amount);
     }
-    
+
     _burnWithCaller(msg.sender, _user, _amount);
   }
 

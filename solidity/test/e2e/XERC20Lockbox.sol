@@ -34,7 +34,6 @@ contract E2ELockbox is CommonE2EBase {
     assertEq(_dai.balanceOf(_user), 0 ether);
   }
 
-
   function testWithdraw() public {
     deal(address(_dai), _user, 100 ether);
     vm.startPrank(_user);

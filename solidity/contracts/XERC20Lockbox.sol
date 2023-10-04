@@ -97,7 +97,7 @@ contract XERC20Lockbox is IXERC20Lockbox {
     _withdraw(msg.sender, _amount);
   }
 
-    /**
+  /**
    * @notice Withdraw tokens from the lockbox
    *
    * @param _to The user to withdraw to
@@ -128,7 +128,7 @@ contract XERC20Lockbox is IXERC20Lockbox {
     }
   }
 
-    /**
+  /**
    * @notice Deposit tokens into the lockbox
    *
    * @param _to The address to send the XERC20 to
@@ -141,8 +141,6 @@ contract XERC20Lockbox is IXERC20Lockbox {
     }
 
     XERC20.mint(_to, _amount);
-    
-
     emit Deposit(_to, _amount);
   }
 

@@ -13,7 +13,7 @@ import {CREATE3} from 'isolmate/utils/CREATE3.sol';
 
 contract XERC20FactoryForTest is XERC20Factory {
   constructor(address _oldFactory) XERC20Factory(_oldFactory) {}
-  
+
   function getDeployed(bytes32 _salt) public view returns (address _precomputedAddress) {
     _precomputedAddress = CREATE3.getDeployed(_salt);
   }
@@ -272,7 +272,6 @@ contract UnitDeploy is Base {
     address _xerc20 = _xerc20Factory.deployXERC20('Test', 'TST', _limits, _limits, _minters);
     address payable _lockbox = payable(_xerc20Factory.deployLockbox(_xerc20, _erc20, false));
     vm.stopPrank();
-
 
     assertEq(_xerc20Factory.isRegisteredLockbox(_lockbox), true);
   }

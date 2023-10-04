@@ -114,4 +114,11 @@ interface IXERC20Factory {
    */
 
   function lockboxRegistry(address _xerc20) external view returns (address _lockbox);
+
+  /**
+  * @notice The version of the factory
+  * @dev Will revert if version is V0
+  */
+
+  function VERSION() external view returns (string memory _version);
 }

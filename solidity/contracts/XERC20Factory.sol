@@ -11,8 +11,14 @@ contract XERC20Factory is IXERC20Factory {
   using EnumerableSet for EnumerableSet.AddressSet;
 
   /**
-  * @notice The address of the old factory
-  */
+   * @notice The version of the factory
+   * @dev Will revert if version is V0
+   */
+  string public constant VERSION = 'V1';
+
+  /**
+   * @notice The address of the old factory
+   */
   XERC20Factory public immutable OLD_FACTORY;
 
   /**
@@ -114,7 +120,7 @@ contract XERC20Factory is IXERC20Factory {
     _result = _isRegisteredXERC20(_xerc20);
   }
 
-    /**
+  /**
    * @notice Returns if a lockbox is registered
    *
    * @param _lockbox The address of the lockbox
@@ -126,22 +132,22 @@ contract XERC20Factory is IXERC20Factory {
   }
 
   /**
-  * @notice Gets the lockbox that is registered to an XERC20
-  *
-  * @param _xerc20 The address of the XERC20
-  * @return _lockbox The address of the lockbox
- */
+   * @notice Gets the lockbox that is registered to an XERC20
+   *
+   * @param _xerc20 The address of the XERC20
+   * @return _lockbox The address of the lockbox
+   */
 
   function lockboxRegistry(address _xerc20) external view returns (address _lockbox) {
     _lockbox = _getLockboxForXERC20(_xerc20);
   }
 
-    /**
-  * @notice Gets the lockbox that is registered to an XERC20
-  *
-  * @param _xerc20 The address of the XERC20
-  * @return _lockbox The address of the lockbox
- */
+  /**
+   * @notice Gets the lockbox that is registered to an XERC20
+   *
+   * @param _xerc20 The address of the XERC20
+   * @return _lockbox The address of the lockbox
+   */
 
   function _getLockboxForXERC20(address _xerc20) internal view returns (address _lockbox) {
     _lockbox = _lockboxRegistry[_xerc20];
@@ -151,21 +157,22 @@ contract XERC20Factory is IXERC20Factory {
   }
 
   /**
-  * @notice Returns if an XERC20 is in a registry
-  *
-  * @param _xerc20 The address of the XERC20
-  * @return _result If the XERC20 is in the registry
+   * @notice Returns if an XERC20 is in a registry
+   *
+   * @param _xerc20 The address of the XERC20
+   * @return _result If the XERC20 is in the registry
    */
 
   function _isRegisteredXERC20(address _xerc20) internal view returns (bool _result) {
-    _result = EnumerableSet.contains(_xerc20RegistryArray, _xerc20) || (address(OLD_FACTORY) != address(0) && OLD_FACTORY.isRegisteredXERC20(_xerc20));
+    _result = EnumerableSet.contains(_xerc20RegistryArray, _xerc20)
+      || (address(OLD_FACTORY) != address(0) && OLD_FACTORY.isRegisteredXERC20(_xerc20));
   }
 
-    /**
-  * @notice Returns if an lockbox is in a registry
-  *
-  * @param _lockbox The address of the lockbox
-  * @return _result If the lockbox is in the registry
+  /**
+   * @notice Returns if an lockbox is in a registry
+   *
+   * @param _lockbox The address of the lockbox
+   * @return _result If the lockbox is in the registry
    */
 
   function _isRegisteredLockbox(address _lockbox) internal view returns (bool _result) {
@@ -181,11 +188,10 @@ contract XERC20Factory is IXERC20Factory {
 
         _result = OLD_FACTORY.lockboxRegistry(_xerc20) == _lockbox;
       }
-      
     }
   }
 
-    /**
+  /**
    * @notice Loops through an EnumerableSet
    *
    * @param _start The start of the loop
@@ -193,11 +199,11 @@ contract XERC20Factory is IXERC20Factory {
    * @return _result All the values from start to start + amount
    */
 
-  function _getRegisteredSet(uint256 _start, uint256 _amount, EnumerableSet.AddressSet storage _set)
-    internal
-    view
-    returns (address[] memory _result)
-  {
+  function _getRegisteredSet(
+    uint256 _start,
+    uint256 _amount,
+    EnumerableSet.AddressSet storage _set
+  ) internal view returns (address[] memory _result) {
     uint256 _length = EnumerableSet.length(_set);
     if (_amount > _length - _start) {
       _amount = _length - _start;

@@ -10,7 +10,6 @@ interface IXERC20 {
 
   event LockboxSet(address _lockbox);
 
-
   /**
    * @notice Emits when a limit is set
    *
@@ -31,7 +30,6 @@ interface IXERC20 {
    */
 
   error IXERC20_NotFactory();
-
 
   struct Bridge {
     BridgeParameters minterParams;

@@ -84,12 +84,11 @@ contract UnitMintBurn is Base {
     assertEq(_xerc20.balanceOf(_user), 0);
   }
 
-    function testBurnRevertsWithoutApproval(uint256 _amount) public {
+  function testBurnRevertsWithoutApproval(uint256 _amount) public {
     _amount = bound(_amount, 1, 1e40);
 
     vm.prank(_owner);
     _xerc20.setLimits(_owner, _amount, _amount);
-
 
     vm.startPrank(_owner);
     vm.expectRevert('ERC20: insufficient allowance');
@@ -105,7 +104,6 @@ contract UnitMintBurn is Base {
 
     vm.prank(_owner);
     _xerc20.setLimits(_minter, _amount, _amount);
-
 
     vm.prank(_user);
     _xerc20.approve(_minter, _approvalAmount);

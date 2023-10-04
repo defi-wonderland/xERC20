@@ -50,7 +50,7 @@ contract UnitDeposit is Base {
     _lockbox.deposit(_amount);
   }
 
-    function testDepositTo(uint256 _amount) public {
+  function testDepositTo(uint256 _amount) public {
     vm.assume(_amount > 0);
     vm.mockCall(
       address(_erc20),
@@ -89,7 +89,7 @@ contract UnitDeposit is Base {
     _lockbox.depositNative{value: _amount}();
   }
 
-    function testNonNativeIntoNativeDeposittoReverts(uint256 _amount) public {
+  function testNonNativeIntoNativeDeposittoReverts(uint256 _amount) public {
     vm.assume(_amount > 0);
     vm.deal(_owner, _amount);
     vm.prank(_owner);
@@ -105,7 +105,7 @@ contract UnitDeposit is Base {
     _nativeLockbox.deposit(_amount);
   }
 
-    function testNativeRevertsIfDepositToIntoNonNative(uint256 _amount) public {
+  function testNativeRevertsIfDepositToIntoNonNative(uint256 _amount) public {
     vm.assume(_amount > 0);
     vm.deal(_owner, _amount);
     vm.prank(_owner);
@@ -123,7 +123,7 @@ contract UnitDeposit is Base {
     _nativeLockbox.depositNative{value: _amount}();
   }
 
-    function testNativeDepositTo(uint256 _amount) public {
+  function testNativeDepositTo(uint256 _amount) public {
     vm.assume(_amount > 0);
     vm.deal(_owner, _amount);
     vm.prank(_owner);
