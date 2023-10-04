@@ -145,7 +145,7 @@ contract XERC20Factory is IXERC20Factory {
 
   function _getLockboxForXERC20(address _xerc20) internal view returns (address _lockbox) {
     _lockbox = _lockboxRegistry[_xerc20];
-    if (_lockbox == address(0) && address(OLD_FACTORY)  != address(0)) {
+    if (_lockbox == address(0) && address(OLD_FACTORY) != address(0)) {
       _lockbox = OLD_FACTORY.lockboxRegistry(_xerc20);
     }
   }

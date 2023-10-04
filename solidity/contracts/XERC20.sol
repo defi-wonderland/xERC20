@@ -153,7 +153,7 @@ contract XERC20 is ERC20, Ownable, IXERC20, ERC20Permit {
 
   /**
    * @notice Uses the limit of any bridge
-  * @param _bridge The address of the bridge who is being changed
+   * @param _bridge The address of the bridge who is being changed
    * @param _change The change in the limit
    */
 
@@ -182,7 +182,7 @@ contract XERC20 is ERC20, Ownable, IXERC20, ERC20Permit {
    * @param _limit The updated limit we are setting to the bridge
    */
 
-  function _changeMinterLimit( address _bridge, uint256 _limit) internal {
+  function _changeMinterLimit(address _bridge, uint256 _limit) internal {
     uint256 _oldLimit = bridges[_bridge].minterParams.maxLimit;
     uint256 _currentLimit = mintingCurrentLimitOf(_bridge);
     bridges[_bridge].minterParams.maxLimit = _limit;
