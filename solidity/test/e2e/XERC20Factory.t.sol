@@ -3,8 +3,6 @@ pragma solidity >=0.8.4 <0.9.0;
 
 import {CommonE2EBase} from './Common.sol';
 import {XERC20Lockbox} from '../../contracts/XERC20Lockbox.sol';
-import {XERC20} from '../../contracts/XERC20.sol';
-import {XERC20Factory, IXERC20Factory} from '../../contracts/XERC20Factory.sol';
 
 contract E2EDeployment is CommonE2EBase {
   function testDeploy() public {
@@ -27,22 +25,5 @@ contract E2EDeployment is CommonE2EBase {
 
     assertEq(address(XERC20Lockbox(payable(_lock)).XERC20()), address(_token));
     assertEq(address(XERC20Lockbox(payable(_lock)).ERC20()), address(_dai));
-  }
-
-  function testFactoryChaining() public {
-    uint256[] memory _limits = new uint256[](0);
-    address[] memory _minters = new address[](0);
-
-    address _token = _oldFactory.deployXERC20('Test', 'TST', _limits, _limits, _minters);
-    _oldFactory.deployLockbox(_token, address(_token), false);
-
-    address[] memory _registeredTokens = _oldFactory.getRegisteredXERC20(0, 1);
-    address[] memory _registeredLockboxes = _oldFactory.getRegisteredLockboxes(0, 1);
-
-    assertEq(_registeredTokens.length, 1);
-    assertEq(_registeredLockboxes.length, 1);
-    assertEq(_xerc20Factory.isRegisteredXERC20(_registeredTokens[0]), true);
-    assertEq(_xerc20Factory.isRegisteredLockbox(_registeredLockboxes[0]), true);
-    assertEq(_xerc20Factory.lockboxRegistry(_registeredTokens[0]), _registeredLockboxes[0]);
   }
 }

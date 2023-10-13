@@ -1,9 +1,11 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.4 <0.9.0;
 
+// solhint-disable-next-line no-console
 import {console} from 'forge-std/console.sol';
 import {Test} from 'forge-std/Test.sol';
 import {XERC20Factory, IXERC20Factory} from '../contracts/XERC20Factory.sol';
+import {XERC20Registry, IXERC20Registry} from '../contracts/XERC20Registry.sol';
 import {Script} from 'forge-std/Script.sol';
 import {ScriptingLibrary} from './ScriptingLibrary/ScriptingLibrary.sol';
 
@@ -15,29 +17,35 @@ contract MultichainDeploy is Script, ScriptingLibrary {
   function run() public {
     //TODO: Change salt from this test to prod before release
     bytes32 _salt = keccak256(abi.encodePacked('xxxsdsdd23ewXERewewCewew20Factoewewry', msg.sender));
-    address _oldFactory = vm.envAddress('OLD_FACTORY');
-    address[] memory factories = new address[](chains.length);
+    address[] memory _factories = new address[](chains.length);
 
-    for (uint256 i; i < chains.length; i++) {
-      vm.createSelectFork(vm.rpcUrl(vm.envString(chains[i])));
-      bytes memory _bytecode = abi.encodePacked(type(XERC20Factory).creationCode, abi.encode(_oldFactory));
+    for (uint256 _i; _i < chains.length; _i++) {
+      vm.createSelectFork(vm.rpcUrl(vm.envString(chains[_i])));
+      bytes memory _bytecodeFactory = abi.encodePacked(type(XERC20Factory).creationCode);
+      bytes memory _bytecodeRegistry = abi.encodePacked(type(XERC20Registry).creationCode);
 
       vm.startBroadcast(deployer);
-      address _deployedFactory = getAddress(_bytecode, _salt, CREATE2);
 
-      XERC20Factory fact = new XERC20Factory{salt: _salt}(_oldFactory);
+      address _deployedFactory = getAddress(_bytecodeFactory, _salt, CREATE2);
+      XERC20Factory _fact = new XERC20Factory{salt: _salt}();
+      require(address(_fact) == _deployedFactory, 'Factory address does not match');
 
-      require(address(fact) == _deployedFactory, 'Factory address does not match');
+      address _deployedRegistry = getAddress(_bytecodeRegistry, _salt, CREATE2);
+      XERC20Registry _registry = new XERC20Registry{salt: _salt}();
+      require(address(_registry) == _deployedRegistry, 'Registry address does not match');
 
       vm.stopBroadcast();
-      console.log(chains[i], 'factory deployed to:', address(_deployedFactory));
-      factories[i] = _deployedFactory;
+      // solhint-disable-next-line no-console
+      console.log(chains[_i], 'factory deployed to:', address(_deployedFactory));
+      // solhint-disable-next-line no-console
+      console.log(chains[_i], 'registry deployed to:', address(_deployedRegistry));
+      _factories[_i] = _deployedFactory;
     }
 
     if (chains.length > 1) {
-      for (uint256 i = 1; i < chains.length; i++) {
-        vm.assume(factories[i - 1] == factories[i]);
-        vm.assume(keccak256(factories[i - 1].code) == keccak256(factories[i].code));
+      for (uint256 _i = 1; _i < chains.length; _i++) {
+        vm.assume(_factories[_i - 1] == _factories[_i]);
+        vm.assume(keccak256(_factories[_i - 1].code) == keccak256(_factories[_i].code));
       }
     }
   }
