@@ -2,8 +2,6 @@
 pragma solidity >=0.8.4 <0.9.0;
 
 import {CommonE2EBase} from './Common.sol';
-import {XERC20Lockbox} from '../../contracts/XERC20Lockbox.sol';
-import {XERC20, IXERC20} from '../../contracts/XERC20.sol';
 
 contract E2EMintAndBurn is CommonE2EBase {
   function testMint() public {

@@ -4,7 +4,6 @@ pragma solidity >=0.8.4 <0.9.0;
 import {Test} from 'forge-std/Test.sol';
 import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 import {ERC20} from '@openzeppelin/contracts/token/ERC20/ERC20.sol';
-import {DSTestFull} from '../../test/utils/DSTestFull.sol';
 import {XERC20} from '../../contracts/XERC20.sol';
 import {XERC20Lockbox} from '../../contracts/XERC20Lockbox.sol';
 import {IXERC20Lockbox} from '../../interfaces/IXERC20Lockbox.sol';
