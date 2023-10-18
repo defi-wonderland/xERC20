@@ -5,7 +5,6 @@ pragma solidity >=0.8.4 <0.9.0;
 import {console} from 'forge-std/console.sol';
 import {Test} from 'forge-std/Test.sol';
 import {XERC20Factory, IXERC20Factory} from '../contracts/XERC20Factory.sol';
-import {XERC20Registry, IXERC20Registry} from '../contracts/XERC20Registry.sol';
 import {Script} from 'forge-std/Script.sol';
 import {ScriptingLibrary} from './ScriptingLibrary/ScriptingLibrary.sol';
 
@@ -22,23 +21,16 @@ contract MultichainDeploy is Script, ScriptingLibrary {
     for (uint256 _i; _i < chains.length; _i++) {
       vm.createSelectFork(vm.rpcUrl(vm.envString(chains[_i])));
       bytes memory _bytecodeFactory = abi.encodePacked(type(XERC20Factory).creationCode);
-      bytes memory _bytecodeRegistry = abi.encodePacked(type(XERC20Registry).creationCode);
 
       vm.startBroadcast(deployer);
 
       address _deployedFactory = getAddress(_bytecodeFactory, _salt, CREATE2);
       XERC20Factory _fact = new XERC20Factory{salt: _salt}();
       require(address(_fact) == _deployedFactory, 'Factory address does not match');
-
-      address _deployedRegistry = getAddress(_bytecodeRegistry, _salt, CREATE2);
-      XERC20Registry _registry = new XERC20Registry{salt: _salt}();
-      require(address(_registry) == _deployedRegistry, 'Registry address does not match');
-
+      
       vm.stopBroadcast();
       // solhint-disable-next-line no-console
       console.log(chains[_i], 'factory deployed to:', address(_deployedFactory));
-      // solhint-disable-next-line no-console
-      console.log(chains[_i], 'registry deployed to:', address(_deployedRegistry));
       _factories[_i] = _deployedFactory;
     }
 
