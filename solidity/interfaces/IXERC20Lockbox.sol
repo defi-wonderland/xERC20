@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity >=0.8.4 <0.9.0;
 
-import {IAllowanceTransfer} from 'permit2/src/interfaces/IAllowanceTransfer.sol';
-
 interface IXERC20Lockbox {
   /**
    * @notice Emitted when tokens are deposited into the lockbox
@@ -43,6 +41,23 @@ interface IXERC20Lockbox {
   function deposit(uint256 _amount) external;
 
   /**
+   * @notice Deposit ERC20 tokens into the lockbox, and send the XERC20 to a user
+   *
+   * @param _user The user to send the XERC20 to
+   * @param _amount The amount of tokens to deposit
+   */
+
+  function depositTo(address _user, uint256 _amount) external;
+
+  /**
+   * @notice Deposit the native asset into the lockbox, and send the XERC20 to a user
+   *
+   * @param _user The user to send the XERC20 to
+   */
+
+  function depositNativeTo(address _user) external payable;
+
+  /**
    * @notice Withdraw ERC20 tokens from the lockbox
    *
    * @param _amount The amount of tokens to withdraw
@@ -51,18 +66,11 @@ interface IXERC20Lockbox {
   function withdraw(uint256 _amount) external;
 
   /**
-   * @notice Deposit ERC20 tokens into the lockbox using Permit2
+   * @notice Withdraw ERC20 tokens from the lockbox
    *
-   * @param _amount The amount of tokens to deposit
-   * @param _owner The owner of the tokens being deposited
-   * @param _permit The permit data
-   * @param _signature The signature approving the permit
+   * @param _user The user to withdraw to
+   * @param _amount The amount of tokens to withdraw
    */
 
-  function depositWithPermitAllowance(
-    uint256 _amount,
-    address _owner,
-    IAllowanceTransfer.PermitSingle calldata _permit,
-    bytes calldata _signature
-  ) external;
+  function withdrawTo(address _user, uint256 _amount) external;
 }

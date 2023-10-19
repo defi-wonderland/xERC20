@@ -2,10 +2,7 @@
 pragma solidity >=0.8.4 <0.9.0;
 
 import {Test} from 'forge-std/Test.sol';
-import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
-import {DSTestFull} from '../../test/utils/DSTestFull.sol';
 import {XERC20} from '../../contracts/XERC20.sol';
-import {IXERC20Factory} from '../../interfaces/IXERC20Factory.sol';
 import {IXERC20} from '../../interfaces/IXERC20.sol';
 
 abstract contract Base is Test {
@@ -17,6 +14,7 @@ abstract contract Base is Test {
 
   event BridgeLimitsSet(uint256 _mintingLimit, uint256 _burningLimit, address indexed _bridge);
   event LockboxSet(address _lockbox);
+  event SetLimitsDelay(uint256 _delay);
 
   function setUp() public virtual {
     vm.startPrank(_owner);
@@ -75,11 +73,44 @@ contract UnitMintBurn is Base {
     vm.stopPrank();
 
     vm.startPrank(_user);
+
     _xerc20.mint(_user, _amount);
     _xerc20.burn(_user, _amount);
     vm.stopPrank();
 
     assertEq(_xerc20.balanceOf(_user), 0);
+  }
+
+  function testBurnRevertsWithoutApproval(uint256 _amount) public {
+    _amount = bound(_amount, 1, 1e40);
+
+    vm.prank(_owner);
+    _xerc20.setLimits(_owner, _amount, _amount);
+
+    vm.startPrank(_owner);
+    vm.expectRevert('ERC20: insufficient allowance');
+    _xerc20.burn(_user, _amount);
+    vm.stopPrank();
+
+    assertEq(_xerc20.balanceOf(_user), 0);
+  }
+
+  function testBurnReducesAllowance(uint256 _amount, uint256 _approvalAmount) public {
+    _amount = bound(_amount, 1, 1e40);
+    _approvalAmount = bound(_approvalAmount, _amount, 1e45);
+
+    vm.prank(_owner);
+    _xerc20.setLimits(_minter, _amount, _amount);
+
+    vm.prank(_user);
+    _xerc20.approve(_minter, _approvalAmount);
+
+    vm.startPrank(_minter);
+    _xerc20.mint(_user, _amount);
+    _xerc20.burn(_user, _amount);
+    vm.stopPrank();
+
+    assertEq(_xerc20.allowance(_user, _minter), _approvalAmount - _amount);
   }
 }
 

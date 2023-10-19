@@ -48,8 +48,7 @@ contract MultichainCreateXERC20 is Script, ScriptingLibrary {
       vm.startBroadcast(deployer);
       // If this chain does not have a factory we will revert
       require(
-        keccak256(address(factory).code) == keccak256(type(XERC20Factory).runtimeCode),
-        'There is no factory deployed on this chain'
+        keccak256(address(factory).code) != keccak256(address(0).code), 'There is no factory deployed on this chain'
       );
 
       address xerc20 = factory.deployXERC20(name, symbol, minterLimits[i], burnLimits[i], bridges[i]);

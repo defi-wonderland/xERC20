@@ -3,8 +3,6 @@ pragma solidity >=0.8.4 <0.9.0;
 
 import {CommonE2EBase} from './Common.sol';
 import {XERC20Lockbox} from '../../contracts/XERC20Lockbox.sol';
-import {XERC20} from '../../contracts/XERC20.sol';
-import {XERC20Factory, IXERC20Factory} from '../../contracts/XERC20Factory.sol';
 
 contract E2EDeployment is CommonE2EBase {
   function testDeploy() public {
