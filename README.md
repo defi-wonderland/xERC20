@@ -1,21 +1,23 @@
 # xERC20
 
-xERC20 is a standard for bridged tokens. A common interface to be used across different implementations of bridges to keep liquidity concentrated and improve user experience on-chain. 
+xERC20 is a standard for bridged tokens. A common interface to be used across different implementations of bridges to keep liquidity concentrated and improve user experience on-chain.
 
 ### Contracts
 
-*XERC20*: A standard for bridges to manage the same liquidity when bridging. It allows its owner to approve bridges and add limits to them for minting and burning the XERC20 token. The XERC20 standard is compatible with two different types of bridge behaviours, bridges calling mint/burn from the user (or other function names through adapters) and bridges that transfer from the user to the bridge contract. On the latter, XERC20 tokens that are received by the bridge get burned and when a bridge transfers tokens out, they get minted again.
+_XERC20_: A standard for bridges to manage the same liquidity when bridging. It allows its owner to approve bridges and add limits to them for minting and burning the XERC20 token. The XERC20 standard is compatible with two different types of bridge behaviours, bridges calling mint/burn from the user (or other function names through adapters) and bridges that transfer from the user to the bridge contract. On the latter, XERC20 tokens that are received by the bridge get burned and when a bridge transfers tokens out, they get minted again.
 
-*XERC20Lockbox*: The lockbox works as a wrapper of an ERC20. It mints XERC20 tokens at a 1:1 ratio when receiving ERC20 tokens and it unlocks the ERC20 the other way around. The lockbox can be deployed on any chain that has a canonical token representation, chains that do not currently have a canonical representation can avoid deploying a Lockbox and use the XERC20 as the default implementation for the chain.
+_XERC20Lockbox_: The lockbox works as a wrapper of an ERC20. It mints XERC20 tokens at a 1:1 ratio when receiving ERC20 tokens and it unlocks the ERC20 the other way around. The lockbox can be deployed on any chain that has a canonical token representation, chains that do not currently have a canonical representation can avoid deploying a Lockbox and use the XERC20 as the default implementation for the chain.
 
-*XERC20Factory*: The factory is used as a helper to deploy an xToken. It allows the owner to deploy the XERC20 and the Lockbox in one transaction while keeping the same token address on every chain used.
+_XERC20Factory_: The factory is used as a helper to deploy an xToken. It allows the owner to deploy the XERC20 and the Lockbox in one transaction while keeping the same token address on every chain used.
 
 ### Architectural Spec
+
 <img width="863" src="./assets/architectural-specs.png?raw=true">
 
-<sup>*The adapter included is an example into how it would work. Any bridge can build their own.</sup>
+<sup>\*The adapter included is an example into how it would work. Any bridge can build their own.</sup>
 
 ### Flows
+
 <img width="1269" src="./assets/flows.png?raw=true">
 
 ## Setup
@@ -83,6 +85,14 @@ yarn coverage
 
 Configure the `.env` variables.
 
+> :information*source: Notice: \_Please ensure that all private keys (PKs) are prefixed with `0x` before using or submitting them. This prefix is necessary for proper formatting and compatibility.*
+
+```
+Example:
+- Correct: `0x123abc...`
+- Incorrect: `123abc...`
+```
+
 Change the parameters inside the corresponding scripts you are running to deploy your XERC20
 
 You will need to set your custom `name` and `symbol` for your XERC20 to be deployed, no need to add an 'x' infront of it, the contract will do that for you.
@@ -93,11 +103,14 @@ On line 14 of the `MultichainCreateXERC20.sol` and line 13 of the `MultichainDep
 
 ### Deploy your XERC20
 
-1. To simulate the deployment of an XERC20  you can run
+1. To simulate the deployment of an XERC20 you can run
+
 ```bash
 yarn script:DeployXERC20
 ```
+
 2. To deploy an XERC20 to all the chains you have in the array you can run
+
 ```bash
 yarn script:DeployXERC20:broadcast
 ```
