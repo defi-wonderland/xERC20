@@ -18,4 +18,5 @@ out/*/*
 !out/Greeter.sol/*
 
 # Keep the latest deployment only
-broadcast/*/*/*
+broadcast/**
+!broadcast/**/run-latest.json
