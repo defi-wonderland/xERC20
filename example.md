@@ -66,3 +66,56 @@ yarn run script:DeployXERC20:broadcast
 ```
 
 Congratulations! You have successfully deployed your xERC20 token. 🚀
+
+## Deploying xERC20 + Lockbox
+Integrating xERC20 with a Lockbox requires a few additional steps, yet the process remains straightforward. Prior to embarking on this journey, ensure that you have completed steps 1-3 from the previous section, focusing on code modifications.
+
+Assuming you have navigated through the initial steps successfully, let’s dive into the integration of xERC20 with Lockbox:
+
+### Decide on Chains for Your Lockbox
+Identify the blockchain networks where your token is already deployed and cannot be converted to xERC20. On these specific networks, a Lockbox will be required to facilitate interactions.
+
+## Configure Chains for Lockbox Integration
+Next, in the same MultichainCreateXERC20.sol file, specify the canonical token addresses for the chains requiring a Lockbox. Here’s how to do it:
+
+> ℹ️ Important Note: Ensure alignment between the address or canonical token and the chains array. For chains not requiring a Lockbox, you can either leave the address field blank or use the ZERO address.
+
+```solidity
+// Example:
+
+// Chains for xERC20 deployment
+string[] public chains = ['MAINNET_RPC', 'POLYGON_RPC', 'GNOSIS_RPC'];
+
+// Canonical token addresses for Lockbox
+// (assuming MAINNET requires a Lockbox, others do not)
+address[] public erc20 = [
+    address(0x123...abc), // Canonical token on MAINNET
+    address(0),           // No Lockbox for POLYGON
+    address(0)            // No Lockbox for GNOSIS
+];
+
+// Alternatively, focusing solely on MAINNET:
+address[] public erc20 = [
+    address(0x123...abc) // Canonical token on MAINNET
+];
+```
+
+With everything now configured, proceed by following the steps outlined in the “Deploying xERC20 Without the Lockbox” section. This includes building and deploying your contracts, ensuring a seamless integration of xERC20 and Lockbox.
+
+### Dry-Run Deployment with Lockbox Verification
+
+Before deploying your xERC20 token along with the Lockbox, it’s essential to conduct a dry-run. This ensures everything is set up correctly and provides you with gas estimates for all selected chains, as well as the addresses for your xERC20 token and the Lockbox.
+
+Run the following command to start the dry-run:
+
+```sh
+yarn run script:DeployXERC20
+```
+
+Upon completion, you will receive output detailing the xERC20 token address, the Lockbox address, transaction details, and gas estimates. Below is an example of what your terminal might display:
+
+<img width="601" alt="Screenshot 2023-10-30 at 5 45 30 PM" src="https://github.com/prathmeshkhandelwal1/xERC20/assets/56167998/c89362e1-3daf-460b-8a9a-e01544c2aae7">
+
+Here you can see lockbox addresses 🚀.
+
+Now broadcast it and you are good to go.
