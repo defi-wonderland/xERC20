@@ -11,11 +11,11 @@ import {ScriptingLibrary} from './ScriptingLibrary/ScriptingLibrary.sol';
 contract MultichainDeploy is Script, ScriptingLibrary {
   uint256 public deployer = vm.envUint('DEPLOYER_PRIVATE_KEY');
   address constant CREATE2 = 0x4e59b44847b379578588920cA78FbF26c0B4956C;
-  string[] public chains = ['POLYGON_RPC', 'OPTIMISM_RPC', 'GOERLI_RPC'];
+  string[] public chains = ['MAINNET_RPC', 'POLYGON_RPC', 'OPTIMISM_RPC', 'ARBITRUM_RPC', 'GNOSIS_RPC', 'BSC_RPC'];
 
   function run() public {
     //TODO: Change salt from this test to prod before release
-    bytes32 _salt = keccak256(abi.encodePacked('xxxsdsdd23ewXERewewCewew20Factoewewry', msg.sender));
+    bytes32 _salt = keccak256(abi.encodePacked('de4y6D2tuMLufI7YOZMZ9AKw6YCMZeII7mX4U', msg.sender));
     address[] memory _factories = new address[](chains.length);
 
     for (uint256 _i; _i < chains.length; _i++) {
