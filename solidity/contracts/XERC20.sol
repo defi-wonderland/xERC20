@@ -3,7 +3,7 @@ pragma solidity >=0.8.4 <0.9.0;
 
 import {IXERC20} from '../interfaces/IXERC20.sol';
 import {ERC20} from '@openzeppelin/contracts/token/ERC20/ERC20.sol';
-import {ERC20Permit} from '@openzeppelin/contracts/token/ERC20/extensions/draft-ERC20Permit.sol';
+import {ERC20Permit} from '@openzeppelin/contracts/token/ERC20/extensions/ERC20Permit.sol';
 import {Ownable} from '@openzeppelin/contracts/access/Ownable.sol';
 
 contract XERC20 is ERC20, Ownable, IXERC20, ERC20Permit {
@@ -39,8 +39,8 @@ contract XERC20 is ERC20, Ownable, IXERC20, ERC20Permit {
     string memory _name,
     string memory _symbol,
     address _factory
-  ) ERC20(string.concat('x', _name), string.concat('x', _symbol)) ERC20Permit(string.concat('x', _name)) {
-    _transferOwnership(_factory);
+  ) ERC20(string.concat('x', _name), string.concat('x', _symbol)) ERC20Permit(string.concat('x', _name)) Ownable(_factory) {
+
     FACTORY = _factory;
   }
 
