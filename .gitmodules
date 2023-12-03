@@ -14,6 +14,10 @@
 	path = lib/isolmate
 	url = https://github.com/defi-wonderland/isolmate
 	branch = main
+[submodule "lib/openzeppelin-contracts"]
+	path = lib/openzeppelin-contracts
+	url = https://github.com/OpenZeppelin/openzeppelin-contracts
+	branch = merge/release-v4.9
 [submodule "lib/permit2"]
 	path = lib/permit2
 	url = https://github.com/Uniswap/permit2
