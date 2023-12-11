@@ -5,12 +5,15 @@ import {IXERC20} from '../interfaces/IXERC20.sol';
 import {ERC20} from '@openzeppelin/contracts/token/ERC20/ERC20.sol';
 import {ERC20Permit} from '@openzeppelin/contracts/token/ERC20/extensions/draft-ERC20Permit.sol';
 import {Ownable} from '@openzeppelin/contracts/access/Ownable.sol';
+import '@openzeppelin/contracts/access/AccessControl.sol';
 
-contract XERC20 is ERC20, Ownable, IXERC20, ERC20Permit {
+contract XERC20 is ERC20, AccessControl, IXERC20, ERC20Permit, Ownable {
   /**
    * @notice The duration it takes for the limits to fully replenish
    */
   uint256 private constant _DURATION = 1 days;
+
+  bytes32 public constant SET_LIMITS_ROLE = keccak256('SET_LIMITS_ROLE');
 
   /**
    * @notice The address of the factory which deployed this contract
@@ -42,6 +45,8 @@ contract XERC20 is ERC20, Ownable, IXERC20, ERC20Permit {
   ) ERC20(string.concat('x', _name), string.concat('x', _symbol)) ERC20Permit(string.concat('x', _name)) {
     _transferOwnership(_factory);
     FACTORY = _factory;
+    grantRole(SET_LIMITS_ROLE, FACTORY);
+    grantRole(SET_LIMITS_ROLE, msg.sender);
   }
 
   /**
@@ -90,7 +95,7 @@ contract XERC20 is ERC20, Ownable, IXERC20, ERC20Permit {
    * @param _burningLimit The updated burning limit we are setting to the bridge
    * @param _bridge The address of the bridge we are setting the limits too
    */
-  function setLimits(address _bridge, uint256 _mintingLimit, uint256 _burningLimit) external onlyOwner {
+  function setLimits(address _bridge, uint256 _mintingLimit, uint256 _burningLimit) external onlyRole(SET_LIMITS_ROLE) {
     _changeMinterLimit(_bridge, _mintingLimit);
     _changeBurnerLimit(_bridge, _burningLimit);
     emit BridgeLimitsSet(_mintingLimit, _burningLimit, _bridge);
