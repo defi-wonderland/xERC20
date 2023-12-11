@@ -7,8 +7,8 @@ import {XERC20Lockbox} from '../../contracts/XERC20Lockbox.sol';
 contract E2EDeployment is CommonE2EBase {
   function testDeploy() public {
     assertEq(address(_xerc20.owner()), _owner);
-    assertEq(_xerc20.name(), 'xDai Stablecoin');
-    assertEq(_xerc20.symbol(), 'xDAI');
+    assertEq(_xerc20.name(), 'Dai Stablecoin');
+    assertEq(_xerc20.symbol(), 'DAI');
     assertEq(_xerc20.FACTORY(), address(_xerc20Factory));
     assertEq(address(_lockbox.XERC20()), address(_xerc20));
     assertEq(address(_lockbox.ERC20()), address(_dai));

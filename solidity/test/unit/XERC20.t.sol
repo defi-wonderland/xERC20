@@ -25,11 +25,11 @@ abstract contract Base is Test {
 
 contract UnitNames is Base {
   function testName() public {
-    assertEq('xTest', _xerc20.name());
+    assertEq('Test', _xerc20.name());
   }
 
   function testSymbol() public {
-    assertEq('xTST', _xerc20.symbol());
+    assertEq('TST', _xerc20.symbol());
   }
 }
 
