@@ -14,8 +14,8 @@ contract MultichainDeploy is Script, ScriptingLibrary {
   string[] public chains = ['MAINNET_RPC', 'POLYGON_RPC', 'OPTIMISM_RPC', 'ARBITRUM_RPC', 'GNOSIS_RPC', 'BSC_RPC'];
 
   function run() public {
-    //TODO: Change salt from this test to prod before release
-    bytes32 _salt = keccak256(abi.encodePacked('de4y6D2tuMLufI7YOZMZ9AKw6YCMZeII7mX4U', msg.sender));
+    // When new factories need to be deployed, make sure to update the salt version
+    bytes32 _salt = keccak256(abi.encodePacked('xERC20-v1.1', msg.sender));
     address[] memory _factories = new address[](chains.length);
 
     for (uint256 _i; _i < chains.length; _i++) {
