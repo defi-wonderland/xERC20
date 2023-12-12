@@ -23,6 +23,7 @@ struct BridgeDetails {
 struct ChainDetails {
   BridgeDetails[] bridgeDetails; // The array of bridges to configure for this chain
   address erc20; // The address of the ERC20 canonical token of that chain (address(0) if none)
+  address governor; // The governor address of the xERC20
   bool isGasToken; // Wheter or not the token is the native gas token of the chain. E.g. Are you deploying an xERC20 for MATIC in Polygon?
   string rpcEnvName; // The name of the RPC to use from the .env file
 }
@@ -69,6 +70,9 @@ contract MultichainCreateXERC20 is Script, ScriptingLibrary {
 
       // deploy xerc20
       address _xerc20 = factory.deployXERC20(_data.name, _data.symbol, _mintLimits, _burnLimits, _bridges);
+
+      // transfer xerc20 ownership to the governor
+      XERC20(_xerc20).transferOwnership(_chainDetails.governor);
 
       // deploy lockbox if needed
       address _lockbox;
