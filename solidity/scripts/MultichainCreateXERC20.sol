@@ -1,71 +1,98 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.4 <0.9.0;
 
+// solhint-disable-next-line no-console
 import {console} from 'forge-std/console.sol';
 import {Test} from 'forge-std/Test.sol';
+import {Script} from 'forge-std/Script.sol';
+import {stdJson} from 'forge-std/StdJson.sol';
 import {XERC20} from '../contracts/XERC20.sol';
 import {XERC20Lockbox} from '../contracts/XERC20Lockbox.sol';
 import {XERC20Factory, IXERC20Factory} from '../contracts/XERC20Factory.sol';
-import {Script} from 'forge-std/Script.sol';
 import {ScriptingLibrary} from './ScriptingLibrary/ScriptingLibrary.sol';
 
-contract MultichainCreateXERC20 is Script, ScriptingLibrary {
-  uint256 public deployer = vm.envUint('DEPLOYER_PRIVATE_KEY');
-  string[] public chains = ['POLYGON_RPC', 'OPTIMISM_RPC', 'GOERLI_RPC'];
-  string public temp = vm.readLine('./solidity/scripts/ScriptingLibrary/FactoryAddress.txt');
+// NOTE: IMPORTANT! Struct members should be order by ALPHABETICAL order. DO NOT modify them.
+// Please read https://book.getfoundry.sh/cheatcodes/parse-json to understand the
+// limitations and caveats of the JSON parsing cheats.
+struct BridgeDetails {
+  address bridge; // The address of the bridge
+  uint256 burnLimit; // The 24hs burn limit of the bridge
+  uint256 mintLimit; // The 24hs mint limit of the bridge
+}
 
-  address public fact = toAddress(temp);
-  XERC20Factory public factory = XERC20Factory(fact);
-  // NOTE: This is an array of the addresses of the ERC20 contract you are deploying the lockbox for, if you dont want to deploy a lockbox leave this as is
-  // NOTE: You must add the token address of your token for each chain you are deploying to in order of how the chains are listed in chains.txt, if no address is listed we will not deplyo a lockbox
-  address[] public erc20 = [address(0)];
-  // NOTE: Please also for each add a boolean to this array, if you are deploying a lockbox for the native token set it to true, if not set it to false for each iteration of an erc20
-  bool[] public isNative = [false];
+struct ChainDetails {
+  BridgeDetails[] bridgeDetails; // The array of bridges to configure for this chain
+  address erc20; // The address of the ERC20 canonical token of that chain (address(0) if none)
+  bool isGasToken; // Wheter or not the token is the native gas token of the chain. E.g. Are you deploying an xERC20 for MATIC in Polygon?
+  string rpcEnvName; // The name of the RPC to use from the .env file
+}
+
+struct DeploymentData {
+  ChainDetails[] chainDetails;
+  string name; // The name to use for the xERC20
+  string symbol; // The symbol to use for the xERC20
+}
+
+contract MultichainCreateXERC20 is Script, ScriptingLibrary {
+  using stdJson for string;
+
+  uint256 public deployer = vm.envUint('DEPLOYER_PRIVATE_KEY');
+  XERC20Factory public factory = XERC20Factory(0x44b9153a9c24a7283e86C5eF6453A658Bfb982A0);
 
   function run() public {
-    address[] memory tokens = new address[](chains.length);
-    address[][] memory bridges = new address[][](chains.length);
-    uint256[][] memory minterLimits = new uint256[][](chains.length);
-    uint256[][] memory burnLimits = new uint256[][](chains.length);
+    string memory _json = vm.readFile('./solidity/scripts/deployment-details.json');
+    DeploymentData memory _data = abi.decode(_json.parseRaw('.'), (DeploymentData));
+    uint256 _chainAmount = _data.chainDetails.length;
+    address[] memory _tokens = new address[](_chainAmount);
 
-    // Below are all the variables you need to change when deploying your XERC20 token
-    string memory name = 'Test Token';
-    string memory symbol = 'TST';
+    for (uint256 i; i < _chainAmount; i++) {
+      ChainDetails memory _chainDetails = _data.chainDetails[i];
 
-    for (uint256 i; i < chains.length; i++) {
-      bridges[i] = new address[](0);
-      minterLimits[i] = new uint256[](0);
-      burnLimits[i] = new uint256[](0);
-
-      // NOTE: Here is a commented example of how you would add this, dont forget to update the length to be whatever you want
-      // burnLimits[i][0] = 1e18;
-      // minteerLimits[i][0] = 1e18;
-      // bridges[i][0] = msg.sender;
-
-      vm.createSelectFork(vm.rpcUrl(vm.envString(chains[i])));
-      address _erc20 = i < erc20.length ? erc20[i] : address(0);
-      bool _isNative = i < isNative.length ? isNative[i] : false;
+      vm.createSelectFork(vm.rpcUrl(vm.envString(_chainDetails.rpcEnvName)));
       vm.startBroadcast(deployer);
       // If this chain does not have a factory we will revert
       require(
         keccak256(address(factory).code) != keccak256(address(0).code), 'There is no factory deployed on this chain'
       );
 
-      address xerc20 = factory.deployXERC20(name, symbol, minterLimits[i], burnLimits[i], bridges[i]);
-      address lockbox;
-      if (_erc20 != address(0) && !_isNative) {
-        lockbox = factory.deployLockbox(xerc20, _erc20, _isNative);
+      BridgeDetails[] memory _bridgeDetails = _chainDetails.bridgeDetails;
+
+      // flatten all bridge details
+      address[] memory _bridges = new address[](_bridgeDetails.length);
+      uint256[] memory _burnLimits = new uint256[](_bridgeDetails.length);
+      uint256[] memory _mintLimits = new uint256[](_bridgeDetails.length);
+      for (uint256 _bridgeIndex; _bridgeIndex < _bridgeDetails.length; _bridgeIndex++) {
+        _bridges[_bridgeIndex] = _bridgeDetails[_bridgeIndex].bridge;
+        _burnLimits[_bridgeIndex] = _bridgeDetails[_bridgeIndex].burnLimit;
+        _mintLimits[_bridgeIndex] = _bridgeDetails[_bridgeIndex].mintLimit;
       }
+
+      // deploy xerc20
+      address _xerc20 = factory.deployXERC20(_data.name, _data.symbol, _mintLimits, _burnLimits, _bridges);
+
+      // deploy lockbox if needed
+      address _lockbox;
+      if (_chainDetails.erc20 != address(0) && !_chainDetails.isGasToken) {
+        _lockbox = factory.deployLockbox(_xerc20, _chainDetails.erc20, _chainDetails.isGasToken);
+      }
+
       vm.stopBroadcast();
-      console.log(chains[i], 'token deployed to: ', xerc20);
-      console.log(chains[i], 'lockbox deployed to: ', lockbox);
-      tokens[i] = xerc20;
+
+      // solhint-disable-next-line no-console
+      console.log('Deployment to chain with RPC name: ', _chainDetails.rpcEnvName);
+      // solhint-disable-next-line no-console
+      console.log('xERC20 token deployed: ', _xerc20);
+      if (_lockbox != address(0)) {
+        // solhint-disable-next-line no-console
+        console.log('Lockbox deployed: ', _lockbox);
+      }
+      _tokens[i] = _xerc20;
     }
 
-    if (chains.length > 1) {
-      for (uint256 i = 1; i < chains.length; i++) {
-        vm.assume(tokens[i - 1] == tokens[i]);
-        vm.assume(keccak256(tokens[i - 1].code) == keccak256(tokens[i].code));
+    if (_chainAmount > 1) {
+      for (uint256 i = 1; i < _chainAmount; i++) {
+        vm.assume(_tokens[i - 1] == _tokens[i]);
+        vm.assume(keccak256(_tokens[i - 1].code) == keccak256(_tokens[i].code));
       }
     }
   }
