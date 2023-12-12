@@ -71,14 +71,14 @@ contract XERC20Deploy is Script, ScriptingLibrary {
       // deploy xerc20
       address _xerc20 = factory.deployXERC20(_data.name, _data.symbol, _mintLimits, _burnLimits, _bridges);
 
-      // transfer xerc20 ownership to the governor
-      XERC20(_xerc20).transferOwnership(_chainDetails.governor);
-
       // deploy lockbox if needed
       address _lockbox;
       if (_chainDetails.erc20 != address(0) && !_chainDetails.isGasToken) {
         _lockbox = factory.deployLockbox(_xerc20, _chainDetails.erc20, _chainDetails.isGasToken);
       }
+
+      // transfer xerc20 ownership to the governor
+      XERC20(_xerc20).transferOwnership(_chainDetails.governor);
 
       vm.stopBroadcast();
 
