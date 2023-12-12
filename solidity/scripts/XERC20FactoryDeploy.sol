@@ -7,7 +7,7 @@ import {XERC20Factory, IXERC20Factory} from '../contracts/XERC20Factory.sol';
 import {Script} from 'forge-std/Script.sol';
 import {ScriptingLibrary} from './ScriptingLibrary/ScriptingLibrary.sol';
 
-contract MultichainDeploy is Script, ScriptingLibrary {
+contract XERC20FactoryDeploy is Script, ScriptingLibrary {
   ////////////////////////// MODIFY ////////////////////////////////
   // When new factories need to be deployed, make sure to update the salt version to avoid address collition
   string public constant SALT = 'xERC20-v1.3';

@@ -34,7 +34,7 @@ struct DeploymentConfig {
   string symbol; // The symbol to use for the xERC20
 }
 
-contract MultichainCreateXERC20 is Script, ScriptingLibrary {
+contract XERC20Deploy is Script, ScriptingLibrary {
   using stdJson for string;
 
   uint256 public deployer = vm.envUint('DEPLOYER_PRIVATE_KEY');
