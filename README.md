@@ -101,6 +101,10 @@ This guide provides a detailed, step-by-step process to deploy an xERC20 token u
 
 ## Deploying xERC20 Without the Lockbox
 
+> [!IMPORTANT]
+> Verifying contracts deployed with --via-ir is not working correctly with Foundry. 
+> Read the following post for a solution: https://github.com/foundry-rs/foundry/issues/3507#issuecomment-1465382107
+
 ### 1. Navigate to the MultichainCreateXERC20 Script
 
 Locate and open the `MultichainCreateXERC20.sol` file, which should be situated within the `solidity/scripts` directory.
@@ -220,3 +224,4 @@ Now broadcast it and you are good to go.
 The deployments are stored in ./broadcast
 
 See the [Foundry Book for available options](https://book.getfoundry.sh/reference/forge/forge-create.html).
+
