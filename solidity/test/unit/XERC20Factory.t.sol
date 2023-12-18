@@ -110,6 +110,11 @@ contract UnitDeploy is Base {
     _xerc20Factory.deployLockbox(_erc20, address(0), false);
   }
 
+  function testLockboxDeploymentRevertsIfInvalidParameters() public {
+    vm.expectRevert(IXERC20Factory.IXERC20Factory_BadTokenAddress.selector);
+    _xerc20Factory.deployLockbox(_erc20, address(100), true);
+  }
+
   function testCantDeployLockboxTwice() public {
     uint256[] memory _limits = new uint256[](0);
     address[] memory _minters = new address[](0);

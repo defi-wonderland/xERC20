@@ -3,10 +3,10 @@
   "version": "1.0.0",
   "private": true,
   "description": "Production ready Solidity boilerplate with Foundry",
-  "homepage": "https://github.com/defi-wonderland/solidity-foundry-boilerplate#readme",
+  "homepage": "https://github.com/defi-wonderland/xERC20#readme",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/defi-wonderland/solidity-foundry-boilerplate.git"
+    "url": "git+https://github.com/defi-wonderland/xERC20.git"
   },
   "license": "MIT",
   "author": "Wonderland",
@@ -16,25 +16,23 @@
     "gas1cent (https://github.com/gas1cent)"
   ],
   "scripts": {
-    "build": "forge build",
+    "build": "forge build --via-ir",
     "build:optimized": "FOUNDRY_PROFILE=optimized forge build",
     "coverage": "forge coverage --match-contract Unit",
-    "deploy:mainnet": "bash -c 'source .env && forge script DeployMainnet --rpc-url $MAINNET_RPC --broadcast --private-key $MAINNET_DEPLOYER_PK --verify --etherscan-api-key $ETHERSCAN_API_KEY'",
-    "deploy:rinkeby": "bash -c 'source .env && forge script DeployRinkeby --rpc-url $RINKEBY_RPC --broadcast --private-key $RINKEBY_DEPLOYER_PK --verify --etherscan-api-key $ETHERSCAN_API_KEY'",
     "postinstall": "forge install",
     "lint:check": "yarn lint:sol-tests && yarn lint:sol-logic && forge fmt check",
     "lint:fix": "sort-package-json && forge fmt && yarn lint:sol-tests --fix && yarn lint:sol-logic --fix",
     "lint:sol-logic": "solhint 'solidity/contracts/**/*.sol' 'solidity/interfaces/**/*.sol'",
     "lint:sol-tests": "solhint -c .solhint.tests.json 'solidity/test/**/*.sol'",
     "prepare": "husky install",
-    "script:DeployFactory": "forge script solidity/scripts/MultichainDeploy.sol:MultichainDeploy --legacy",
-    "script:DeployFactory:broadcast": "forge script solidity/scripts/MultichainDeploy.sol:MultichainDeploy --legacy --broadcast --verify --slow",
-    "script:DeployXERC20": "forge script solidity/scripts/MultichainCreateXERC20.sol:MultichainCreateXERC20 --legacy",
-    "script:DeployXERC20:broadcast": "forge script solidity/scripts/MultichainCreateXERC20.sol:MultichainCreateXERC20 --legacy --broadcast --verify --slow",
-    "test": "forge test -vvv",
-    "test:e2e": "forge test --match-contract E2E -vvv",
-    "test:unit": "forge test --match-contract Unit -vvv",
-    "test:unit:deep": "FOUNDRY_FUZZ_RUNS=5000 yarn test:unit"
+    "script:DeployFactory": "forge script solidity/scripts/XERC20FactoryDeploy.sol:XERC20FactoryDeploy --legacy --via-ir",
+    "script:DeployFactory:broadcast": "forge script solidity/scripts/XERC20FactoryDeploy.sol:XERC20FactoryDeploy --legacy --broadcast --verify --slow --via-ir",
+    "script:DeployXERC20": "forge script solidity/scripts/XERC20Deploy.sol:XERC20Deploy --legacy --via-ir",
+    "script:DeployXERC20:broadcast": "forge script solidity/scripts/XERC20Deploy.sol:XERC20Deploy --legacy --broadcast --verify --slow --via-ir",
+    "test": "forge test -vvv --via-ir",
+    "test:e2e": "forge test --match-contract E2E -vvv --via-ir",
+    "test:unit": "forge test --match-contract Unit -vvv --via-ir",
+    "test:unit:deep": "FOUNDRY_FUZZ_RUNS=5000 yarn test:unit --via-ir"
   },
   "lint-staged": {
     "*.{js,css,md,ts,sol}": "forge fmt",
