@@ -95,12 +95,15 @@ Example:
 
 You will need to set your custom `name` and `symbol` for your XERC20 to be deployed, no need to add an 'x' infront of it, the contract will do that for you. For more details check the section below.
 
-
 ## Setup Guide to Deploy an xERC20 Token
 
 This guide provides a detailed, step-by-step process to deploy an xERC20 token using this repository. We will first demonstrate how to deploy the xERC20 token alone, and then we’ll cover the scenario in which you want to deploy both the xERC20 token and the lockbox.
 
 ## Deploying xERC20 Without the Lockbox
+
+> [!IMPORTANT]
+> Verifying contracts deployed with --via-ir is not working correctly with Foundry. 
+> Read the following post for a solution: https://github.com/foundry-rs/foundry/issues/3507#issuecomment-1465382107
 
 ### 1. Navigate to the MultichainCreateXERC20 Script
 
@@ -221,3 +224,4 @@ Now broadcast it and you are good to go.
 The deployments are stored in ./broadcast
 
 See the [Foundry Book for available options](https://book.getfoundry.sh/reference/forge/forge-create.html).
+

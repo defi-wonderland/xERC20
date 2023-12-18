@@ -18,13 +18,13 @@ interface IXERC20Lockbox {
    * @notice Reverts when a user tries to deposit native tokens on a non-native lockbox
    */
 
-  error IXERC20Lockbox_NotNative();
+  error IXERC20Lockbox_NotGasToken();
 
   /**
    * @notice Reverts when a user tries to deposit non-native tokens on a native lockbox
    */
 
-  error IXERC20Lockbox_Native();
+  error IXERC20Lockbox_GasToken();
 
   /**
    * @notice Reverts when a user tries to withdraw and the call fails
@@ -55,7 +55,7 @@ interface IXERC20Lockbox {
    * @param _user The user to send the XERC20 to
    */
 
-  function depositNativeTo(address _user) external payable;
+  function depositGasTokenTo(address _user) external payable;
 
   /**
    * @notice Withdraw ERC20 tokens from the lockbox

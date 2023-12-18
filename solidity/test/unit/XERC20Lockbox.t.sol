@@ -80,59 +80,59 @@ contract UnitDeposit is Base {
     _lockbox.deposit(_amount);
   }
 
-  function testNonNativeIntoNativeDepositReverts(uint256 _amount) public {
+  function testNonGasTokenIntoGasTokenDepositReverts(uint256 _amount) public {
     vm.assume(_amount > 0);
     vm.deal(_owner, _amount);
     vm.prank(_owner);
-    vm.expectRevert(IXERC20Lockbox.IXERC20Lockbox_NotNative.selector);
-    _lockbox.depositNative{value: _amount}();
+    vm.expectRevert(IXERC20Lockbox.IXERC20Lockbox_NotGasToken.selector);
+    _lockbox.depositGasToken{value: _amount}();
   }
 
-  function testNonNativeIntoNativeDeposittoReverts(uint256 _amount) public {
+  function testNonGasTokenIntoGasTokenDeposittoReverts(uint256 _amount) public {
     vm.assume(_amount > 0);
     vm.deal(_owner, _amount);
     vm.prank(_owner);
-    vm.expectRevert(IXERC20Lockbox.IXERC20Lockbox_NotNative.selector);
-    _lockbox.depositNativeTo{value: _amount}(_user);
+    vm.expectRevert(IXERC20Lockbox.IXERC20Lockbox_NotGasToken.selector);
+    _lockbox.depositGasTokenTo{value: _amount}(_user);
   }
 
-  function testNativeRevertsIfDepositIntoNonNative(uint256 _amount) public {
+  function testGasTokenRevertsIfDepositIntoNonGasToken(uint256 _amount) public {
     vm.assume(_amount > 0);
     vm.deal(_owner, _amount);
     vm.prank(_owner);
-    vm.expectRevert(IXERC20Lockbox.IXERC20Lockbox_Native.selector);
+    vm.expectRevert(IXERC20Lockbox.IXERC20Lockbox_GasToken.selector);
     _nativeLockbox.deposit(_amount);
   }
 
-  function testNativeRevertsIfDepositToIntoNonNative(uint256 _amount) public {
+  function testGasTokenRevertsIfDepositToIntoNonGasToken(uint256 _amount) public {
     vm.assume(_amount > 0);
     vm.deal(_owner, _amount);
     vm.prank(_owner);
-    vm.expectRevert(IXERC20Lockbox.IXERC20Lockbox_Native.selector);
+    vm.expectRevert(IXERC20Lockbox.IXERC20Lockbox_GasToken.selector);
     _nativeLockbox.depositTo(_user, _amount);
   }
 
-  function testNativeDeposit(uint256 _amount) public {
+  function testGasTokenDeposit(uint256 _amount) public {
     vm.assume(_amount > 0);
     vm.deal(_owner, _amount);
     vm.prank(_owner);
     vm.mockCall(address(_xerc20), abi.encodeWithSelector(IXERC20.mint.selector, _owner, _amount), abi.encode(true));
 
     vm.expectCall(address(_xerc20), abi.encodeCall(XERC20.mint, (_owner, _amount)));
-    _nativeLockbox.depositNative{value: _amount}();
+    _nativeLockbox.depositGasToken{value: _amount}();
   }
 
-  function testNativeDepositTo(uint256 _amount) public {
+  function testGasTokenDepositTo(uint256 _amount) public {
     vm.assume(_amount > 0);
     vm.deal(_owner, _amount);
     vm.prank(_owner);
     vm.mockCall(address(_xerc20), abi.encodeWithSelector(IXERC20.mint.selector, _user, _amount), abi.encode(true));
 
     vm.expectCall(address(_xerc20), abi.encodeCall(XERC20.mint, (_user, _amount)));
-    _nativeLockbox.depositNativeTo{value: _amount}(_user);
+    _nativeLockbox.depositGasTokenTo{value: _amount}(_user);
   }
 
-  function testSendingNativeDepositByTransfer(uint256 _amount) public {
+  function testSendingGasTokenDepositByTransfer(uint256 _amount) public {
     vm.assume(_amount > 0);
     vm.deal(_owner, _amount);
     vm.mockCall(address(_xerc20), abi.encodeWithSelector(IXERC20.mint.selector, _owner, _amount), abi.encode(true));
@@ -167,26 +167,26 @@ contract UnitWithdraw is Base {
     _lockbox.withdraw(_amount);
   }
 
-  function testNativeWithdraw(uint256 _amount) public {
+  function testGasTokenWithdraw(uint256 _amount) public {
     vm.assume(_amount > 0);
     vm.deal(_owner, _amount);
 
     vm.startPrank(_owner);
     vm.mockCall(address(_xerc20), abi.encodeWithSelector(IXERC20.mint.selector, _owner, _amount), abi.encode(true));
-    _nativeLockbox.depositNative{value: _amount}();
+    _nativeLockbox.depositGasToken{value: _amount}();
     _nativeLockbox.withdraw(_amount);
     vm.stopPrank();
 
     assertEq(_owner.balance, _amount);
   }
 
-  function testNativeWithdrawTo(uint256 _amount) public {
+  function testGasTokenWithdrawTo(uint256 _amount) public {
     vm.assume(_amount > 0);
     vm.deal(_owner, _amount);
 
     vm.startPrank(_owner);
     vm.mockCall(address(_xerc20), abi.encodeWithSelector(IXERC20.mint.selector, _owner, _amount), abi.encode(true));
-    _nativeLockbox.depositNative{value: _amount}();
+    _nativeLockbox.depositGasToken{value: _amount}();
     _nativeLockbox.withdrawTo(_user, _amount);
     vm.stopPrank();
 
