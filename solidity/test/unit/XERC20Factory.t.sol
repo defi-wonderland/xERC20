@@ -35,7 +35,7 @@ contract UnitDeploy is Base {
     address[] memory _minters = new address[](0);
 
     address _xerc20 = _xerc20Factory.deployXERC20('Test', 'TST', _limits, _limits, _minters);
-    assertEq(XERC20(_xerc20).name(), 'xTest');
+    assertEq(XERC20(_xerc20).name(), 'Test');
   }
 
   function testRevertsWhenAddressIsTaken() public {
