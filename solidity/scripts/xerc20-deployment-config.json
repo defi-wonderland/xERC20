@@ -6,7 +6,7 @@
             "rpcEnvName": "ETHEREUM_GOERLI_RPC",
             "erc20": "0x0000000000000000000000000000000000000001",
             "governor": "0x0000000000000000000000000000000000000002",
-            "isGasToken": false,
+            "isNativeGasToken": false,
             "bridgeDetails": [
                 {
                     "bridge": "0x0000000000000000000000000000000000000003",
