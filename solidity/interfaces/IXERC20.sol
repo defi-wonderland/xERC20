@@ -31,11 +31,25 @@ interface IXERC20 {
 
   error IXERC20_NotFactory();
 
+  /**
+   * @notice Contains the full minting and burning data for a particular bridge
+   *
+   * @param minterParams The minting parameters for the bridge
+   * @param burnerParams The burning parameters for the bridge
+   */
   struct Bridge {
     BridgeParameters minterParams;
     BridgeParameters burnerParams;
   }
 
+  /**
+   * @notice Contains the mint or burn parameters for a bridge
+   *
+   * @param timestamp The timestamp of the last mint/burn
+   * @param ratePerSecond The rate per second of the bridge
+   * @param maxLimit The max limit of the bridge
+   * @param currentLimit The current limit of the bridge
+   */
   struct BridgeParameters {
     uint256 timestamp;
     uint256 ratePerSecond;

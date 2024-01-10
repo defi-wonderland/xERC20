@@ -4,12 +4,16 @@ pragma solidity >=0.8.4 <0.9.0;
 interface IXERC20Factory {
   /**
    * @notice Emitted when a new XERC20 is deployed
+   *
+   * @param _xerc20 The address of the xerc20
    */
 
   event XERC20Deployed(address _xerc20);
 
   /**
    * @notice Emitted when a new XERC20Lockbox is deployed
+   *
+   * @param _lockbox The address of the lockbox
    */
 
   event LockboxDeployed(address _lockbox);
@@ -42,8 +46,10 @@ interface IXERC20Factory {
    * @dev _limits and _minters must be the same length
    * @param _name The name of the token
    * @param _symbol The symbol of the token
-   * @param _burnerLimits The array of limits that you are adding (optional, can be an empty array)
+   * @param _minterLimits The array of minter limits that you are adding (optional, can be an empty array)
+   * @param _burnerLimits The array of burning limits that you are adding (optional, can be an empty array)
    * @param _bridges The array of burners that you are adding (optional, can be an empty array)
+   * @return _xerc20 The address of the xerc20
    */
 
   function deployXERC20(
@@ -60,6 +66,7 @@ interface IXERC20Factory {
    * @param _xerc20 The address of the xerc20 that you want to deploy a lockbox for
    * @param _baseToken The address of the base token that you want to lock
    * @param _isNative Whether or not the base token is native
+   * @return _lockbox The address of the lockbox
    */
 
   function deployLockbox(

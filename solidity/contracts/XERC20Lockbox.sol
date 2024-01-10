@@ -145,6 +145,9 @@ contract XERC20Lockbox is IXERC20Lockbox {
     emit Deposit(_to, _amount);
   }
 
+  /**
+   * @notice Fallback function to deposit native tokens
+   */
   receive() external payable {
     depositNative();
   }
