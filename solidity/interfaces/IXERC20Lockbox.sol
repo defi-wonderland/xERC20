@@ -4,12 +4,18 @@ pragma solidity >=0.8.4 <0.9.0;
 interface IXERC20Lockbox {
   /**
    * @notice Emitted when tokens are deposited into the lockbox
+   *
+   * @param _sender The address of the user who deposited
+   * @param _amount The amount of tokens deposited
    */
 
   event Deposit(address _sender, uint256 _amount);
 
   /**
    * @notice Emitted when tokens are withdrawn from the lockbox
+   *
+   * @param _sender The address of the user who withdrew
+   * @param _amount The amount of tokens withdrawn
    */
 
   event Withdraw(address _sender, uint256 _amount);
@@ -18,13 +24,13 @@ interface IXERC20Lockbox {
    * @notice Reverts when a user tries to deposit native tokens on a non-native lockbox
    */
 
-  error IXERC20Lockbox_NotGasToken();
+  error IXERC20Lockbox_NotNative();
 
   /**
    * @notice Reverts when a user tries to deposit non-native tokens on a native lockbox
    */
 
-  error IXERC20Lockbox_GasToken();
+  error IXERC20Lockbox_Native();
 
   /**
    * @notice Reverts when a user tries to withdraw and the call fails
@@ -55,7 +61,7 @@ interface IXERC20Lockbox {
    * @param _user The user to send the XERC20 to
    */
 
-  function depositGasTokenTo(address _user) external payable;
+  function depositNativeTo(address _user) external payable;
 
   /**
    * @notice Withdraw ERC20 tokens from the lockbox

@@ -212,6 +212,7 @@ contract XERC20 is ERC20, Ownable, IXERC20, ERC20Permit {
    * @param _limit The new limit
    * @param _oldLimit The old limit
    * @param _currentLimit The current limit
+   * @return _newCurrentLimit The new current limit
    */
 
   function _calculateNewCurrentLimit(
@@ -237,6 +238,7 @@ contract XERC20 is ERC20, Ownable, IXERC20, ERC20Permit {
    * @param _maxLimit The max limit
    * @param _timestamp The timestamp of the last update
    * @param _ratePerSecond The rate per second
+   * @return _limit The current limit
    */
 
   function _getCurrentLimit(
