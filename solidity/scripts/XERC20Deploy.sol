@@ -24,7 +24,7 @@ struct ChainDetails {
   BridgeDetails[] bridgeDetails; // The array of bridges to configure for this chain
   address erc20; // The address of the ERC20 canonical token of that chain (address(0) if none)
   address governor; // The governor address of the xERC20
-  bool isGasToken; // Wheter or not the token is the native gas token of the chain. E.g. Are you deploying an xERC20 for MATIC in Polygon?
+  bool isNativeGasToken; // Whether or not the token is the native gas token of the chain. E.g. Are you deploying an xERC20 for MATIC in Polygon?
   string rpcEnvName; // The name of the RPC to use from the .env file
 }
 
@@ -38,7 +38,7 @@ contract XERC20Deploy is Script, ScriptingLibrary {
   using stdJson for string;
 
   uint256 public deployer = vm.envUint('DEPLOYER_PRIVATE_KEY');
-  XERC20Factory public factory = XERC20Factory(0x7673F15B0492A681CE57Db82b81E00D6b7797A11);
+  XERC20Factory public factory = XERC20Factory(0xb913bE186110B1119d5B9582F316f142c908fc25);
 
   function run() public {
     string memory _json = vm.readFile('./solidity/scripts/xerc20-deployment-config.json');
@@ -73,8 +73,8 @@ contract XERC20Deploy is Script, ScriptingLibrary {
 
       // deploy lockbox if needed
       address _lockbox;
-      if (_chainDetails.erc20 != address(0) && !_chainDetails.isGasToken) {
-        _lockbox = factory.deployLockbox(_xerc20, _chainDetails.erc20, _chainDetails.isGasToken);
+      if (_chainDetails.erc20 != address(0) && !_chainDetails.isNativeGasToken) {
+        _lockbox = factory.deployLockbox(_xerc20, _chainDetails.erc20, _chainDetails.isNativeGasToken);
       }
 
       // transfer xerc20 ownership to the governor

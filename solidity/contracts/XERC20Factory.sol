@@ -33,6 +33,7 @@ contract XERC20Factory is IXERC20Factory {
    * @param _minterLimits The array of limits that you are adding (optional, can be an empty array)
    * @param _burnerLimits The array of limits that you are adding (optional, can be an empty array)
    * @param _bridges The array of bridges that you are adding (optional, can be an empty array)
+   * @return _xerc20 The address of the xerc20
    */
 
   function deployXERC20(
@@ -53,22 +54,23 @@ contract XERC20Factory is IXERC20Factory {
    * @dev When deploying a lockbox for the gas token of the chain, then, the base token needs to be address(0)
    * @param _xerc20 The address of the xerc20 that you want to deploy a lockbox for
    * @param _baseToken The address of the base token that you want to lock
-   * @param _isGasToken Whether or not the base token is the native (gas) token of the chain. Eg: MATIC for polygon chain
+   * @param _isNative Whether or not the base token is the native (gas) token of the chain. Eg: MATIC for polygon chain
+   * @return _lockbox The address of the lockbox
    */
 
   function deployLockbox(
     address _xerc20,
     address _baseToken,
-    bool _isGasToken
+    bool _isNative
   ) external returns (address payable _lockbox) {
-    if ((_baseToken == address(0) && !_isGasToken) || (_isGasToken && _baseToken != address(0))) {
+    if ((_baseToken == address(0) && !_isNative) || (_isNative && _baseToken != address(0))) {
       revert IXERC20Factory_BadTokenAddress();
     }
 
     if (XERC20(_xerc20).owner() != msg.sender) revert IXERC20Factory_NotOwner();
     if (_lockboxRegistry[_xerc20] != address(0)) revert IXERC20Factory_LockboxAlreadyDeployed();
 
-    _lockbox = _deployLockbox(_xerc20, _baseToken, _isGasToken);
+    _lockbox = _deployLockbox(_xerc20, _baseToken, _isNative);
 
     emit LockboxDeployed(_lockbox);
   }
@@ -81,6 +83,7 @@ contract XERC20Factory is IXERC20Factory {
    * @param _minterLimits The array of limits that you are adding (optional, can be an empty array)
    * @param _burnerLimits The array of limits that you are adding (optional, can be an empty array)
    * @param _bridges The array of burners that you are adding (optional, can be an empty array)
+   * @return _xerc20 The address of the xerc20
    */
 
   function _deployXERC20(
@@ -109,14 +112,23 @@ contract XERC20Factory is IXERC20Factory {
     XERC20(_xerc20).transferOwnership(msg.sender);
   }
 
+  /**
+   * @notice Deploys an XERC20Lockbox contract using CREATE3
+   *
+   * @dev When deploying a lockbox for the gas token of the chain, then, the base token needs to be address(0)
+   * @param _xerc20 The address of the xerc20 that you want to deploy a lockbox for
+   * @param _baseToken The address of the base token that you want to lock
+   * @param _isNative Whether or not the base token is the native (gas) token of the chain. Eg: MATIC for polygon chain
+   * @return _lockbox The address of the lockbox
+   */
   function _deployLockbox(
     address _xerc20,
     address _baseToken,
-    bool _isGasToken
+    bool _isNative
   ) internal returns (address payable _lockbox) {
     bytes32 _salt = keccak256(abi.encodePacked(_xerc20, _baseToken, msg.sender));
     bytes memory _creation = type(XERC20Lockbox).creationCode;
-    bytes memory _bytecode = abi.encodePacked(_creation, abi.encode(_xerc20, _baseToken, _isGasToken));
+    bytes memory _bytecode = abi.encodePacked(_creation, abi.encode(_xerc20, _baseToken, _isNative));
 
     _lockbox = payable(CREATE3.deploy(_salt, _bytecode, 0));
 
