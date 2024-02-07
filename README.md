@@ -190,3 +190,7 @@ yarn run script:DeployXERC20:broadcast
 Congratulations! You have successfully deployed your xERC20 token. 🚀
 
 See the [Foundry Book for available options](https://book.getfoundry.sh/reference/forge/forge-create.html).
+
+## Licensing
+
+The primary license for xERC20 is MIT, see [LICENSE](./LICENSE).
