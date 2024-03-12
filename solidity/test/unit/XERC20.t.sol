@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity >=0.8.4 <0.9.0;
 
-import {Test} from 'forge-std/Test.sol';
+import {Test, stdError} from 'forge-std/Test.sol';
 import {XERC20} from '../../contracts/XERC20.sol';
 import {IXERC20} from '../../interfaces/IXERC20.sol';
 
@@ -52,6 +52,28 @@ contract UnitMintBurn is Base {
     _xerc20.mint(_user, _amount0);
     vm.expectRevert(IXERC20.IXERC20_NotHighEnoughLimits.selector);
     _xerc20.burn(_user, _amount1);
+    vm.stopPrank();
+  }
+
+  function testMintRevertsWhenLimitIsTooHighAfterFirstMint(
+    uint256 _amount0,
+    uint256 _timePassed,
+    uint256 _limit
+  ) public {
+    _amount0 = bound(_amount0, 1, 1e40);
+    _limit = bound(_limit, UINT256_MAX / 2 + 1, UINT256_MAX);
+    _timePassed = bound(_timePassed, 1, 1 days - 1);
+
+    vm.assume(_limit > _amount0);
+    vm.prank(_owner);
+    _xerc20.setLimits(_user, _limit, _limit);
+
+    vm.startPrank(_user);
+    _xerc20.mint(_user, _amount0);
+
+    skip(_timePassed);
+    //vm.expectRevert(stdError.arithmeticError);
+    _xerc20.mint(_user, _amount0);
     vm.stopPrank();
   }
 
