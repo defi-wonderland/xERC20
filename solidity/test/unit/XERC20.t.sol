@@ -55,6 +55,19 @@ contract UnitMintBurn is Base {
     vm.stopPrank();
   }
 
+  function testsetLimitsRevertsWhenLimitIsTooHighAfter(uint256 _amount0, uint256 _timePassed, uint256 _limit) public {
+    _amount0 = bound(_amount0, 1, 1e40);
+    _limit = bound(_limit, UINT256_MAX / 2 + 1, UINT256_MAX);
+    _timePassed = bound(_timePassed, 1, 1 days - 1);
+
+    vm.assume(_limit > _amount0);
+    vm.prank(_owner);
+    vm.expectRevert(IXERC20.IXERC20_LimitsTooHigh.selector);
+    _xerc20.setLimits(_user, _limit, _limit);
+
+    vm.stopPrank();
+  }
+
   function testMint(uint256 _amount) public {
     vm.assume(_amount > 0);
 
