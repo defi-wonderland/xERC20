@@ -35,7 +35,6 @@ contract XERC20Factory is IXERC20Factory {
    * @param _bridges The array of bridges that you are adding (optional, can be an empty array)
    * @return _xerc20 The address of the xerc20
    */
-
   function deployXERC20(
     string memory _name,
     string memory _symbol,
@@ -57,7 +56,6 @@ contract XERC20Factory is IXERC20Factory {
    * @param _isNative Whether or not the base token is the native (gas) token of the chain. Eg: MATIC for polygon chain
    * @return _lockbox The address of the lockbox
    */
-
   function deployLockbox(
     address _xerc20,
     address _baseToken,
@@ -85,7 +83,6 @@ contract XERC20Factory is IXERC20Factory {
    * @param _bridges The array of burners that you are adding (optional, can be an empty array)
    * @return _xerc20 The address of the xerc20
    */
-
   function _deployXERC20(
     string memory _name,
     string memory _symbol,

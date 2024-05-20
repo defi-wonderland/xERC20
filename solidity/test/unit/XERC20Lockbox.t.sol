@@ -32,6 +32,14 @@ abstract contract Base is Test {
   }
 }
 
+contract MockWithdrawToRevert {
+  error REVERT_FOR_TEST();
+
+  receive() external payable {
+    revert REVERT_FOR_TEST();
+  }
+}
+
 contract UnitDeposit is Base {
   function testDeposit(uint256 _amount) public {
     vm.assume(_amount > 0);
@@ -191,5 +199,20 @@ contract UnitWithdraw is Base {
     vm.stopPrank();
 
     assertEq(_user.balance, _amount);
+  }
+
+  function testNativeWithdrawToRevert(uint256 _amount) public {
+    vm.assume(_amount > 0);
+    vm.deal(_owner, _amount);
+
+    MockWithdrawToRevert recipient = new MockWithdrawToRevert();
+
+    vm.startPrank(_owner);
+    vm.mockCall(address(_xerc20), abi.encodeWithSelector(IXERC20.mint.selector, _owner, _amount), abi.encode(true));
+    _nativeLockbox.depositNative{value: _amount}();
+
+    vm.expectRevert();
+    _nativeLockbox.withdrawTo(address(recipient), _amount);
+    vm.stopPrank();
   }
 }
