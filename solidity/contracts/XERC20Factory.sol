@@ -94,7 +94,7 @@ contract XERC20Factory is IXERC20Factory {
     address[] memory _bridges
   ) internal returns (address _xerc20) {
     uint256 _bridgesLength = _bridges.length;
-    if (_minterLimits.length != _bridgesLength || _burnerLimits.length != _bridgesLength) {
+    if (_minterLimits.length & _burnerLimits.length != _bridgesLength) {
       revert IXERC20Factory_InvalidLength();
     }
     bytes32 _salt = keccak256(abi.encodePacked(_name, _symbol, msg.sender));
