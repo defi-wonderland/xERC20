@@ -1,8 +1,8 @@
 {
-  "name": "solidity-foundry-boilerplate",
-  "version": "1.0.0",
+  "name": "xerc20",
+  "version": "1.0.1",
   "private": true,
-  "description": "Production ready Solidity boilerplate with Foundry",
+  "description": "A standard for bridged tokens. A common interface to be used across different implementations of bridges to keep liquidity concentrated and improve user experience on-chain.",
   "homepage": "https://github.com/defi-wonderland/xERC20#readme",
   "repository": {
     "type": "git",
@@ -11,9 +11,8 @@
   "license": "MIT",
   "author": "Wonderland",
   "contributors": [
-    "0xGorilla (https://github.com/0xGorilla)",
-    "0xng (https://github.com/0xng)",
-    "gas1cent (https://github.com/gas1cent)"
+    "excaliborr (https://github.com/excaliborr)",
+    "shaito (https://github.com/0xShaito)"
   ],
   "scripts": {
     "build": "forge build --via-ir",
