@@ -34,8 +34,23 @@ contract UnitDeploy is Base {
     uint256[] memory _limits = new uint256[](0);
     address[] memory _minters = new address[](0);
 
-    address _xerc20 = _xerc20Factory.deployXERC20('Test', 'TST', _limits, _limits, _minters);
-    assertEq(XERC20(_xerc20).name(), 'Test');
+    XERC20 _xerc20 = XERC20(_xerc20Factory.deployXERC20('Test', 'TST', _limits, _limits, _minters));
+    assertEq(_xerc20.name(), 'Test');
+    assertEq(_xerc20.symbol(), 'TST');
+    assertEq(_xerc20.FACTORY(), address(_xerc20Factory));
+  }
+
+  function testDeploymentWithLimitsAndMinters() public {
+    uint256[] memory _limits = new uint256[](1);
+    address[] memory _minters = new address[](1);
+
+    _limits[0] = 1e18;
+    _minters[0] = _user;
+
+    XERC20 _xerc20 = XERC20(_xerc20Factory.deployXERC20('Test', 'TST', _limits, _limits, _minters));
+    assertEq(_xerc20.name(), 'Test');
+    assertEq(_xerc20.symbol(), 'TST');
+    assertEq(_xerc20.FACTORY(), address(_xerc20Factory));
   }
 
   function testRevertsWhenAddressIsTaken() public {
