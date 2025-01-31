@@ -1,19 +1,110 @@
 {
-    "name": "Test",
-    "symbol": "TST",
+    "name": "Renzo Restaked ETH Stage",
+    "symbol": "EZETHSTAGE",
     "chainDetails": [
         {
-            "rpcEnvName": "ETHEREUM_GOERLI_RPC",
-            "erc20": "0x0000000000000000000000000000000000000001",
-            "governor": "0x0000000000000000000000000000000000000002",
+            "rpcEnvName": "ARBITRUM_MAINNET_RPC",
+            "erc20": "0x0000000000000000000000000000000000000000",
+            "governor": "0xa7ECcdb9Be08178f896c26b7BbD8C3D4E844d9Ba",
             "isNativeGasToken": false,
-            "bridgeDetails": [
-                {
-                    "bridge": "0x0000000000000000000000000000000000000003",
-                    "burnLimit": 1000e18,
-                    "mintLimit": 1000e18
-                }
-            ]
+            "factory": "0xA6D506140062eca85B39A8FF66c4F596A4297cac",
+            "bridgeDetails": []
+        },
+        {
+            "rpcEnvName": "OPTIMISM_MAINNET_RPC",
+            "erc20": "0x0000000000000000000000000000000000000000",
+            "governor": "0xa7ECcdb9Be08178f896c26b7BbD8C3D4E844d9Ba",
+            "isNativeGasToken": false,
+            "factory": "0xA6D506140062eca85B39A8FF66c4F596A4297cac",
+            "bridgeDetails": []
+        },
+        {
+            "rpcEnvName": "BASE_MAINNET_RPC",
+            "erc20": "0x0000000000000000000000000000000000000000",
+            "governor": "0xa7ECcdb9Be08178f896c26b7BbD8C3D4E844d9Ba",
+            "isNativeGasToken": false,
+            "factory": "0xA6D506140062eca85B39A8FF66c4F596A4297cac",
+            "bridgeDetails": []
+        },
+        {
+            "rpcEnvName": "BLAST_MAINNET_RPC",
+            "erc20": "0x0000000000000000000000000000000000000000",
+            "governor": "0xa7ECcdb9Be08178f896c26b7BbD8C3D4E844d9Ba",
+            "isNativeGasToken": false,
+            "factory": "0xA6D506140062eca85B39A8FF66c4F596A4297cac",
+            "bridgeDetails": []
+        },
+        {
+            "rpcEnvName": "BSC_RPC",
+            "erc20": "0x0000000000000000000000000000000000000000",
+            "governor": "0xa7ECcdb9Be08178f896c26b7BbD8C3D4E844d9Ba",
+            "isNativeGasToken": false,
+            "factory": "0xA6D506140062eca85B39A8FF66c4F596A4297cac",
+            "bridgeDetails": []
+        },
+        {
+            "rpcEnvName": "MODE_MAINNET_RPC",
+            "erc20": "0x0000000000000000000000000000000000000000",
+            "governor": "0xa7ECcdb9Be08178f896c26b7BbD8C3D4E844d9Ba",
+            "isNativeGasToken": false,
+            "factory": "0xA6D506140062eca85B39A8FF66c4F596A4297cac",
+            "bridgeDetails": []
+        },
+        {
+            "rpcEnvName": "LINEA_MAINNET_RPC",
+            "erc20": "0x0000000000000000000000000000000000000000",
+            "governor": "0xa7ECcdb9Be08178f896c26b7BbD8C3D4E844d9Ba",
+            "isNativeGasToken": false,
+            "factory": "0xA6D506140062eca85B39A8FF66c4F596A4297cac",
+            "bridgeDetails": []
+        },
+        {
+            "rpcEnvName": "ETHEREUM_MAINNET_RPC",
+            "erc20": "0x688eBadf27a256Ed1D402be628011C37E81f1682",
+            "governor": "0xa7ECcdb9Be08178f896c26b7BbD8C3D4E844d9Ba",
+            "isNativeGasToken": false,
+            "factory": "0xA6D506140062eca85B39A8FF66c4F596A4297cac",
+            "bridgeDetails": []
+        },
+        {
+            "rpcEnvName": "FRAXTAL_MAINNET_RPC",
+            "erc20": "0x0000000000000000000000000000000000000000",
+            "governor": "0xa7ECcdb9Be08178f896c26b7BbD8C3D4E844d9Ba",
+            "isNativeGasToken": false,
+            "factory": "0xA6D506140062eca85B39A8FF66c4F596A4297cac",
+            "bridgeDetails": []
+        },
+        {
+            "rpcEnvName": "ZIRCUIT_MAINNET_RPC",
+            "erc20": "0x0000000000000000000000000000000000000000",
+            "governor": "0xa7ECcdb9Be08178f896c26b7BbD8C3D4E844d9Ba",
+            "isNativeGasToken": false,
+            "factory": "0xA6D506140062eca85B39A8FF66c4F596A4297cac",
+            "bridgeDetails": []
+        },
+        {
+            "rpcEnvName": "TAIKO_MAINNET_RPC",
+            "erc20": "0x0000000000000000000000000000000000000000",
+            "governor": "0xa7ECcdb9Be08178f896c26b7BbD8C3D4E844d9Ba",
+            "isNativeGasToken": false,
+            "factory": "0xA6D506140062eca85B39A8FF66c4F596A4297cac",
+            "bridgeDetails": []
+        },
+        {
+            "rpcEnvName": "SEI_MAINNET_RPC",
+            "erc20": "0x0000000000000000000000000000000000000000",
+            "governor": "0xa7ECcdb9Be08178f896c26b7BbD8C3D4E844d9Ba",
+            "isNativeGasToken": false,
+            "factory": "0xA6D506140062eca85B39A8FF66c4F596A4297cac",
+            "bridgeDetails": []
+        },
+        {
+            "rpcEnvName": "SWELL_MAINNET_RPC",
+            "erc20": "0x0000000000000000000000000000000000000000",
+            "governor": "0xa7ECcdb9Be08178f896c26b7BbD8C3D4E844d9Ba",
+            "isNativeGasToken": false,
+            "factory": "0xA6D506140062eca85B39A8FF66c4F596A4297cac",
+            "bridgeDetails": []
         }
     ]
 }
