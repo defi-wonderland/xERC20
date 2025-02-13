@@ -24,7 +24,6 @@ contract XERC20Lockbox is IXERC20Lockbox {
   /**
    * @notice Whether the ERC20 token is the native gas token of this chain
    */
-
   bool public immutable IS_NATIVE;
 
   /**
@@ -34,7 +33,6 @@ contract XERC20Lockbox is IXERC20Lockbox {
    * @param _erc20 The address of the ERC20 contract
    * @param _isNative Whether the ERC20 token is the native gas token of this chain or not
    */
-
   constructor(address _xerc20, address _erc20, bool _isNative) {
     XERC20 = IXERC20(_xerc20);
     ERC20 = IERC20(_erc20);
@@ -44,7 +42,6 @@ contract XERC20Lockbox is IXERC20Lockbox {
   /**
    * @notice Deposit native tokens into the lockbox
    */
-
   function depositNative() public payable {
     if (!IS_NATIVE) revert IXERC20Lockbox_NotNative();
 
@@ -56,7 +53,6 @@ contract XERC20Lockbox is IXERC20Lockbox {
    *
    * @param _amount The amount of tokens to deposit
    */
-
   function deposit(uint256 _amount) external {
     if (IS_NATIVE) revert IXERC20Lockbox_Native();
 
@@ -69,7 +65,6 @@ contract XERC20Lockbox is IXERC20Lockbox {
    * @param _to The user to send the XERC20 to
    * @param _amount The amount of tokens to deposit
    */
-
   function depositTo(address _to, uint256 _amount) external {
     if (IS_NATIVE) revert IXERC20Lockbox_Native();
 
@@ -81,7 +76,6 @@ contract XERC20Lockbox is IXERC20Lockbox {
    *
    * @param _to The user to send the XERC20 to
    */
-
   function depositNativeTo(address _to) public payable {
     if (!IS_NATIVE) revert IXERC20Lockbox_NotNative();
 
@@ -93,7 +87,6 @@ contract XERC20Lockbox is IXERC20Lockbox {
    *
    * @param _amount The amount of tokens to withdraw
    */
-
   function withdraw(uint256 _amount) external {
     _withdraw(msg.sender, _amount);
   }
@@ -104,7 +97,6 @@ contract XERC20Lockbox is IXERC20Lockbox {
    * @param _to The user to withdraw to
    * @param _amount The amount of tokens to withdraw
    */
-
   function withdrawTo(address _to, uint256 _amount) external {
     _withdraw(_to, _amount);
   }
@@ -115,7 +107,6 @@ contract XERC20Lockbox is IXERC20Lockbox {
    * @param _to The user to withdraw to
    * @param _amount The amount of tokens to withdraw
    */
-
   function _withdraw(address _to, uint256 _amount) internal {
     emit Withdraw(_to, _amount);
 
@@ -135,7 +126,6 @@ contract XERC20Lockbox is IXERC20Lockbox {
    * @param _to The address to send the XERC20 to
    * @param _amount The amount of tokens to deposit
    */
-
   function _deposit(address _to, uint256 _amount) internal {
     if (!IS_NATIVE) {
       ERC20.safeTransferFrom(msg.sender, address(this), _amount);

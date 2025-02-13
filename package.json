@@ -18,6 +18,7 @@
     "build": "forge build --via-ir",
     "build:optimized": "FOUNDRY_PROFILE=optimized forge build",
     "coverage": "forge coverage --match-contract Unit",
+    "coverage:report": "yarn coverage --report lcov",
     "postinstall": "forge install",
     "lint:check": "yarn lint:sol-tests && yarn lint:sol-logic && forge fmt check",
     "lint:fix": "sort-package-json && forge fmt && yarn lint:sol-tests --fix && yarn lint:sol-logic --fix",
@@ -31,7 +32,7 @@
     "test": "forge test -vvv --via-ir",
     "test:e2e": "forge test --match-contract E2E -vvv --via-ir",
     "test:unit": "forge test --match-contract Unit -vvv --via-ir",
-    "test:unit:deep": "FOUNDRY_FUZZ_RUNS=5000 yarn test:unit --via-ir"
+    "test:unit:deep": "FOUNDRY_FUZZ_RUNS=5000 yarn test:unit"
   },
   "lint-staged": {
     "*.{js,css,md,ts,sol}": "forge fmt",
