@@ -83,7 +83,7 @@ contract XERC20 is ERC20, Ownable, IXERC20, ERC20Permit {
    * @param _bridge The address of the bridge we are setting the limits too
    */
   function setLimits(address _bridge, uint256 _mintingLimit, uint256 _burningLimit) external onlyOwner {
-    if (_mintingLimit > (type(uint256).max / 2) || _burningLimit > (type(uint256).max / 2)) {
+    if (_mintingLimit > (type(uint256).max >> 1) || _burningLimit > (type(uint256).max >> 1)) {
       revert IXERC20_LimitsTooHigh();
     }
 
