@@ -32,7 +32,7 @@ struct DeploymentConfig {
   ChainDetails[] chainDetails;
   string name; // The name to use for the xERC20
   string symbol; // The symbol to use for the xERC20
-  uint8 decimals; // The number of decimals of the token
+  uint8 decimals; // The number of decimals for the token
 }
 
 contract XERC20Deploy is Script, ScriptingLibrary {

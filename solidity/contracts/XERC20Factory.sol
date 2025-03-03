@@ -64,12 +64,14 @@ contract XERC20Factory is IXERC20Factory {
     address _baseToken,
     bool _isNative
   ) external returns (address payable _lockbox) {
-    if ((_baseToken == address(0) && !_isNative) || (_isNative && _baseToken != address(0))) {
+    if ((_baseToken == address(0)) != _isNative) {
       revert IXERC20Factory_BadTokenAddress();
     }
 
-    if (IERC20Metadata(_xerc20).decimals() != IERC20Metadata(_baseToken).decimals()) {
-      revert IXERC20Factory_TokenDecimalsMismatch();
+    if (!_isNative) {
+      if (IERC20Metadata(_xerc20).decimals() != IERC20Metadata(_baseToken).decimals()) {
+        revert IXERC20Factory_TokenDecimalsMismatch();
+      }
     }
 
     if (XERC20(_xerc20).owner() != msg.sender) revert IXERC20Factory_NotOwner();
