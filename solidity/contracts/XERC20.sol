@@ -13,6 +13,11 @@ contract XERC20 is ERC20, Ownable, IXERC20, ERC20Permit {
   uint256 private constant _DURATION = 1 days;
 
   /**
+   * @notice The maximum limit of a bridge
+   */
+  uint256 private constant _MAX_LIMIT = type(uint256).max >> 1;
+
+  /**
    * @notice The address of the factory which deployed this contract
    */
   address public immutable FACTORY;
@@ -68,7 +73,9 @@ contract XERC20 is ERC20, Ownable, IXERC20, ERC20Permit {
    *
    * @param _lockbox The address of the lockbox
    */
-  function setLockbox(address _lockbox) public {
+  function setLockbox(
+    address _lockbox
+  ) public {
     if (msg.sender != FACTORY) revert IXERC20_NotFactory();
     lockbox = _lockbox;
 
@@ -83,7 +90,7 @@ contract XERC20 is ERC20, Ownable, IXERC20, ERC20Permit {
    * @param _bridge The address of the bridge we are setting the limits too
    */
   function setLimits(address _bridge, uint256 _mintingLimit, uint256 _burningLimit) external onlyOwner {
-    if (_mintingLimit > (type(uint256).max / 2) || _burningLimit > (type(uint256).max / 2)) {
+    if (_mintingLimit > _MAX_LIMIT || _burningLimit > _MAX_LIMIT) {
       revert IXERC20_LimitsTooHigh();
     }
 
@@ -98,7 +105,9 @@ contract XERC20 is ERC20, Ownable, IXERC20, ERC20Permit {
    * @param _bridge the bridge we are viewing the limits of
    * @return _limit The limit the bridge has
    */
-  function mintingMaxLimitOf(address _bridge) public view returns (uint256 _limit) {
+  function mintingMaxLimitOf(
+    address _bridge
+  ) public view returns (uint256 _limit) {
     _limit = bridges[_bridge].minterParams.maxLimit;
   }
 
@@ -108,7 +117,9 @@ contract XERC20 is ERC20, Ownable, IXERC20, ERC20Permit {
    * @param _bridge the bridge we are viewing the limits of
    * @return _limit The limit the bridge has
    */
-  function burningMaxLimitOf(address _bridge) public view returns (uint256 _limit) {
+  function burningMaxLimitOf(
+    address _bridge
+  ) public view returns (uint256 _limit) {
     _limit = bridges[_bridge].burnerParams.maxLimit;
   }
 
@@ -118,7 +129,9 @@ contract XERC20 is ERC20, Ownable, IXERC20, ERC20Permit {
    * @param _bridge the bridge we are viewing the limits of
    * @return _limit The limit the bridge has
    */
-  function mintingCurrentLimitOf(address _bridge) public view returns (uint256 _limit) {
+  function mintingCurrentLimitOf(
+    address _bridge
+  ) public view returns (uint256 _limit) {
     _limit = _getCurrentLimit(
       bridges[_bridge].minterParams.currentLimit,
       bridges[_bridge].minterParams.maxLimit,
@@ -133,7 +146,9 @@ contract XERC20 is ERC20, Ownable, IXERC20, ERC20Permit {
    * @param _bridge the bridge we are viewing the limits of
    * @return _limit The limit the bridge has
    */
-  function burningCurrentLimitOf(address _bridge) public view returns (uint256 _limit) {
+  function burningCurrentLimitOf(
+    address _bridge
+  ) public view returns (uint256 _limit) {
     _limit = _getCurrentLimit(
       bridges[_bridge].burnerParams.currentLimit,
       bridges[_bridge].burnerParams.maxLimit,

@@ -53,7 +53,9 @@ contract XERC20Lockbox is IXERC20Lockbox {
    *
    * @param _amount The amount of tokens to deposit
    */
-  function deposit(uint256 _amount) external {
+  function deposit(
+    uint256 _amount
+  ) external {
     if (IS_NATIVE) revert IXERC20Lockbox_Native();
 
     _deposit(msg.sender, _amount);
@@ -76,7 +78,9 @@ contract XERC20Lockbox is IXERC20Lockbox {
    *
    * @param _to The user to send the XERC20 to
    */
-  function depositNativeTo(address _to) public payable {
+  function depositNativeTo(
+    address _to
+  ) public payable {
     if (!IS_NATIVE) revert IXERC20Lockbox_NotNative();
 
     _deposit(_to, msg.value);
@@ -87,7 +91,9 @@ contract XERC20Lockbox is IXERC20Lockbox {
    *
    * @param _amount The amount of tokens to withdraw
    */
-  function withdraw(uint256 _amount) external {
+  function withdraw(
+    uint256 _amount
+  ) external {
     _withdraw(msg.sender, _amount);
   }
 
