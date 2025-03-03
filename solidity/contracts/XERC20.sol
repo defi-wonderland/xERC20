@@ -60,8 +60,8 @@ contract XERC20 is ERC20, Ownable, IXERC20, ERC20Permit {
    * @notice Returns the number of decimals of the token
    * @return _decimals The number of decimals
    */
-  function decimals() public view override returns (uint8) {
-    return DECIMALS;
+  function decimals() public view override returns (uint8 _decimals) {
+    _decimals = DECIMALS;
   }
 
   /**
