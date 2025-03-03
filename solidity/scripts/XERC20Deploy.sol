@@ -32,6 +32,7 @@ struct DeploymentConfig {
   ChainDetails[] chainDetails;
   string name; // The name to use for the xERC20
   string symbol; // The symbol to use for the xERC20
+  uint8 decimals; // The number of decimals of the token
 }
 
 contract XERC20Deploy is Script, ScriptingLibrary {
@@ -69,7 +70,8 @@ contract XERC20Deploy is Script, ScriptingLibrary {
       }
 
       // deploy xerc20
-      address _xerc20 = factory.deployXERC20(_data.name, _data.symbol, _mintLimits, _burnLimits, _bridges);
+      address _xerc20 =
+        factory.deployXERC20(_data.name, _data.symbol, _data.decimals, _mintLimits, _burnLimits, _bridges);
 
       // deploy lockbox if needed
       address _lockbox;

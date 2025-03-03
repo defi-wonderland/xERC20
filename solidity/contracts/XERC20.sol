@@ -18,6 +18,11 @@ contract XERC20 is ERC20, Ownable, IXERC20, ERC20Permit {
   uint256 private constant _MAX_LIMIT = type(uint256).max >> 1;
 
   /**
+   * @notice The number of decimals of the token
+   */
+  uint8 public immutable DECIMALS;
+
+  /**
    * @notice The address of the factory which deployed this contract
    */
   address public immutable FACTORY;
@@ -37,11 +42,26 @@ contract XERC20 is ERC20, Ownable, IXERC20, ERC20Permit {
    *
    * @param _name The name of the token
    * @param _symbol The symbol of the token
+   * @param _decimals The number of decimals of the token
    * @param _factory The factory which deployed this contract
    */
-  constructor(string memory _name, string memory _symbol, address _factory) ERC20(_name, _symbol) ERC20Permit(_name) {
+  constructor(
+    string memory _name,
+    string memory _symbol,
+    uint8 _decimals,
+    address _factory
+  ) ERC20(_name, _symbol) ERC20Permit(_name) {
     _transferOwnership(_factory);
     FACTORY = _factory;
+    DECIMALS = _decimals;
+  }
+
+  /**
+   * @notice Returns the number of decimals of the token
+   * @return _decimals The number of decimals
+   */
+  function decimals() public view override returns (uint8) {
+    return DECIMALS;
   }
 
   /**

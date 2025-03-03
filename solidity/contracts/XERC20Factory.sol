@@ -5,6 +5,7 @@ import {XERC20} from '../contracts/XERC20.sol';
 import {IXERC20Factory} from '../interfaces/IXERC20Factory.sol';
 import {XERC20Lockbox} from '../contracts/XERC20Lockbox.sol';
 import {CREATE3} from 'isolmate/utils/CREATE3.sol';
+import {IERC20Metadata} from '@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol';
 import {EnumerableSet} from '@openzeppelin/contracts/utils/structs/EnumerableSet.sol';
 
 contract XERC20Factory is IXERC20Factory {
@@ -30,6 +31,7 @@ contract XERC20Factory is IXERC20Factory {
    * @dev _limits and _minters must be the same length
    * @param _name The name of the token
    * @param _symbol The symbol of the token
+   * @param _decimals The number of decimals of the token
    * @param _minterLimits The array of limits that you are adding (optional, can be an empty array)
    * @param _burnerLimits The array of limits that you are adding (optional, can be an empty array)
    * @param _bridges The array of bridges that you are adding (optional, can be an empty array)
@@ -38,11 +40,12 @@ contract XERC20Factory is IXERC20Factory {
   function deployXERC20(
     string memory _name,
     string memory _symbol,
+    uint8 _decimals,
     uint256[] memory _minterLimits,
     uint256[] memory _burnerLimits,
     address[] memory _bridges
   ) external returns (address _xerc20) {
-    _xerc20 = _deployXERC20(_name, _symbol, _minterLimits, _burnerLimits, _bridges);
+    _xerc20 = _deployXERC20(_name, _symbol, _decimals, _minterLimits, _burnerLimits, _bridges);
 
     emit XERC20Deployed(_xerc20);
   }
@@ -65,6 +68,10 @@ contract XERC20Factory is IXERC20Factory {
       revert IXERC20Factory_BadTokenAddress();
     }
 
+    if (IERC20Metadata(_xerc20).decimals() != IERC20Metadata(_baseToken).decimals()) {
+      revert IXERC20Factory_TokenDecimalsMismatch();
+    }
+
     if (XERC20(_xerc20).owner() != msg.sender) revert IXERC20Factory_NotOwner();
     if (_lockboxRegistry[_xerc20] != address(0)) revert IXERC20Factory_LockboxAlreadyDeployed();
 
@@ -78,6 +85,7 @@ contract XERC20Factory is IXERC20Factory {
    * @dev _limits and _minters must be the same length
    * @param _name The name of the token
    * @param _symbol The symbol of the token
+   * @param _decimals The number of decimals of the token
    * @param _minterLimits The array of limits that you are adding (optional, can be an empty array)
    * @param _burnerLimits The array of limits that you are adding (optional, can be an empty array)
    * @param _bridges The array of burners that you are adding (optional, can be an empty array)
@@ -86,6 +94,7 @@ contract XERC20Factory is IXERC20Factory {
   function _deployXERC20(
     string memory _name,
     string memory _symbol,
+    uint8 _decimals,
     uint256[] memory _minterLimits,
     uint256[] memory _burnerLimits,
     address[] memory _bridges
@@ -94,9 +103,9 @@ contract XERC20Factory is IXERC20Factory {
     if (_minterLimits.length != _bridgesLength || _burnerLimits.length != _bridgesLength) {
       revert IXERC20Factory_InvalidLength();
     }
-    bytes32 _salt = keccak256(abi.encodePacked(_name, _symbol, msg.sender));
+    bytes32 _salt = keccak256(abi.encodePacked(_name, _symbol, _decimals, msg.sender));
     bytes memory _creation = type(XERC20).creationCode;
-    bytes memory _bytecode = abi.encodePacked(_creation, abi.encode(_name, _symbol, address(this)));
+    bytes memory _bytecode = abi.encodePacked(_creation, abi.encode(_name, _symbol, _decimals, address(this)));
 
     _xerc20 = CREATE3.deploy(_salt, _bytecode, 0);
 

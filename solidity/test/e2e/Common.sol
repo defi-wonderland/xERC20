@@ -33,7 +33,8 @@ contract CommonE2EBase is Test {
 
     vm.startPrank(_owner);
     _xerc20Factory = new XERC20Factory();
-    address _token = _xerc20Factory.deployXERC20(_dai.name(), _dai.symbol(), _minterLimits, _burnerLimits, _bridges);
+    address _token =
+      _xerc20Factory.deployXERC20(_dai.name(), _dai.symbol(), _dai.decimals(), _minterLimits, _burnerLimits, _bridges);
     address payable _lock = _xerc20Factory.deployLockbox(_token, address(_dai), false);
 
     _xerc20 = XERC20(_token);

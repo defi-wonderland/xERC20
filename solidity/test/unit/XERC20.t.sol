@@ -18,7 +18,7 @@ abstract contract Base is Test {
 
   function setUp() public virtual {
     vm.startPrank(_owner);
-    _xerc20 = new XERC20('Test', 'TST', _owner);
+    _xerc20 = new XERC20('Test', 'TST', 18, _owner);
     vm.stopPrank();
   }
 }
@@ -34,7 +34,9 @@ contract UnitNames is Base {
 }
 
 contract UnitMintBurn is Base {
-  function testMintRevertsIfNotApprove(uint256 _amount) public {
+  function testMintRevertsIfNotApprove(
+    uint256 _amount
+  ) public {
     vm.assume(_amount > 0);
     vm.prank(_user);
     vm.expectRevert(IXERC20.IXERC20_NotHighEnoughLimits.selector);
@@ -68,7 +70,9 @@ contract UnitMintBurn is Base {
     vm.stopPrank();
   }
 
-  function testMint(uint256 _amount) public {
+  function testMint(
+    uint256 _amount
+  ) public {
     _amount = bound(_amount, 1, 1e40);
 
     vm.prank(_owner);
@@ -79,7 +83,9 @@ contract UnitMintBurn is Base {
     assertEq(_xerc20.balanceOf(_minter), _amount);
   }
 
-  function testBurn(uint256 _amount) public {
+  function testBurn(
+    uint256 _amount
+  ) public {
     _amount = bound(_amount, 1, 1e40);
     vm.startPrank(_owner);
     _xerc20.setLimits(_user, _amount, _amount);
@@ -94,7 +100,9 @@ contract UnitMintBurn is Base {
     assertEq(_xerc20.balanceOf(_user), 0);
   }
 
-  function testBurnRevertsWithoutApproval(uint256 _amount) public {
+  function testBurnRevertsWithoutApproval(
+    uint256 _amount
+  ) public {
     _amount = bound(_amount, 1, 1e40);
 
     vm.prank(_owner);
@@ -197,7 +205,9 @@ contract UnitCreateParams is Base {
     _xerc20.setLimits(_minter, 0, _limit);
   }
 
-  function testSettingLimitsToUnapprovedUser(uint256 _amount) public {
+  function testSettingLimitsToUnapprovedUser(
+    uint256 _amount
+  ) public {
     _amount = bound(_amount, 1, 1e40);
 
     vm.startPrank(_owner);
@@ -388,27 +398,35 @@ contract UnitCreateParams is Base {
     assertEq(_xerc20.burningCurrentLimitOf(_minter), 0);
   }
 
-  function testSetLockbox(address _lockbox) public {
+  function testSetLockbox(
+    address _lockbox
+  ) public {
     vm.prank(_owner);
     _xerc20.setLockbox(_lockbox);
 
     assertEq(_xerc20.lockbox(), _lockbox);
   }
 
-  function testSetLockBoxRevert(address _lockbox) public {
+  function testSetLockBoxRevert(
+    address _lockbox
+  ) public {
     vm.prank(_user);
     vm.expectRevert(abi.encodeWithSelector(IXERC20.IXERC20_NotFactory.selector));
     _xerc20.setLockbox(_lockbox);
   }
 
-  function testSetLockboxEmitsEvents(address _lockbox) public {
+  function testSetLockboxEmitsEvents(
+    address _lockbox
+  ) public {
     vm.expectEmit(true, true, true, true);
     emit LockboxSet(_lockbox);
     vm.prank(_owner);
     _xerc20.setLockbox(_lockbox);
   }
 
-  function testLockboxDoesntNeedMinterRights(address _lockbox) public {
+  function testLockboxDoesntNeedMinterRights(
+    address _lockbox
+  ) public {
     vm.assume(_lockbox != address(0));
     vm.prank(_owner);
     _xerc20.setLockbox(_lockbox);
@@ -421,7 +439,9 @@ contract UnitCreateParams is Base {
     vm.stopPrank();
   }
 
-  function testRemoveBridge(uint256 _limit) public {
+  function testRemoveBridge(
+    uint256 _limit
+  ) public {
     _limit = bound(_limit, 1, 1e40);
 
     vm.startPrank(_owner);
