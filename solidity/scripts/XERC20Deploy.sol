@@ -69,14 +69,24 @@ contract XERC20Deploy is Script, ScriptingLibrary {
         _mintLimits[_bridgeIndex] = _bridgeDetails[_bridgeIndex].mintLimit;
       }
 
-      // deploy xerc20
-      address _xerc20 =
-        factory.deployXERC20(_data.name, _data.symbol, _data.decimals, _mintLimits, _burnLimits, _bridges);
-
-      // deploy lockbox if needed
+      // deploy xerc20 and lockbox if needed
+      address _xerc20;
       address _lockbox;
       if (_chainDetails.erc20 != address(0) && !_chainDetails.isNativeGasToken) {
-        _lockbox = factory.deployLockbox(_xerc20, _chainDetails.erc20, _chainDetails.isNativeGasToken);
+        (_xerc20, _lockbox) = factory.deployXERC20WithLockbox(
+          _data.name,
+          _data.symbol,
+          address(this),
+          _mintLimits,
+          _burnLimits,
+          _bridges,
+          _chainDetails.erc20,
+          _chainDetails.isNativeGasToken
+        );
+      } else {
+        _xerc20 = factory.deployXERC20(
+          _data.name, _data.symbol, _data.decimals, address(this), _mintLimits, _burnLimits, _bridges
+        );
       }
 
       // transfer xerc20 ownership to the governor

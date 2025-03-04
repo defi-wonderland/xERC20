@@ -20,8 +20,8 @@ contract E2EDeployment is CommonE2EBase {
     uint256[] memory _limits = new uint256[](0);
     address[] memory _minters = new address[](0);
 
-    address _token = _xerc20Factory.deployXERC20('Test', 'TST', 18, _limits, _limits, _minters);
-    address _lock = _xerc20Factory.deployLockbox(_token, address(_dai), false);
+    (address _token, address _lock) =
+      _xerc20Factory.deployXERC20WithLockbox('Test', 'TST', _owner, _limits, _limits, _minters, address(_dai), false);
 
     assertEq(address(XERC20Lockbox(payable(_lock)).XERC20()), address(_token));
     assertEq(address(XERC20Lockbox(payable(_lock)).ERC20()), address(_dai));
