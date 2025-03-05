@@ -81,8 +81,6 @@ contract XERC20Factory is IXERC20Factory {
 
     _xerc20 = _deployXERC20(_name, _symbol, _decimals, _owner, _minterLimits, _burnerLimits, _bridges);
 
-    if (_lockboxRegistry[_xerc20] != address(0)) revert IXERC20Factory_LockboxAlreadyDeployed();
-
     _lockbox = _deployLockbox(_xerc20, _baseToken, _isNative);
   }
 

@@ -33,6 +33,12 @@ contract UnitNames is Base {
   }
 }
 
+contract UnitDecimals is Base {
+  function testDecimals() public {
+    assertEq(18, _xerc20.decimals());
+  }
+}
+
 contract UnitMintBurn is Base {
   function testMintRevertsIfNotApprove(
     uint256 _amount

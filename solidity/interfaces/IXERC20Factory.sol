@@ -27,11 +27,6 @@ interface IXERC20Factory {
   error IXERC20Factory_BadTokenAddress();
 
   /**
-   * @notice Reverts when a lockbox is already deployed
-   */
-  error IXERC20Factory_LockboxAlreadyDeployed();
-
-  /**
    * @notice Reverts when a the length of arrays sent is incorrect
    */
   error IXERC20Factory_InvalidLength();
