@@ -4,8 +4,7 @@ pragma solidity >=0.8.4 <0.9.0;
 import {XERC20} from '../contracts/XERC20.sol';
 import {IXERC20Factory} from '../interfaces/IXERC20Factory.sol';
 import {XERC20Lockbox} from '../contracts/XERC20Lockbox.sol';
-import {CREATE3} from 'isolmate/utils/CREATE3.sol';
-import {IERC20Metadata} from '@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol';
+import {CREATE3} from 'solady/utils/CREATE3.sol';
 import {EnumerableSetLib as EnumerableSet} from 'solady/utils/EnumerableSetLib.sol';
 
 contract XERC20Factory is IXERC20Factory {
@@ -77,7 +76,7 @@ contract XERC20Factory is IXERC20Factory {
   ) external returns (address _xerc20, address payable _lockbox) {
     if ((_baseToken == address(0)) != _isNative) revert IXERC20Factory_BadTokenAddress();
 
-    uint8 _decimals = _isNative ? 18 : IERC20Metadata(_baseToken).decimals();
+    uint8 _decimals = _isNative ? 18 : XERC20(_baseToken).decimals();
 
     _xerc20 = _deployXERC20(_name, _symbol, _decimals, _owner, _minterLimits, _burnerLimits, _bridges);
 
@@ -112,7 +111,7 @@ contract XERC20Factory is IXERC20Factory {
     bytes memory _creation = type(XERC20).creationCode;
     bytes memory _bytecode = abi.encodePacked(_creation, abi.encode(_name, _symbol, _decimals, address(this)));
 
-    _xerc20 = CREATE3.deploy(_salt, _bytecode, 0);
+    _xerc20 = CREATE3.deployDeterministic(_bytecode, _salt);
 
     EnumerableSet.add(_xerc20RegistryArray, _xerc20);
 
@@ -143,7 +142,7 @@ contract XERC20Factory is IXERC20Factory {
     bytes memory _creation = type(XERC20Lockbox).creationCode;
     bytes memory _bytecode = abi.encodePacked(_creation, abi.encode(_xerc20, _baseToken, _isNative));
 
-    _lockbox = payable(CREATE3.deploy(_salt, _bytecode, 0));
+    _lockbox = payable(CREATE3.deployDeterministic(_bytecode, _salt));
 
     XERC20(_xerc20).setLockbox(address(_lockbox));
     EnumerableSet.add(_lockboxRegistryArray, _lockbox);

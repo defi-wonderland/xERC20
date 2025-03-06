@@ -2,13 +2,12 @@
 pragma solidity >=0.8.4 <0.9.0;
 
 import {IXERC20} from '../interfaces/IXERC20.sol';
-import {IERC20} from '@openzeppelin/contracts/token/ERC20/ERC20.sol';
-import {SafeERC20} from '@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol';
-import {SafeCast} from '@openzeppelin/contracts/utils/math/SafeCast.sol';
+import {SafeTransferLib as SafeERC20} from 'solady/utils/SafeTransferLib.sol';
+import {SafeCastLib as SafeCast} from 'solady/utils/SafeCastLib.sol';
 import {IXERC20Lockbox} from '../interfaces/IXERC20Lockbox.sol';
 
 contract XERC20Lockbox is IXERC20Lockbox {
-  using SafeERC20 for IERC20;
+  using SafeERC20 for address;
   using SafeCast for uint256;
 
   /**
@@ -19,7 +18,7 @@ contract XERC20Lockbox is IXERC20Lockbox {
   /**
    * @notice The ERC20 token of this contract
    */
-  IERC20 public immutable ERC20;
+  address public immutable ERC20;
 
   /**
    * @notice Whether the ERC20 token is the native gas token of this chain
@@ -35,7 +34,7 @@ contract XERC20Lockbox is IXERC20Lockbox {
    */
   constructor(address _xerc20, address _erc20, bool _isNative) {
     XERC20 = IXERC20(_xerc20);
-    ERC20 = IERC20(_erc20);
+    ERC20 = _erc20;
     IS_NATIVE = _isNative;
   }
 

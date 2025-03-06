@@ -1,11 +1,10 @@
 // SPDX-License-Identifier: MIT
 pragma solidity >=0.8.4 <0.9.0;
 
-import {IERC20} from 'isolmate/interfaces/tokens/IERC20.sol';
+import {IERC20} from 'forge-std/interfaces/IERC20.sol';
 import {Test} from 'forge-std/Test.sol';
 import {XERC20} from '../../contracts/XERC20.sol';
 import {XERC20Lockbox} from '../../contracts/XERC20Lockbox.sol';
-
 import {XERC20Factory} from '../../contracts/XERC20Factory.sol';
 
 contract CommonE2EBase is Test {

@@ -6,13 +6,13 @@ import {XERC20} from '../../contracts/XERC20.sol';
 import {XERC20Factory} from '../../contracts/XERC20Factory.sol';
 import {XERC20Lockbox} from '../../contracts/XERC20Lockbox.sol';
 import {IXERC20Factory} from '../../interfaces/IXERC20Factory.sol';
-import {CREATE3} from 'isolmate/utils/CREATE3.sol';
+import {CREATE3} from 'solady/utils/CREATE3.sol';
 
 contract XERC20FactoryForTest is XERC20Factory {
   function getDeployed(
     bytes32 _salt
   ) public view returns (address _precomputedAddress) {
-    _precomputedAddress = CREATE3.getDeployed(_salt);
+    _precomputedAddress = CREATE3.predictDeterministicAddress(_salt);
   }
 }
 
@@ -63,7 +63,7 @@ contract UnitDeploy is Base {
     _xerc20Factory.deployXERC20('Test', 'TST', 18, _owner, _limits, _limits, _minters);
 
     vm.prank(_owner);
-    vm.expectRevert('DEPLOYMENT_FAILED');
+    vm.expectRevert(CREATE3.DeploymentFailed.selector);
     _xerc20Factory.deployXERC20('Test', 'TST', 18, _owner, _limits, _limits, _minters);
   }
 
