@@ -6,7 +6,7 @@ import {IXERC20Factory} from '../interfaces/IXERC20Factory.sol';
 import {XERC20Lockbox} from '../contracts/XERC20Lockbox.sol';
 import {CREATE3} from 'isolmate/utils/CREATE3.sol';
 import {IERC20Metadata} from '@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol';
-import {EnumerableSet} from '@openzeppelin/contracts/utils/structs/EnumerableSet.sol';
+import {EnumerableSetLib as EnumerableSet} from 'solady/utils/EnumerableSetLib.sol';
 
 contract XERC20Factory is IXERC20Factory {
   using EnumerableSet for EnumerableSet.AddressSet;
