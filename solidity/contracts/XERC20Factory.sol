@@ -46,7 +46,9 @@ contract XERC20Factory is IXERC20Factory {
     uint256[] memory _burnerLimits,
     address[] memory _bridges
   ) external returns (address _xerc20) {
-    _xerc20 = _deployXERC20(_name, _symbol, _decimals, _owner, _minterLimits, _burnerLimits, _bridges);
+    _xerc20 = _deployXERC20(_name, _symbol, _decimals, _minterLimits, _burnerLimits, _bridges);
+
+    XERC20(_xerc20).transferOwnership(_owner);
   }
 
   /**
@@ -78,9 +80,11 @@ contract XERC20Factory is IXERC20Factory {
 
     uint8 _decimals = _isNative ? 18 : XERC20(_baseToken).decimals();
 
-    _xerc20 = _deployXERC20(_name, _symbol, _decimals, _owner, _minterLimits, _burnerLimits, _bridges);
+    _xerc20 = _deployXERC20(_name, _symbol, _decimals, _minterLimits, _burnerLimits, _bridges);
 
     _lockbox = _deployLockbox(_xerc20, _baseToken, _isNative);
+
+    XERC20(_xerc20).transferOwnership(_owner);
   }
 
   /**
@@ -98,7 +102,6 @@ contract XERC20Factory is IXERC20Factory {
     string memory _name,
     string memory _symbol,
     uint8 _decimals,
-    address _owner,
     uint256[] memory _minterLimits,
     uint256[] memory _burnerLimits,
     address[] memory _bridges
@@ -118,8 +121,6 @@ contract XERC20Factory is IXERC20Factory {
     for (uint256 _i; _i < _bridgesLength; ++_i) {
       XERC20(_xerc20).setLimits(_bridges[_i], _minterLimits[_i], _burnerLimits[_i]);
     }
-
-    XERC20(_xerc20).transferOwnership(_owner);
 
     emit XERC20Deployed(_xerc20);
   }

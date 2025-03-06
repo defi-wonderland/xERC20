@@ -419,7 +419,7 @@ contract UnitCreateParams is Base {
     address _lockbox
   ) public {
     vm.prank(_user);
-    vm.expectRevert(abi.encodeWithSelector(IXERC20.IXERC20_NotFactory.selector));
+    vm.expectRevert(abi.encodeWithSelector(Ownable.Unauthorized.selector));
     _xerc20.setLockbox(_lockbox);
   }
 

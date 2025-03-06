@@ -17,11 +17,6 @@ contract XERC20 is ERC20, Ownable, IXERC20 {
   uint256 private constant _MAX_LIMIT = type(uint256).max >> 1;
 
   /**
-   * @notice The address of the factory which deployed this contract
-   */
-  address public immutable FACTORY;
-
-  /**
    * @notice The name of the token
    */
   string private _name;
@@ -49,17 +44,16 @@ contract XERC20 is ERC20, Ownable, IXERC20 {
   /**
    * @notice Constructs the initial config of the XERC20
    *
-   * @param name The name of the token
-   * @param symbol The symbol of the token
-   * @param decimals The number of decimals of the token
-   * @param factory The factory which deployed this contract
+   * @param __name The name of the token
+   * @param __symbol The symbol of the token
+   * @param __decimals The number of decimals of the token
+   * @param __owner The owner of the token
    */
-  constructor(string memory name, string memory symbol, uint8 decimals, address factory) {
-    _name = name;
-    _symbol = symbol;
-    _decimals = decimals;
-    FACTORY = factory;
-    _initializeOwner(factory);
+  constructor(string memory __name, string memory __symbol, uint8 __decimals, address __owner) {
+    _name = __name;
+    _symbol = __symbol;
+    _decimals = __decimals;
+    _initializeOwner(__owner);
   }
 
   /**
@@ -117,8 +111,8 @@ contract XERC20 is ERC20, Ownable, IXERC20 {
    */
   function setLockbox(
     address _lockbox
-  ) public {
-    if (msg.sender != FACTORY) revert IXERC20_NotFactory();
+  ) public onlyOwner {
+    if (lockbox != address(0)) revert IXERC20_LockboxAlreadySet();
     lockbox = _lockbox;
 
     emit LockboxSet(_lockbox);

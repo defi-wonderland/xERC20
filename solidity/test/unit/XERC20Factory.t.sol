@@ -39,7 +39,6 @@ contract UnitDeploy is Base {
     XERC20 _xerc20 = XERC20(_xerc20Factory.deployXERC20('Test', 'TST', 18, _owner, _limits, _limits, _minters));
     assertEq(_xerc20.name(), 'Test');
     assertEq(_xerc20.symbol(), 'TST');
-    assertEq(_xerc20.FACTORY(), address(_xerc20Factory));
   }
 
   function testDeploymentWithLimitsAndMinters() public {
@@ -52,7 +51,6 @@ contract UnitDeploy is Base {
     XERC20 _xerc20 = XERC20(_xerc20Factory.deployXERC20('Test', 'TST', 18, _owner, _limits, _limits, _minters));
     assertEq(_xerc20.name(), 'Test');
     assertEq(_xerc20.symbol(), 'TST');
-    assertEq(_xerc20.FACTORY(), address(_xerc20Factory));
   }
 
   function testRevertsWhenAddressIsTaken() public {
