@@ -3,6 +3,7 @@ pragma solidity >=0.8.4 <0.9.0;
 
 import {Test} from 'forge-std/Test.sol';
 import {ERC20} from 'solady/tokens/ERC20.sol';
+import {Ownable} from 'solady/auth/Ownable.sol';
 import {XERC20} from '../../contracts/XERC20.sol';
 import {IXERC20} from '../../interfaces/IXERC20.sol';
 
@@ -154,7 +155,7 @@ contract UnitCreateParams is Base {
   }
 
   function testRevertsWithWrongCaller() public {
-    vm.expectRevert('Ownable: caller is not the owner');
+    vm.expectRevert(Ownable.Unauthorized.selector);
     _xerc20.setLimits(_minter, 1e18, 0);
   }
 

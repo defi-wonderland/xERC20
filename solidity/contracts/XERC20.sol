@@ -3,7 +3,7 @@ pragma solidity >=0.8.4 <0.9.0;
 
 import {IXERC20} from '../interfaces/IXERC20.sol';
 import {ERC20} from 'solady/tokens/ERC20.sol';
-import {Ownable} from '@openzeppelin/contracts/access/Ownable.sol';
+import {Ownable} from 'solady/auth/Ownable.sol';
 
 contract XERC20 is ERC20, Ownable, IXERC20 {
   /**
@@ -59,7 +59,7 @@ contract XERC20 is ERC20, Ownable, IXERC20 {
     _symbol = symbol;
     _decimals = decimals;
     FACTORY = factory;
-    _transferOwnership(factory);
+    _initializeOwner(factory);
   }
 
   /**
