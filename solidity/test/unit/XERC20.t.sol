@@ -2,6 +2,7 @@
 pragma solidity >=0.8.4 <0.9.0;
 
 import {Test} from 'forge-std/Test.sol';
+import {ERC20} from 'solady/tokens/ERC20.sol';
 import {XERC20} from '../../contracts/XERC20.sol';
 import {IXERC20} from '../../interfaces/IXERC20.sol';
 
@@ -115,7 +116,7 @@ contract UnitMintBurn is Base {
     _xerc20.setLimits(_owner, _amount, _amount);
 
     vm.startPrank(_owner);
-    vm.expectRevert('ERC20: insufficient allowance');
+    vm.expectRevert(ERC20.InsufficientAllowance.selector);
     _xerc20.burn(_user, _amount);
     vm.stopPrank();
 

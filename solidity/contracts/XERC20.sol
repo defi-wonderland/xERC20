@@ -2,11 +2,10 @@
 pragma solidity >=0.8.4 <0.9.0;
 
 import {IXERC20} from '../interfaces/IXERC20.sol';
-import {ERC20} from '@openzeppelin/contracts/token/ERC20/ERC20.sol';
-import {ERC20Permit} from '@openzeppelin/contracts/token/ERC20/extensions/ERC20Permit.sol';
+import {ERC20} from 'solady/tokens/ERC20.sol';
 import {Ownable} from '@openzeppelin/contracts/access/Ownable.sol';
 
-contract XERC20 is ERC20, Ownable, IXERC20, ERC20Permit {
+contract XERC20 is ERC20, Ownable, IXERC20 {
   /**
    * @notice The duration it takes for the limits to fully replenish
    */
@@ -18,14 +17,24 @@ contract XERC20 is ERC20, Ownable, IXERC20, ERC20Permit {
   uint256 private constant _MAX_LIMIT = type(uint256).max >> 1;
 
   /**
-   * @notice The number of decimals of the token
-   */
-  uint8 public immutable DECIMALS;
-
-  /**
    * @notice The address of the factory which deployed this contract
    */
   address public immutable FACTORY;
+
+  /**
+   * @notice The name of the token
+   */
+  string private _name;
+
+  /**
+   * @notice The symbol of the token
+   */
+  string private _symbol;
+
+  /**
+   * @notice The number of decimals of the token
+   */
+  uint8 private _decimals;
 
   /**
    * @notice The address of the lockbox contract
@@ -40,28 +49,41 @@ contract XERC20 is ERC20, Ownable, IXERC20, ERC20Permit {
   /**
    * @notice Constructs the initial config of the XERC20
    *
-   * @param _name The name of the token
-   * @param _symbol The symbol of the token
-   * @param _decimals The number of decimals of the token
-   * @param _factory The factory which deployed this contract
+   * @param name The name of the token
+   * @param symbol The symbol of the token
+   * @param decimals The number of decimals of the token
+   * @param factory The factory which deployed this contract
    */
-  constructor(
-    string memory _name,
-    string memory _symbol,
-    uint8 _decimals,
-    address _factory
-  ) ERC20(_name, _symbol) ERC20Permit(_name) {
-    _transferOwnership(_factory);
-    FACTORY = _factory;
-    DECIMALS = _decimals;
+  constructor(string memory name, string memory symbol, uint8 decimals, address factory) {
+    _name = name;
+    _symbol = symbol;
+    _decimals = decimals;
+    FACTORY = factory;
+    _transferOwnership(factory);
+  }
+
+  /**
+   * @notice Returns the name of the token
+   * @return name_ The name of the token
+   */
+  function name() public view override returns (string memory name_) {
+    return _name;
+  }
+
+  /**
+   * @notice Returns the symbol of the token
+   * @return symbol_ The symbol of the token
+   */
+  function symbol() public view override returns (string memory symbol_) {
+    return _symbol;
   }
 
   /**
    * @notice Returns the number of decimals of the token
-   * @return _decimals The number of decimals
+   * @return decimals_ The number of decimals of the token
    */
-  function decimals() public view override returns (uint8 _decimals) {
-    _decimals = DECIMALS;
+  function decimals() public view override returns (uint8 decimals_) {
+    return _decimals;
   }
 
   /**
