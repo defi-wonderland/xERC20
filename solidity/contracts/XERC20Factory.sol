@@ -144,7 +144,7 @@ contract XERC20Factory is IXERC20Factory {
 
     _lockbox = payable(CREATE3.deployDeterministic(_bytecode, _salt));
 
-    XERC20(_xerc20).setLockbox(address(_lockbox));
+    XERC20(_xerc20).setLockbox(_lockbox);
     EnumerableSet.add(_lockboxRegistryArray, _lockbox);
     _lockboxRegistry[_xerc20] = _lockbox;
 
