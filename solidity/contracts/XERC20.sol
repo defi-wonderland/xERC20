@@ -49,17 +49,17 @@ contract XERC20 is ERC20, Ownable, IXERC20 {
   /**
    * @notice Constructs the initial config of the XERC20
    *
-   * @param name The name of the token
-   * @param symbol The symbol of the token
-   * @param decimals The number of decimals of the token
-   * @param factory The factory which deployed this contract
+   * @param __name The name of the token
+   * @param __symbol The symbol of the token
+   * @param __decimals The number of decimals of the token
+   * @param __factory The factory which deployed this contract
    */
-  constructor(string memory name, string memory symbol, uint8 decimals, address factory) {
-    _name = name;
-    _symbol = symbol;
-    _decimals = decimals;
-    FACTORY = factory;
-    _initializeOwner(factory);
+  constructor(string memory __name, string memory __symbol, uint8 __decimals, address __factory) {
+    _name = __name;
+    _symbol = __symbol;
+    _decimals = __decimals;
+    FACTORY = __factory;
+    _initializeOwner(__factory);
   }
 
   /**
