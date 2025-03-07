@@ -3,10 +3,11 @@ pragma solidity >=0.8.4 <0.9.0;
 
 import {Test} from 'forge-std/Test.sol';
 import {ERC20} from 'solady/tokens/ERC20.sol';
+import {IERC20} from 'forge-std/interfaces/IERC20.sol';
 import {XERC20} from '../../contracts/XERC20.sol';
+import {IXERC20} from '../../interfaces/IXERC20.sol';
 import {XERC20Lockbox} from '../../contracts/XERC20Lockbox.sol';
 import {IXERC20Lockbox} from '../../interfaces/IXERC20Lockbox.sol';
-import {IXERC20} from '../../interfaces/IXERC20.sol';
 
 abstract contract Base is Test {
   address internal _owner = vm.addr(1);
@@ -15,7 +16,7 @@ abstract contract Base is Test {
   address internal _minter = vm.addr(3);
 
   XERC20 internal _xerc20 = XERC20(vm.addr(4));
-  ERC20 internal _erc20 = ERC20(vm.addr(5));
+  IERC20 internal _erc20 = IERC20(vm.addr(5));
 
   event Deposit(address _sender, uint256 _amount);
   event Withdraw(address _sender, uint256 _amount);
@@ -46,7 +47,7 @@ contract UnitDeposit is Base {
     vm.assume(_amount > 0);
     vm.mockCall(
       address(_erc20),
-      abi.encodeWithSelector(ERC20.transferFrom.selector, _owner, address(_lockbox), _amount),
+      abi.encodeWithSelector(IERC20.transferFrom.selector, _owner, address(_lockbox), _amount),
       abi.encode(true)
     );
     vm.mockCall(address(_xerc20), abi.encodeWithSelector(IXERC20.mint.selector, _owner, _amount), abi.encode(true));
@@ -64,7 +65,7 @@ contract UnitDeposit is Base {
     vm.assume(_amount > 0);
     vm.mockCall(
       address(_erc20),
-      abi.encodeWithSelector(ERC20.transferFrom.selector, _owner, address(_lockbox), _amount),
+      abi.encodeWithSelector(IERC20.transferFrom.selector, _owner, address(_lockbox), _amount),
       abi.encode(true)
     );
     vm.mockCall(address(_xerc20), abi.encodeWithSelector(IXERC20.mint.selector, _user, _amount), abi.encode(true));
@@ -82,7 +83,7 @@ contract UnitDeposit is Base {
     vm.assume(_amount > 0);
     vm.mockCall(
       address(_erc20),
-      abi.encodeWithSelector(ERC20.transferFrom.selector, _owner, address(_lockbox), _amount),
+      abi.encodeWithSelector(IERC20.transferFrom.selector, _owner, address(_lockbox), _amount),
       abi.encode(true)
     );
     vm.mockCall(address(_xerc20), abi.encodeWithSelector(IXERC20.mint.selector, _owner, _amount), abi.encode(true));
@@ -177,10 +178,10 @@ contract UnitWithdraw is Base {
   ) public {
     vm.assume(_amount > 0);
     vm.mockCall(address(_xerc20), abi.encodeWithSelector(IXERC20.burn.selector, _owner, _amount), abi.encode(true));
-    vm.mockCall(address(_erc20), abi.encodeWithSelector(ERC20.transfer.selector, _owner, _amount), abi.encode(true));
+    vm.mockCall(address(_erc20), abi.encodeWithSelector(IERC20.transfer.selector, _owner, _amount), abi.encode(true));
 
     vm.expectCall(address(_xerc20), abi.encodeCall(XERC20.burn, (_owner, _amount)));
-    vm.expectCall(address(_erc20), abi.encodeCall(ERC20.transfer, (_owner, _amount)));
+    vm.expectCall(address(_erc20), abi.encodeCall(IERC20.transfer, (_owner, _amount)));
     vm.prank(_owner);
     _lockbox.withdraw(_amount);
   }
@@ -190,7 +191,7 @@ contract UnitWithdraw is Base {
   ) public {
     vm.assume(_amount > 0);
     vm.mockCall(address(_xerc20), abi.encodeWithSelector(IXERC20.burn.selector, _owner, _amount), abi.encode(true));
-    vm.mockCall(address(_erc20), abi.encodeWithSelector(ERC20.transfer.selector, _owner, _amount), abi.encode(true));
+    vm.mockCall(address(_erc20), abi.encodeWithSelector(IERC20.transfer.selector, _owner, _amount), abi.encode(true));
 
     vm.expectEmit(true, true, true, true);
     emit Withdraw(_owner, _amount);
