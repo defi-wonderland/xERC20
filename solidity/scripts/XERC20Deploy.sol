@@ -38,8 +38,11 @@ struct DeploymentConfig {
 contract XERC20Deploy is Script, ScriptingLibrary {
   using stdJson for string;
 
+  // This hash is equivalent to keccak256(bytes(''))
+  // It is the code hash of the empty contract
+  bytes32 internal constant _NO_CODE_HASH = 0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470;
   uint256 public deployer = vm.envUint('DEPLOYER_PRIVATE_KEY');
-  XERC20Factory public factory = XERC20Factory(0xb913bE186110B1119d5B9582F316f142c908fc25);
+  XERC20Factory public factory = XERC20Factory(vm.envAddress('XERC20_FACTORY_ADDRESS'));
 
   function run() public {
     string memory _json = vm.readFile('./solidity/scripts/xerc20-deployment-config.json');
@@ -53,9 +56,7 @@ contract XERC20Deploy is Script, ScriptingLibrary {
       vm.createSelectFork(vm.rpcUrl(vm.envString(_chainDetails.rpcEnvName)));
       vm.startBroadcast(deployer);
       // If this chain does not have a factory we will revert
-      require(
-        keccak256(address(factory).code) != keccak256(address(0).code), 'There is no factory deployed on this chain'
-      );
+      require(keccak256(address(factory).code) != _NO_CODE_HASH, 'There is no factory deployed on this chain');
 
       BridgeDetails[] memory _bridgeDetails = _chainDetails.bridgeDetails;
 

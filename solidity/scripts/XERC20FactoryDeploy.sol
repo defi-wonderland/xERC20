@@ -10,7 +10,7 @@ import {ScriptingLibrary} from './ScriptingLibrary/ScriptingLibrary.sol';
 contract XERC20FactoryDeploy is Script, ScriptingLibrary {
   ////////////////////////// MODIFY ////////////////////////////////
   // When new factories need to be deployed, make sure to update the salt version to avoid address collision
-  string public constant SALT = 'xERC20-v2.0';
+  string public constant SALT = 'xERC20-v2.1';
   //////////////////////////////////////////////////////////////////
 
   uint256 public deployerPk = vm.envUint('DEPLOYER_PRIVATE_KEY');
