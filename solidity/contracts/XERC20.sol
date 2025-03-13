@@ -17,6 +17,11 @@ contract XERC20 is ERC20, Ownable, IXERC20 {
   uint256 private constant _MAX_LIMIT = type(uint256).max >> 1;
 
   /**
+   * @notice The number of decimals of the token
+   */
+  uint8 private immutable _DECIMALS;
+
+  /**
    * @notice The address of the factory which deployed this contract
    */
   address public immutable FACTORY;
@@ -30,11 +35,6 @@ contract XERC20 is ERC20, Ownable, IXERC20 {
    * @notice The symbol of the token
    */
   string private _symbol;
-
-  /**
-   * @notice The number of decimals of the token
-   */
-  uint8 private _decimals;
 
   /**
    * @notice The address of the lockbox contract
@@ -57,7 +57,7 @@ contract XERC20 is ERC20, Ownable, IXERC20 {
   constructor(string memory __name, string memory __symbol, uint8 __decimals, address __factory) {
     _name = __name;
     _symbol = __symbol;
-    _decimals = __decimals;
+    _DECIMALS = __decimals;
     FACTORY = __factory;
     _initializeOwner(__factory);
   }
@@ -83,7 +83,7 @@ contract XERC20 is ERC20, Ownable, IXERC20 {
    * @return decimals_ The number of decimals of the token
    */
   function decimals() public view override returns (uint8 decimals_) {
-    return _decimals;
+    return _DECIMALS;
   }
 
   /**
