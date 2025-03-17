@@ -1,11 +1,11 @@
 {
   "name": "Test",
   "symbol": "TST",
-  "decimals": 18,
+  "decimals": "9",
   "chainDetails": [
     {
       "rpcEnvName": "ETHEREUM_SEPOLIA_RPC",
-      "erc20": "0x0000000000000000000000000000000000000001",
+      "erc20": "0x0000000000000000000000000000000000000000",
       "governor": "0x0000000000000000000000000000000000000002",
       "isNativeGasToken": false,
       "bridgeDetails": [

@@ -18,6 +18,8 @@ contract XERC20FactoryDeploy is Script, ScriptingLibrary {
   function run() public {
     bytes32 _salt = keccak256(abi.encodePacked(SALT, msg.sender));
 
+    // Replace with the RPC you want to use and uncomment
+    //vm.createSelectFork(vm.rpcUrl(vm.envString('ETHEREUM_SEPOLIA_RPC')));
     vm.startBroadcast(deployerPk);
     XERC20Factory _factory = new XERC20Factory{salt: _salt}();
     vm.stopBroadcast();

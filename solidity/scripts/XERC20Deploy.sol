@@ -30,9 +30,9 @@ struct ChainDetails {
 
 struct DeploymentConfig {
   ChainDetails[] chainDetails;
+  string decimals; // The number of decimals for the token
   string name; // The name to use for the xERC20
   string symbol; // The symbol to use for the xERC20
-  uint8 decimals; // The number of decimals for the token
 }
 
 contract XERC20Deploy is Script, ScriptingLibrary {
@@ -70,6 +70,12 @@ contract XERC20Deploy is Script, ScriptingLibrary {
         _mintLimits[_bridgeIndex] = _bridgeDetails[_bridgeIndex].mintLimit;
       }
 
+      if (vm.parseUint(_data.decimals) > type(uint8).max) {
+        revert('Decimals cannot be greater than 255');
+      }
+
+      uint8 _decimals = uint8(vm.parseUint(_data.decimals));
+
       // deploy xerc20 and lockbox if needed
       address _xerc20;
       address _lockbox;
@@ -86,12 +92,9 @@ contract XERC20Deploy is Script, ScriptingLibrary {
         );
       } else {
         _xerc20 = factory.deployXERC20(
-          _data.name, _data.symbol, _data.decimals, address(this), _mintLimits, _burnLimits, _bridges
+          _data.name, _data.symbol, _decimals, _chainDetails.governor, _mintLimits, _burnLimits, _bridges
         );
       }
-
-      // transfer xerc20 ownership to the governor
-      XERC20(_xerc20).transferOwnership(_chainDetails.governor);
 
       vm.stopBroadcast();
 
