@@ -4,11 +4,11 @@ xERC20 is a standard for bridged tokens. A common interface to be used across di
 
 ### Contracts
 
-_XERC20_: A standard for bridges to manage the same liquidity when bridging. It allows its owner to approve bridges and add limits to them for minting and burning the XERC20 token. The XERC20 standard is compatible with two different types of bridge behaviours, bridges calling mint/burn from the user (or other function names through adapters) and bridges that transfer from the user to the bridge contract. On the latter, XERC20 tokens that are received by the bridge get burned and when a bridge transfers tokens out, they get minted again.
+`XERC20`: A standard for bridges to manage the same liquidity when bridging. It allows its owner to approve bridges and add limits to them for minting and burning the XERC20 token. The XERC20 standard is compatible with two different types of bridge behaviours, bridges calling mint/burn from the user (or other function names through adapters) and bridges that transfer from the user to the bridge contract. On the latter, XERC20 tokens that are received by the bridge get burned and when a bridge transfers tokens out, they get minted again.
 
-_XERC20Lockbox_: The lockbox works as a wrapper of an ERC20. It mints XERC20 tokens at a 1:1 ratio when receiving ERC20 tokens and it unlocks the ERC20 the other way around. The lockbox can be deployed on any chain that has a canonical token representation, chains that do not currently have a canonical representation can avoid deploying a Lockbox and use the XERC20 as the default implementation for the chain.
+`XERC20Lockbox`: The lockbox works as a wrapper of an ERC20. It mints XERC20 tokens at a 1:1 ratio when receiving ERC20 tokens and it unlocks the ERC20 the other way around. The lockbox can be deployed on any chain that has a canonical token representation, chains that do not currently have a canonical representation can avoid deploying a Lockbox and use the XERC20 as the default implementation for the chain.
 
-_XERC20Factory_: The factory is used as a helper to deploy an xToken. It allows the owner to deploy the XERC20 and the Lockbox in one transaction while keeping the same token address on every chain used.
+`XERC20Factory`: The factory is used as a helper to deploy an xToken. It allows the owner to deploy the XERC20 and the Lockbox in one transaction while keeping the same token address on every chain used.
 
 ### Architectural Spec
 
@@ -131,10 +131,11 @@ Decide on which blockchains you want to deploy your token and the initial config
 {
     "name": "Test", // The name of your xERC20.
     "symbol": "TST", // The symbol of your xERC20.
+    "decimals": 18, // The number of decimals of the xERC20.
     "chainDetails": [ // The chains that the xERC20 token will be deployed to.
         {
-            "rpcEnvName": "ETHEREUM_GOERLI_RPC", // The name of the RPC to use. It should be added in the .env file.
-            "erc20": "0x0000000000000000000000000000000000000001", // The address of the canonical token representation for that chain. A lockbox will be deployed pairing the deployed xERC20 with the specified ERC20 1:1. address(0) in case there is non. 
+            "rpcEnvName": "ETHEREUM_SEPOLIA_RPC", // The name of the RPC to use. It should be added in the .env file.
+            "erc20": "0x0000000000000000000000000000000000000001", // The address of the canonical token representation for that chain. A lockbox will be deployed pairing the deployed xERC20 with the specified ERC20 1:1. address(0) in case there is non.
             "governor": "0x0000000000000000000000000000000000000002", // The owner of the xERC20.
             "isNativeGasToken": false, // True if the ERC20 token is the native gas token of the chain. Ex: ETH for ethereum or MATIC for polygon.
             "bridgeDetails": [ // The bridges to be configured for the xERC20 token on this particular chain.
