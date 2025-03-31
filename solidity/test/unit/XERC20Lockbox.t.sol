@@ -1,13 +1,13 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: MIT
 pragma solidity >=0.8.4 <0.9.0;
 
 import {Test} from 'forge-std/Test.sol';
-import {IERC20} from '@openzeppelin/contracts/token/ERC20/IERC20.sol';
-import {ERC20} from '@openzeppelin/contracts/token/ERC20/ERC20.sol';
+import {ERC20} from 'solady/tokens/ERC20.sol';
+import {IERC20} from 'forge-std/interfaces/IERC20.sol';
 import {XERC20} from '../../contracts/XERC20.sol';
+import {IXERC20} from '../../interfaces/IXERC20.sol';
 import {XERC20Lockbox} from '../../contracts/XERC20Lockbox.sol';
 import {IXERC20Lockbox} from '../../interfaces/IXERC20Lockbox.sol';
-import {IXERC20} from '../../interfaces/IXERC20.sol';
 
 abstract contract Base is Test {
   address internal _owner = vm.addr(1);
@@ -32,8 +32,18 @@ abstract contract Base is Test {
   }
 }
 
+contract MockWithdrawToRevert {
+  error REVERT_FOR_TEST();
+
+  receive() external payable {
+    revert REVERT_FOR_TEST();
+  }
+}
+
 contract UnitDeposit is Base {
-  function testDeposit(uint256 _amount) public {
+  function testDeposit(
+    uint256 _amount
+  ) public {
     vm.assume(_amount > 0);
     vm.mockCall(
       address(_erc20),
@@ -49,7 +59,9 @@ contract UnitDeposit is Base {
     _lockbox.deposit(_amount);
   }
 
-  function testDepositTo(uint256 _amount) public {
+  function testDepositTo(
+    uint256 _amount
+  ) public {
     vm.assume(_amount > 0);
     vm.mockCall(
       address(_erc20),
@@ -65,7 +77,9 @@ contract UnitDeposit is Base {
     _lockbox.depositTo(_user, _amount);
   }
 
-  function testDepositEmitsEvent(uint256 _amount) public {
+  function testDepositEmitsEvent(
+    uint256 _amount
+  ) public {
     vm.assume(_amount > 0);
     vm.mockCall(
       address(_erc20),
@@ -80,7 +94,9 @@ contract UnitDeposit is Base {
     _lockbox.deposit(_amount);
   }
 
-  function testNonNativeIntoNativeDepositReverts(uint256 _amount) public {
+  function testNonNativeIntoNativeDepositReverts(
+    uint256 _amount
+  ) public {
     vm.assume(_amount > 0);
     vm.deal(_owner, _amount);
     vm.prank(_owner);
@@ -88,7 +104,9 @@ contract UnitDeposit is Base {
     _lockbox.depositNative{value: _amount}();
   }
 
-  function testNonNativeIntoNativeDeposittoReverts(uint256 _amount) public {
+  function testNonNativeIntoNativeDeposittoReverts(
+    uint256 _amount
+  ) public {
     vm.assume(_amount > 0);
     vm.deal(_owner, _amount);
     vm.prank(_owner);
@@ -96,7 +114,9 @@ contract UnitDeposit is Base {
     _lockbox.depositNativeTo{value: _amount}(_user);
   }
 
-  function testNativeRevertsIfDepositIntoNonNative(uint256 _amount) public {
+  function testNativeRevertsIfDepositIntoNonNative(
+    uint256 _amount
+  ) public {
     vm.assume(_amount > 0);
     vm.deal(_owner, _amount);
     vm.prank(_owner);
@@ -104,7 +124,9 @@ contract UnitDeposit is Base {
     _nativeLockbox.deposit(_amount);
   }
 
-  function testNativeRevertsIfDepositToIntoNonNative(uint256 _amount) public {
+  function testNativeRevertsIfDepositToIntoNonNative(
+    uint256 _amount
+  ) public {
     vm.assume(_amount > 0);
     vm.deal(_owner, _amount);
     vm.prank(_owner);
@@ -112,7 +134,9 @@ contract UnitDeposit is Base {
     _nativeLockbox.depositTo(_user, _amount);
   }
 
-  function testNativeDeposit(uint256 _amount) public {
+  function testNativeDeposit(
+    uint256 _amount
+  ) public {
     vm.assume(_amount > 0);
     vm.deal(_owner, _amount);
     vm.prank(_owner);
@@ -122,7 +146,9 @@ contract UnitDeposit is Base {
     _nativeLockbox.depositNative{value: _amount}();
   }
 
-  function testNativeDepositTo(uint256 _amount) public {
+  function testNativeDepositTo(
+    uint256 _amount
+  ) public {
     vm.assume(_amount > 0);
     vm.deal(_owner, _amount);
     vm.prank(_owner);
@@ -132,7 +158,9 @@ contract UnitDeposit is Base {
     _nativeLockbox.depositNativeTo{value: _amount}(_user);
   }
 
-  function testSendingNativeDepositByTransfer(uint256 _amount) public {
+  function testSendingNativeDepositByTransfer(
+    uint256 _amount
+  ) public {
     vm.assume(_amount > 0);
     vm.deal(_owner, _amount);
     vm.mockCall(address(_xerc20), abi.encodeWithSelector(IXERC20.mint.selector, _owner, _amount), abi.encode(true));
@@ -145,18 +173,22 @@ contract UnitDeposit is Base {
 }
 
 contract UnitWithdraw is Base {
-  function testWithdraw(uint256 _amount) public {
+  function testWithdraw(
+    uint256 _amount
+  ) public {
     vm.assume(_amount > 0);
     vm.mockCall(address(_xerc20), abi.encodeWithSelector(IXERC20.burn.selector, _owner, _amount), abi.encode(true));
     vm.mockCall(address(_erc20), abi.encodeWithSelector(IERC20.transfer.selector, _owner, _amount), abi.encode(true));
 
     vm.expectCall(address(_xerc20), abi.encodeCall(XERC20.burn, (_owner, _amount)));
-    vm.expectCall(address(_erc20), abi.encodeCall(ERC20.transfer, (_owner, _amount)));
+    vm.expectCall(address(_erc20), abi.encodeCall(IERC20.transfer, (_owner, _amount)));
     vm.prank(_owner);
     _lockbox.withdraw(_amount);
   }
 
-  function testWithdrawEmitsEvent(uint256 _amount) public {
+  function testWithdrawEmitsEvent(
+    uint256 _amount
+  ) public {
     vm.assume(_amount > 0);
     vm.mockCall(address(_xerc20), abi.encodeWithSelector(IXERC20.burn.selector, _owner, _amount), abi.encode(true));
     vm.mockCall(address(_erc20), abi.encodeWithSelector(IERC20.transfer.selector, _owner, _amount), abi.encode(true));
@@ -167,7 +199,9 @@ contract UnitWithdraw is Base {
     _lockbox.withdraw(_amount);
   }
 
-  function testNativeWithdraw(uint256 _amount) public {
+  function testNativeWithdraw(
+    uint256 _amount
+  ) public {
     vm.assume(_amount > 0);
     vm.deal(_owner, _amount);
 
@@ -180,7 +214,9 @@ contract UnitWithdraw is Base {
     assertEq(_owner.balance, _amount);
   }
 
-  function testNativeWithdrawTo(uint256 _amount) public {
+  function testNativeWithdrawTo(
+    uint256 _amount
+  ) public {
     vm.assume(_amount > 0);
     vm.deal(_owner, _amount);
 
@@ -191,5 +227,22 @@ contract UnitWithdraw is Base {
     vm.stopPrank();
 
     assertEq(_user.balance, _amount);
+  }
+
+  function testNativeWithdrawToRevert(
+    uint256 _amount
+  ) public {
+    vm.assume(_amount > 0);
+    vm.deal(_owner, _amount);
+
+    MockWithdrawToRevert recipient = new MockWithdrawToRevert();
+
+    vm.startPrank(_owner);
+    vm.mockCall(address(_xerc20), abi.encodeWithSelector(IXERC20.mint.selector, _owner, _amount), abi.encode(true));
+    _nativeLockbox.depositNative{value: _amount}();
+
+    vm.expectRevert();
+    _nativeLockbox.withdrawTo(address(recipient), _amount);
+    vm.stopPrank();
   }
 }

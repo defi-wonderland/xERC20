@@ -1,21 +1,40 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: MIT
 pragma solidity >=0.8.4 <0.9.0;
 
 import {IXERC20} from '../interfaces/IXERC20.sol';
-import {ERC20} from '@openzeppelin/contracts/token/ERC20/ERC20.sol';
-import {ERC20Permit} from '@openzeppelin/contracts/token/ERC20/extensions/ERC20Permit.sol';
-import {Ownable} from '@openzeppelin/contracts/access/Ownable.sol';
+import {ERC20} from 'solady/tokens/ERC20.sol';
+import {Ownable} from 'solady/auth/Ownable.sol';
 
-contract XERC20 is ERC20, Ownable, IXERC20, ERC20Permit {
+contract XERC20 is ERC20, Ownable, IXERC20 {
   /**
    * @notice The duration it takes for the limits to fully replenish
    */
   uint256 private constant _DURATION = 1 days;
 
   /**
+   * @notice The maximum limit of a bridge
+   */
+  uint256 private constant _MAX_LIMIT = type(uint256).max >> 1;
+
+  /**
+   * @notice The number of decimals of the token
+   */
+  uint8 private immutable _DECIMALS;
+
+  /**
    * @notice The address of the factory which deployed this contract
    */
   address public immutable FACTORY;
+
+  /**
+   * @notice The name of the token
+   */
+  string private _name;
+
+  /**
+   * @notice The symbol of the token
+   */
+  string private _symbol;
 
   /**
    * @notice The address of the lockbox contract
@@ -30,14 +49,41 @@ contract XERC20 is ERC20, Ownable, IXERC20, ERC20Permit {
   /**
    * @notice Constructs the initial config of the XERC20
    *
-   * @param _name The name of the token
-   * @param _symbol The symbol of the token
-   * @param _factory The factory which deployed this contract
+   * @param __name The name of the token
+   * @param __symbol The symbol of the token
+   * @param __decimals The number of decimals of the token
+   * @param __factory The factory which deployed this contract
    */
+  constructor(string memory __name, string memory __symbol, uint8 __decimals, address __factory) {
+    _name = __name;
+    _symbol = __symbol;
+    _DECIMALS = __decimals;
+    FACTORY = __factory;
+    _initializeOwner(__factory);
+  }
 
-  constructor(string memory _name, string memory _symbol, address _factory) ERC20(_name, _symbol) ERC20Permit(_name) {
-    _transferOwnership(_factory);
-    FACTORY = _factory;
+  /**
+   * @notice Returns the name of the token
+   * @return name_ The name of the token
+   */
+  function name() public view override returns (string memory name_) {
+    return _name;
+  }
+
+  /**
+   * @notice Returns the symbol of the token
+   * @return symbol_ The symbol of the token
+   */
+  function symbol() public view override returns (string memory symbol_) {
+    return _symbol;
+  }
+
+  /**
+   * @notice Returns the number of decimals of the token
+   * @return decimals_ The number of decimals of the token
+   */
+  function decimals() public view override returns (uint8 decimals_) {
+    return _DECIMALS;
   }
 
   /**
@@ -46,7 +92,6 @@ contract XERC20 is ERC20, Ownable, IXERC20, ERC20Permit {
    * @param _user The address of the user who needs tokens minted
    * @param _amount The amount of tokens being minted
    */
-
   function mint(address _user, uint256 _amount) public {
     _mintWithCaller(msg.sender, _user, _amount);
   }
@@ -57,7 +102,6 @@ contract XERC20 is ERC20, Ownable, IXERC20, ERC20Permit {
    * @param _user The address of the user who needs tokens burned
    * @param _amount The amount of tokens being burned
    */
-
   function burn(address _user, uint256 _amount) public {
     if (msg.sender != _user) {
       _spendAllowance(_user, msg.sender, _amount);
@@ -71,8 +115,9 @@ contract XERC20 is ERC20, Ownable, IXERC20, ERC20Permit {
    *
    * @param _lockbox The address of the lockbox
    */
-
-  function setLockbox(address _lockbox) public {
+  function setLockbox(
+    address _lockbox
+  ) public {
     if (msg.sender != FACTORY) revert IXERC20_NotFactory();
     lockbox = _lockbox;
 
@@ -87,6 +132,10 @@ contract XERC20 is ERC20, Ownable, IXERC20, ERC20Permit {
    * @param _bridge The address of the bridge we are setting the limits too
    */
   function setLimits(address _bridge, uint256 _mintingLimit, uint256 _burningLimit) external onlyOwner {
+    if (_mintingLimit > _MAX_LIMIT || _burningLimit > _MAX_LIMIT) {
+      revert IXERC20_LimitsTooHigh();
+    }
+
     _changeMinterLimit(_bridge, _mintingLimit);
     _changeBurnerLimit(_bridge, _burningLimit);
     emit BridgeLimitsSet(_mintingLimit, _burningLimit, _bridge);
@@ -98,8 +147,9 @@ contract XERC20 is ERC20, Ownable, IXERC20, ERC20Permit {
    * @param _bridge the bridge we are viewing the limits of
    * @return _limit The limit the bridge has
    */
-
-  function mintingMaxLimitOf(address _bridge) public view returns (uint256 _limit) {
+  function mintingMaxLimitOf(
+    address _bridge
+  ) public view returns (uint256 _limit) {
     _limit = bridges[_bridge].minterParams.maxLimit;
   }
 
@@ -109,8 +159,9 @@ contract XERC20 is ERC20, Ownable, IXERC20, ERC20Permit {
    * @param _bridge the bridge we are viewing the limits of
    * @return _limit The limit the bridge has
    */
-
-  function burningMaxLimitOf(address _bridge) public view returns (uint256 _limit) {
+  function burningMaxLimitOf(
+    address _bridge
+  ) public view returns (uint256 _limit) {
     _limit = bridges[_bridge].burnerParams.maxLimit;
   }
 
@@ -120,8 +171,9 @@ contract XERC20 is ERC20, Ownable, IXERC20, ERC20Permit {
    * @param _bridge the bridge we are viewing the limits of
    * @return _limit The limit the bridge has
    */
-
-  function mintingCurrentLimitOf(address _bridge) public view returns (uint256 _limit) {
+  function mintingCurrentLimitOf(
+    address _bridge
+  ) public view returns (uint256 _limit) {
     _limit = _getCurrentLimit(
       bridges[_bridge].minterParams.currentLimit,
       bridges[_bridge].minterParams.maxLimit,
@@ -136,8 +188,9 @@ contract XERC20 is ERC20, Ownable, IXERC20, ERC20Permit {
    * @param _bridge the bridge we are viewing the limits of
    * @return _limit The limit the bridge has
    */
-
-  function burningCurrentLimitOf(address _bridge) public view returns (uint256 _limit) {
+  function burningCurrentLimitOf(
+    address _bridge
+  ) public view returns (uint256 _limit) {
     _limit = _getCurrentLimit(
       bridges[_bridge].burnerParams.currentLimit,
       bridges[_bridge].burnerParams.maxLimit,
@@ -151,7 +204,6 @@ contract XERC20 is ERC20, Ownable, IXERC20, ERC20Permit {
    * @param _bridge The address of the bridge who is being changed
    * @param _change The change in the limit
    */
-
   function _useMinterLimits(address _bridge, uint256 _change) internal {
     uint256 _currentLimit = mintingCurrentLimitOf(_bridge);
     bridges[_bridge].minterParams.timestamp = block.timestamp;
@@ -163,7 +215,6 @@ contract XERC20 is ERC20, Ownable, IXERC20, ERC20Permit {
    * @param _bridge The address of the bridge who is being changed
    * @param _change The change in the limit
    */
-
   function _useBurnerLimits(address _bridge, uint256 _change) internal {
     uint256 _currentLimit = burningCurrentLimitOf(_bridge);
     bridges[_bridge].burnerParams.timestamp = block.timestamp;
@@ -176,7 +227,6 @@ contract XERC20 is ERC20, Ownable, IXERC20, ERC20Permit {
    * @param _bridge The address of the bridge we are setting the limit too
    * @param _limit The updated limit we are setting to the bridge
    */
-
   function _changeMinterLimit(address _bridge, uint256 _limit) internal {
     uint256 _oldLimit = bridges[_bridge].minterParams.maxLimit;
     uint256 _currentLimit = mintingCurrentLimitOf(_bridge);
@@ -194,7 +244,6 @@ contract XERC20 is ERC20, Ownable, IXERC20, ERC20Permit {
    * @param _bridge The address of the bridge we are setting the limit too
    * @param _limit The updated limit we are setting to the bridge
    */
-
   function _changeBurnerLimit(address _bridge, uint256 _limit) internal {
     uint256 _oldLimit = bridges[_bridge].burnerParams.maxLimit;
     uint256 _currentLimit = burningCurrentLimitOf(_bridge);
@@ -214,7 +263,6 @@ contract XERC20 is ERC20, Ownable, IXERC20, ERC20Permit {
    * @param _currentLimit The current limit
    * @return _newCurrentLimit The new current limit
    */
-
   function _calculateNewCurrentLimit(
     uint256 _limit,
     uint256 _oldLimit,
@@ -240,7 +288,6 @@ contract XERC20 is ERC20, Ownable, IXERC20, ERC20Permit {
    * @param _ratePerSecond The rate per second
    * @return _limit The current limit
    */
-
   function _getCurrentLimit(
     uint256 _currentLimit,
     uint256 _maxLimit,
@@ -266,7 +313,6 @@ contract XERC20 is ERC20, Ownable, IXERC20, ERC20Permit {
    * @param _user The user address
    * @param _amount The amount to burn
    */
-
   function _burnWithCaller(address _caller, address _user, uint256 _amount) internal {
     if (_caller != lockbox) {
       uint256 _currentLimit = burningCurrentLimitOf(_caller);
@@ -283,7 +329,6 @@ contract XERC20 is ERC20, Ownable, IXERC20, ERC20Permit {
    * @param _user The user address
    * @param _amount The amount to mint
    */
-
   function _mintWithCaller(address _caller, address _user, uint256 _amount) internal {
     if (_caller != lockbox) {
       uint256 _currentLimit = mintingCurrentLimitOf(_caller);

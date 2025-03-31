@@ -1,8 +1,8 @@
 {
-  "name": "solidity-foundry-boilerplate",
-  "version": "1.0.0",
+  "name": "xerc20",
+  "version": "1.0.1",
   "private": true,
-  "description": "Production ready Solidity boilerplate with Foundry",
+  "description": "A standard for bridged tokens. A common interface to be used across different implementations of bridges to keep liquidity concentrated and improve user experience on-chain.",
   "homepage": "https://github.com/defi-wonderland/xERC20#readme",
   "repository": {
     "type": "git",
@@ -11,14 +11,14 @@
   "license": "MIT",
   "author": "Wonderland",
   "contributors": [
-    "0xGorilla (https://github.com/0xGorilla)",
-    "0xng (https://github.com/0xng)",
-    "gas1cent (https://github.com/gas1cent)"
+    "excaliborr (https://github.com/excaliborr)",
+    "shaito (https://github.com/0xShaito)"
   ],
   "scripts": {
     "build": "forge build --via-ir",
     "build:optimized": "FOUNDRY_PROFILE=optimized forge build",
     "coverage": "forge coverage --match-contract Unit",
+    "coverage:report": "yarn coverage --report lcov",
     "postinstall": "forge install",
     "lint:check": "yarn lint:sol-tests && yarn lint:sol-logic && forge fmt check",
     "lint:fix": "sort-package-json && forge fmt && yarn lint:sol-tests --fix && yarn lint:sol-logic --fix",
@@ -32,7 +32,7 @@
     "test": "forge test -vvv --via-ir",
     "test:e2e": "forge test --match-contract E2E -vvv --via-ir",
     "test:unit": "forge test --match-contract Unit -vvv --via-ir",
-    "test:unit:deep": "FOUNDRY_FUZZ_RUNS=5000 yarn test:unit --via-ir"
+    "test:unit:deep": "FOUNDRY_FUZZ_RUNS=5000 yarn test:unit"
   },
   "lint-staged": {
     "*.{js,css,md,ts,sol}": "forge fmt",

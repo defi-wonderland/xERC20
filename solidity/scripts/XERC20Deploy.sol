@@ -30,6 +30,7 @@ struct ChainDetails {
 
 struct DeploymentConfig {
   ChainDetails[] chainDetails;
+  string decimals; // The number of decimals for the token
   string name; // The name to use for the xERC20
   string symbol; // The symbol to use for the xERC20
 }
@@ -37,8 +38,11 @@ struct DeploymentConfig {
 contract XERC20Deploy is Script, ScriptingLibrary {
   using stdJson for string;
 
+  // This hash is equivalent to keccak256(bytes(''))
+  // It is the code hash of the empty contract
+  bytes32 internal constant _NO_CODE_HASH = 0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470;
   uint256 public deployer = vm.envUint('DEPLOYER_PRIVATE_KEY');
-  XERC20Factory public factory = XERC20Factory(0xb913bE186110B1119d5B9582F316f142c908fc25);
+  XERC20Factory public factory = XERC20Factory(vm.envAddress('XERC20_FACTORY_ADDRESS'));
 
   function run() public {
     string memory _json = vm.readFile('./solidity/scripts/xerc20-deployment-config.json');
@@ -52,9 +56,7 @@ contract XERC20Deploy is Script, ScriptingLibrary {
       vm.createSelectFork(vm.rpcUrl(vm.envString(_chainDetails.rpcEnvName)));
       vm.startBroadcast(deployer);
       // If this chain does not have a factory we will revert
-      require(
-        keccak256(address(factory).code) != keccak256(address(0).code), 'There is no factory deployed on this chain'
-      );
+      require(keccak256(address(factory).code) != _NO_CODE_HASH, 'There is no factory deployed on this chain');
 
       BridgeDetails[] memory _bridgeDetails = _chainDetails.bridgeDetails;
 
@@ -68,17 +70,31 @@ contract XERC20Deploy is Script, ScriptingLibrary {
         _mintLimits[_bridgeIndex] = _bridgeDetails[_bridgeIndex].mintLimit;
       }
 
-      // deploy xerc20
-      address _xerc20 = factory.deployXERC20(_data.name, _data.symbol, _mintLimits, _burnLimits, _bridges);
-
-      // deploy lockbox if needed
-      address _lockbox;
-      if (_chainDetails.erc20 != address(0) && !_chainDetails.isNativeGasToken) {
-        _lockbox = factory.deployLockbox(_xerc20, _chainDetails.erc20, _chainDetails.isNativeGasToken);
+      if (vm.parseUint(_data.decimals) > type(uint8).max) {
+        revert('Decimals cannot be greater than 255');
       }
 
-      // transfer xerc20 ownership to the governor
-      XERC20(_xerc20).transferOwnership(_chainDetails.governor);
+      uint8 _decimals = uint8(vm.parseUint(_data.decimals));
+
+      // deploy xerc20 and lockbox if needed
+      address _xerc20;
+      address _lockbox;
+      if (_chainDetails.erc20 != address(0) && !_chainDetails.isNativeGasToken) {
+        (_xerc20, _lockbox) = factory.deployXERC20WithLockbox(
+          _data.name,
+          _data.symbol,
+          address(this),
+          _mintLimits,
+          _burnLimits,
+          _bridges,
+          _chainDetails.erc20,
+          _chainDetails.isNativeGasToken
+        );
+      } else {
+        _xerc20 = factory.deployXERC20(
+          _data.name, _data.symbol, _decimals, _chainDetails.governor, _mintLimits, _burnLimits, _bridges
+        );
+      }
 
       vm.stopBroadcast();
 

@@ -20,3 +20,6 @@ out/*/*
 # Keep the latest deployment only
 broadcast/**
 !broadcast/**/run-latest.json
+
+# Coverage
+lcov.info

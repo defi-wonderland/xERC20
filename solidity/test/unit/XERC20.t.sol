@@ -1,7 +1,9 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: MIT
 pragma solidity >=0.8.4 <0.9.0;
 
 import {Test} from 'forge-std/Test.sol';
+import {ERC20} from 'solady/tokens/ERC20.sol';
+import {Ownable} from 'solady/auth/Ownable.sol';
 import {XERC20} from '../../contracts/XERC20.sol';
 import {IXERC20} from '../../interfaces/IXERC20.sol';
 
@@ -18,7 +20,7 @@ abstract contract Base is Test {
 
   function setUp() public virtual {
     vm.startPrank(_owner);
-    _xerc20 = new XERC20('Test', 'TST', _owner);
+    _xerc20 = new XERC20('Test', 'TST', 18, _owner);
     vm.stopPrank();
   }
 }
@@ -33,8 +35,16 @@ contract UnitNames is Base {
   }
 }
 
+contract UnitDecimals is Base {
+  function testDecimals() public {
+    assertEq(18, _xerc20.decimals());
+  }
+}
+
 contract UnitMintBurn is Base {
-  function testMintRevertsIfNotApprove(uint256 _amount) public {
+  function testMintRevertsIfNotApprove(
+    uint256 _amount
+  ) public {
     vm.assume(_amount > 0);
     vm.prank(_user);
     vm.expectRevert(IXERC20.IXERC20_NotHighEnoughLimits.selector);
@@ -55,8 +65,23 @@ contract UnitMintBurn is Base {
     vm.stopPrank();
   }
 
-  function testMint(uint256 _amount) public {
-    vm.assume(_amount > 0);
+  function testsetLimitsRevertsWhenLimitIsTooHighAfter(uint256 _amount0, uint256 _timePassed, uint256 _limit) public {
+    _amount0 = bound(_amount0, 1, 1e40);
+    _limit = bound(_limit, UINT256_MAX / 2 + 1, UINT256_MAX);
+    _timePassed = bound(_timePassed, 1, 1 days - 1);
+
+    vm.assume(_limit > _amount0);
+    vm.prank(_owner);
+    vm.expectRevert(IXERC20.IXERC20_LimitsTooHigh.selector);
+    _xerc20.setLimits(_user, _limit, _limit);
+
+    vm.stopPrank();
+  }
+
+  function testMint(
+    uint256 _amount
+  ) public {
+    _amount = bound(_amount, 1, 1e40);
 
     vm.prank(_owner);
     _xerc20.setLimits(_user, _amount, 0);
@@ -66,7 +91,9 @@ contract UnitMintBurn is Base {
     assertEq(_xerc20.balanceOf(_minter), _amount);
   }
 
-  function testBurn(uint256 _amount) public {
+  function testBurn(
+    uint256 _amount
+  ) public {
     _amount = bound(_amount, 1, 1e40);
     vm.startPrank(_owner);
     _xerc20.setLimits(_user, _amount, _amount);
@@ -81,14 +108,16 @@ contract UnitMintBurn is Base {
     assertEq(_xerc20.balanceOf(_user), 0);
   }
 
-  function testBurnRevertsWithoutApproval(uint256 _amount) public {
+  function testBurnRevertsWithoutApproval(
+    uint256 _amount
+  ) public {
     _amount = bound(_amount, 1, 1e40);
 
     vm.prank(_owner);
     _xerc20.setLimits(_owner, _amount, _amount);
 
     vm.startPrank(_owner);
-    vm.expectRevert('ERC20: insufficient allowance');
+    vm.expectRevert(ERC20.InsufficientAllowance.selector);
     _xerc20.burn(_user, _amount);
     vm.stopPrank();
 
@@ -116,6 +145,7 @@ contract UnitMintBurn is Base {
 
 contract UnitCreateParams is Base {
   function testChangeLimit(uint256 _amount, address _randomAddr) public {
+    _amount = bound(_amount, 1, 1e40);
     vm.assume(_randomAddr != address(0));
     vm.startPrank(_owner);
     _xerc20.setLimits(_randomAddr, _amount, _amount);
@@ -125,7 +155,7 @@ contract UnitCreateParams is Base {
   }
 
   function testRevertsWithWrongCaller() public {
-    vm.expectRevert('Ownable: caller is not the owner');
+    vm.expectRevert(Ownable.Unauthorized.selector);
     _xerc20.setLimits(_minter, 1e18, 0);
   }
 
@@ -137,9 +167,9 @@ contract UnitCreateParams is Base {
     address _user1,
     address _user2
   ) public {
-    vm.assume(_amount0 > 0);
-    vm.assume(_amount1 > 0);
-    vm.assume(_amount2 > 0);
+    _amount0 = bound(_amount0, 1, 1e40);
+    _amount1 = bound(_amount1, 1, 1e40);
+    _amount2 = bound(_amount2, 1, 1e40);
 
     vm.assume(_user0 != _user1 && _user1 != _user2 && _user0 != _user2);
     uint256[] memory _limits = new uint256[](3);
@@ -168,6 +198,7 @@ contract UnitCreateParams is Base {
   }
 
   function testchangeBridgeMintingLimitEmitsEvent(uint256 _limit, address _minter) public {
+    _limit = bound(_limit, 1, 1e40);
     vm.prank(_owner);
     vm.expectEmit(true, true, true, true);
     emit BridgeLimitsSet(_limit, 0, _minter);
@@ -175,14 +206,17 @@ contract UnitCreateParams is Base {
   }
 
   function testchangeBridgeBurningLimitEmitsEvent(uint256 _limit, address _minter) public {
+    _limit = bound(_limit, 1, 1e40);
     vm.prank(_owner);
     vm.expectEmit(true, true, true, true);
     emit BridgeLimitsSet(0, _limit, _minter);
     _xerc20.setLimits(_minter, 0, _limit);
   }
 
-  function testSettingLimitsToUnapprovedUser(uint256 _amount) public {
-    vm.assume(_amount > 0);
+  function testSettingLimitsToUnapprovedUser(
+    uint256 _amount
+  ) public {
+    _amount = bound(_amount, 1, 1e40);
 
     vm.startPrank(_owner);
     _xerc20.setLimits(_minter, _amount, _amount);
@@ -193,7 +227,7 @@ contract UnitCreateParams is Base {
   }
 
   function testUseLimitsUpdatesLimit(uint256 _limit, address _minter) public {
-    vm.assume(_limit > 1e6);
+    _limit = bound(_limit, 1e6, 1e40);
     vm.assume(_minter != address(0));
     vm.warp(1_683_145_698); // current timestamp at the time of testing
 
@@ -213,6 +247,7 @@ contract UnitCreateParams is Base {
   }
 
   function testCurrentLimitIsMaxLimitIfUnused(uint256 _limit, address _minter) public {
+    _limit = bound(_limit, 1, 1e40);
     uint256 _currentTimestamp = 1_683_145_698;
     vm.warp(_currentTimestamp);
 
@@ -227,6 +262,7 @@ contract UnitCreateParams is Base {
   }
 
   function testCurrentLimitIsMaxLimitIfOver24Hours(uint256 _limit, address _minter) public {
+    _limit = bound(_limit, 1, 1e40);
     uint256 _currentTimestamp = 1_683_145_698;
     vm.warp(_currentTimestamp);
     vm.assume(_minter != address(0));
@@ -247,7 +283,7 @@ contract UnitCreateParams is Base {
   }
 
   function testLimitVestsLinearly(uint256 _limit, address _minter) public {
-    vm.assume(_limit > 1e6);
+    _limit = bound(_limit, 1e6, 1e40);
     vm.assume(_minter != address(0));
     uint256 _currentTimestamp = 1_683_145_698;
     vm.warp(_currentTimestamp);
@@ -370,21 +406,35 @@ contract UnitCreateParams is Base {
     assertEq(_xerc20.burningCurrentLimitOf(_minter), 0);
   }
 
-  function testSetLockbox(address _lockbox) public {
+  function testSetLockbox(
+    address _lockbox
+  ) public {
     vm.prank(_owner);
     _xerc20.setLockbox(_lockbox);
 
     assertEq(_xerc20.lockbox(), _lockbox);
   }
 
-  function testSetLockboxEmitsEvents(address _lockbox) public {
+  function testSetLockBoxRevert(
+    address _lockbox
+  ) public {
+    vm.prank(_user);
+    vm.expectRevert(abi.encodeWithSelector(IXERC20.IXERC20_NotFactory.selector));
+    _xerc20.setLockbox(_lockbox);
+  }
+
+  function testSetLockboxEmitsEvents(
+    address _lockbox
+  ) public {
     vm.expectEmit(true, true, true, true);
     emit LockboxSet(_lockbox);
     vm.prank(_owner);
     _xerc20.setLockbox(_lockbox);
   }
 
-  function testLockboxDoesntNeedMinterRights(address _lockbox) public {
+  function testLockboxDoesntNeedMinterRights(
+    address _lockbox
+  ) public {
     vm.assume(_lockbox != address(0));
     vm.prank(_owner);
     _xerc20.setLockbox(_lockbox);
@@ -397,8 +447,10 @@ contract UnitCreateParams is Base {
     vm.stopPrank();
   }
 
-  function testRemoveBridge(uint256 _limit) public {
-    vm.assume(_limit > 0);
+  function testRemoveBridge(
+    uint256 _limit
+  ) public {
+    _limit = bound(_limit, 1, 1e40);
 
     vm.startPrank(_owner);
     _xerc20.setLimits(_minter, _limit, _limit);
