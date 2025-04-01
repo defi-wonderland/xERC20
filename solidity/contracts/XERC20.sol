@@ -314,6 +314,8 @@ contract XERC20 is ERC20, Ownable, IXERC20 {
    * @param _amount The amount to burn
    */
   function _burnWithCaller(address _caller, address _user, uint256 _amount) internal {
+    if (_amount == 0) revert IXERC20_ZeroAmount();
+
     if (_caller != lockbox) {
       uint256 _currentLimit = burningCurrentLimitOf(_caller);
       if (_currentLimit < _amount) revert IXERC20_NotHighEnoughLimits();
@@ -330,6 +332,8 @@ contract XERC20 is ERC20, Ownable, IXERC20 {
    * @param _amount The amount to mint
    */
   function _mintWithCaller(address _caller, address _user, uint256 _amount) internal {
+    if (_amount == 0) revert IXERC20_ZeroAmount();
+
     if (_caller != lockbox) {
       uint256 _currentLimit = mintingCurrentLimitOf(_caller);
       if (_currentLimit < _amount) revert IXERC20_NotHighEnoughLimits();
