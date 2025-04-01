@@ -118,8 +118,7 @@ contract XERC20Lockbox is IXERC20Lockbox {
     XERC20.burn(msg.sender, _amount);
 
     if (IS_NATIVE) {
-      (bool _success,) = payable(_to).call{value: _amount}('');
-      if (!_success) revert IXERC20Lockbox_WithdrawFailed();
+      _to.safeTransferETH(_amount);
     } else {
       ERC20.safeTransfer(_to, _amount);
     }
