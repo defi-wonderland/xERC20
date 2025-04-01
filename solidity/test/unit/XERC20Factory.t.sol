@@ -72,7 +72,7 @@ contract UnitDeploy is Base {
     address[] memory _minters = new address[](0);
 
     vm.startPrank(address(_owner));
-    bytes32 _salt = keccak256(abi.encodePacked('Test', 'TST', uint8(18), _owner));
+    bytes32 _salt = keccak256(abi.encode('Test', 'TST', uint8(18), _owner));
 
     address _xerc20 = _xerc20Factory.deployXERC20('Test', 'TST', 18, _owner, _limits, _limits, _minters);
     vm.stopPrank();
@@ -92,7 +92,7 @@ contract UnitDeploy is Base {
 
     vm.stopPrank();
 
-    bytes32 _salt = keccak256(abi.encodePacked(_xerc20, _erc20, _owner));
+    bytes32 _salt = keccak256(abi.encode(_xerc20, _erc20, _owner));
     address _predictedAddress = _xerc20Factory.getDeployed(_salt);
 
     assertEq(_predictedAddress, _lockbox);
@@ -148,7 +148,7 @@ contract UnitDeploy is Base {
     uint256[] memory _limits = new uint256[](0);
     address[] memory _minters = new address[](0);
 
-    address _token = _xerc20Factory.getDeployed(keccak256(abi.encodePacked('Test', 'TST', uint8(18), _owner)));
+    address _token = _xerc20Factory.getDeployed(keccak256(abi.encode('Test', 'TST', uint8(18), _owner)));
     vm.expectEmit(true, true, true, true);
     emit XERC20Deployed(_token);
     vm.prank(_owner);
@@ -159,9 +159,9 @@ contract UnitDeploy is Base {
     uint256[] memory _limits = new uint256[](0);
     address[] memory _minters = new address[](0);
 
-    address _xerc20 = _xerc20Factory.getDeployed(keccak256(abi.encodePacked('Test', 'TST', uint8(18), _owner)));
+    address _xerc20 = _xerc20Factory.getDeployed(keccak256(abi.encode('Test', 'TST', uint8(18), _owner)));
 
-    address payable _lockbox = payable(_xerc20Factory.getDeployed(keccak256(abi.encodePacked(_xerc20, _erc20, _owner))));
+    address payable _lockbox = payable(_xerc20Factory.getDeployed(keccak256(abi.encode(_xerc20, _erc20, _owner))));
 
     vm.prank(_owner);
     vm.mockCall(address(_erc20), abi.encodeWithSignature('decimals()'), abi.encode(18));
