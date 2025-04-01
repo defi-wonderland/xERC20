@@ -29,11 +29,6 @@ interface IXERC20Lockbox {
   error IXERC20Lockbox_Native();
 
   /**
-   * @notice Reverts when a user tries to withdraw and the call fails
-   */
-  error IXERC20Lockbox_WithdrawFailed();
-
-  /**
    * @notice Deposit ERC20 tokens into the lockbox
    *
    * @param _amount The amount of tokens to deposit
