@@ -25,8 +25,11 @@ abstract contract Base is Test {
   XERC20Lockbox internal _nativeLockbox;
 
   function setUp() public virtual {
+    vm.mockCall(address(_xerc20), abi.encodeWithSelector(IERC20.decimals.selector), abi.encode(18));
+    vm.mockCall(address(_erc20), abi.encodeWithSelector(IERC20.decimals.selector), abi.encode(18));
+
     vm.startPrank(_owner);
-    _nativeLockbox = new XERC20Lockbox(address(_xerc20), address(_erc20), true);
+    _nativeLockbox = new XERC20Lockbox(address(_xerc20), address(0), true);
     _lockbox = new XERC20Lockbox(address(_xerc20), address(_erc20), false);
     vm.stopPrank();
   }
@@ -37,6 +40,31 @@ contract MockWithdrawToRevert {
 
   receive() external payable {
     revert REVERT_FOR_TEST();
+  }
+}
+
+contract UnitConstructor is Base {
+  function testConstructorRevertsIfDecimalsMismatch() public {
+    vm.mockCall(address(_xerc20), abi.encodeWithSelector(IERC20.decimals.selector), abi.encode(17));
+    vm.mockCall(address(_erc20), abi.encodeWithSelector(IERC20.decimals.selector), abi.encode(18));
+    vm.expectRevert(IXERC20Lockbox.IXERC20Lockbox_DecimalsMismatch.selector);
+    new XERC20Lockbox(address(_xerc20), address(_erc20), false);
+  }
+
+  function testConstructorRevertsIfNativeDecimalsMismatch() public {
+    vm.mockCall(address(_xerc20), abi.encodeWithSelector(IERC20.decimals.selector), abi.encode(17));
+    vm.expectRevert(IXERC20Lockbox.IXERC20Lockbox_DecimalsMismatch.selector);
+    new XERC20Lockbox(address(_xerc20), address(0), true);
+  }
+
+  function testConstructorRevertsIfNativeAndAddressNonZero() public {
+    vm.expectRevert(IXERC20Lockbox.IXERC20Lockbox_BadTokenAddress.selector);
+    new XERC20Lockbox(address(_xerc20), address(_erc20), true);
+  }
+
+  function testConstructorRevertsIfNonNativeAndAddressZero() public {
+    vm.expectRevert(IXERC20Lockbox.IXERC20Lockbox_BadTokenAddress.selector);
+    new XERC20Lockbox(address(_xerc20), address(0), false);
   }
 }
 

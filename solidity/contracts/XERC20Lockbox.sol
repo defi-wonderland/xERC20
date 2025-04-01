@@ -2,6 +2,7 @@
 pragma solidity >=0.8.4 <0.9.0;
 
 import {IXERC20} from '../interfaces/IXERC20.sol';
+import {ERC20} from 'solady/tokens/ERC20.sol';
 import {SafeTransferLib as SafeERC20} from 'solady/utils/SafeTransferLib.sol';
 import {SafeCastLib as SafeCast} from 'solady/utils/SafeCastLib.sol';
 import {IXERC20Lockbox} from '../interfaces/IXERC20Lockbox.sol';
@@ -16,9 +17,9 @@ contract XERC20Lockbox is IXERC20Lockbox {
   IXERC20 public immutable XERC20;
 
   /**
-   * @notice The ERC20 token of this contract
+   * @notice The base ERC20 token of this contract
    */
-  address public immutable ERC20;
+  address public immutable BASE_TOKEN;
 
   /**
    * @notice Whether the ERC20 token is the native gas token of this chain
@@ -33,8 +34,16 @@ contract XERC20Lockbox is IXERC20Lockbox {
    * @param _isNative Whether the ERC20 token is the native gas token of this chain or not
    */
   constructor(address _xerc20, address _erc20, bool _isNative) {
+    if ((_erc20 == address(0)) != _isNative) revert IXERC20Lockbox_BadTokenAddress();
+
+    if (_isNative) {
+      if (ERC20(_xerc20).decimals() != 18) revert IXERC20Lockbox_DecimalsMismatch();
+    } else {
+      if (ERC20(_erc20).decimals() != ERC20(_xerc20).decimals()) revert IXERC20Lockbox_DecimalsMismatch();
+    }
+
     XERC20 = IXERC20(_xerc20);
-    ERC20 = _erc20;
+    BASE_TOKEN = _erc20;
     IS_NATIVE = _isNative;
   }
 
@@ -120,7 +129,7 @@ contract XERC20Lockbox is IXERC20Lockbox {
     if (IS_NATIVE) {
       _to.safeTransferETH(_amount);
     } else {
-      ERC20.safeTransfer(_to, _amount);
+      BASE_TOKEN.safeTransfer(_to, _amount);
     }
   }
 
@@ -132,7 +141,7 @@ contract XERC20Lockbox is IXERC20Lockbox {
    */
   function _deposit(address _to, uint256 _amount) internal {
     if (!IS_NATIVE) {
-      ERC20.safeTransferFrom(msg.sender, address(this), _amount);
+      BASE_TOKEN.safeTransferFrom(msg.sender, address(this), _amount);
     }
 
     XERC20.mint(_to, _amount);

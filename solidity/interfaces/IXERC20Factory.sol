@@ -22,11 +22,6 @@ interface IXERC20Factory {
   error IXERC20Factory_NotOwner();
 
   /**
-   * @notice Reverts when a lockbox is trying to be deployed from a malicious address
-   */
-  error IXERC20Factory_BadTokenAddress();
-
-  /**
    * @notice Reverts when a the length of arrays sent is incorrect
    */
   error IXERC20Factory_InvalidLength();
