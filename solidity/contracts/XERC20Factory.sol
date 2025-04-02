@@ -74,8 +74,6 @@ contract XERC20Factory is IXERC20Factory {
     address _baseToken,
     bool _isNative
   ) external returns (address _xerc20, address payable _lockbox) {
-    if ((_baseToken == address(0)) != _isNative) revert IXERC20Factory_BadTokenAddress();
-
     uint8 _decimals = _isNative ? 18 : XERC20(_baseToken).decimals();
 
     _xerc20 = _deployXERC20(_name, _symbol, _decimals, _owner, _minterLimits, _burnerLimits, _bridges);
@@ -107,7 +105,7 @@ contract XERC20Factory is IXERC20Factory {
     if (_minterLimits.length != _bridgesLength || _burnerLimits.length != _bridgesLength) {
       revert IXERC20Factory_InvalidLength();
     }
-    bytes32 _salt = keccak256(abi.encodePacked(_name, _symbol, _decimals, msg.sender));
+    bytes32 _salt = keccak256(abi.encode(_name, _symbol, _decimals, msg.sender));
     bytes memory _creation = type(XERC20).creationCode;
     bytes memory _bytecode = abi.encodePacked(_creation, abi.encode(_name, _symbol, _decimals, address(this)));
 
@@ -138,7 +136,7 @@ contract XERC20Factory is IXERC20Factory {
     address _baseToken,
     bool _isNative
   ) internal returns (address payable _lockbox) {
-    bytes32 _salt = keccak256(abi.encodePacked(_xerc20, _baseToken, msg.sender));
+    bytes32 _salt = keccak256(abi.encode(_xerc20, _baseToken, msg.sender));
     bytes memory _creation = type(XERC20Lockbox).creationCode;
     bytes memory _bytecode = abi.encodePacked(_creation, abi.encode(_xerc20, _baseToken, _isNative));
 

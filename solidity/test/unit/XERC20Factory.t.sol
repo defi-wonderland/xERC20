@@ -6,6 +6,7 @@ import {XERC20} from '../../contracts/XERC20.sol';
 import {XERC20Factory} from '../../contracts/XERC20Factory.sol';
 import {XERC20Lockbox} from '../../contracts/XERC20Lockbox.sol';
 import {IXERC20Factory} from '../../interfaces/IXERC20Factory.sol';
+import {IXERC20Lockbox} from '../../interfaces/IXERC20Lockbox.sol';
 import {CREATE3} from 'solady/utils/CREATE3.sol';
 
 contract XERC20FactoryForTest is XERC20Factory {
@@ -72,7 +73,7 @@ contract UnitDeploy is Base {
     address[] memory _minters = new address[](0);
 
     vm.startPrank(address(_owner));
-    bytes32 _salt = keccak256(abi.encodePacked('Test', 'TST', uint8(18), _owner));
+    bytes32 _salt = keccak256(abi.encode('Test', 'TST', uint8(18), _owner));
 
     address _xerc20 = _xerc20Factory.deployXERC20('Test', 'TST', 18, _owner, _limits, _limits, _minters);
     vm.stopPrank();
@@ -92,7 +93,7 @@ contract UnitDeploy is Base {
 
     vm.stopPrank();
 
-    bytes32 _salt = keccak256(abi.encodePacked(_xerc20, _erc20, _owner));
+    bytes32 _salt = keccak256(abi.encode(_xerc20, _erc20, _owner));
     address _predictedAddress = _xerc20Factory.getDeployed(_salt);
 
     assertEq(_predictedAddress, _lockbox);
@@ -109,21 +110,22 @@ contract UnitDeploy is Base {
     vm.stopPrank();
 
     assertEq(address(XERC20Lockbox(_lockbox).XERC20()), _xerc20);
-    assertEq(address(XERC20Lockbox(_lockbox).ERC20()), _erc20);
+    assertEq(address(XERC20Lockbox(_lockbox).BASE_TOKEN()), _erc20);
   }
 
   function testLockboxDeploymentRevertsIfMaliciousAddress() public {
     uint256[] memory _limits = new uint256[](0);
     address[] memory _minters = new address[](0);
 
-    vm.expectRevert(IXERC20Factory.IXERC20Factory_BadTokenAddress.selector);
+    // Malicious address does not implement decimals() will return EvmError: Revert.
+    vm.expectRevert();
     _xerc20Factory.deployXERC20WithLockbox('Test', 'TST', _owner, _limits, _limits, _minters, address(0), false);
   }
 
   function testLockboxDeploymentRevertsIfInvalidParameters() public {
     uint256[] memory _limits = new uint256[](0);
     address[] memory _minters = new address[](0);
-    vm.expectRevert(IXERC20Factory.IXERC20Factory_BadTokenAddress.selector);
+    vm.expectRevert(CREATE3.DeploymentFailed.selector);
     _xerc20Factory.deployXERC20WithLockbox('Test', 'TST', _owner, _limits, _limits, _minters, address(100), true);
   }
 
@@ -148,7 +150,7 @@ contract UnitDeploy is Base {
     uint256[] memory _limits = new uint256[](0);
     address[] memory _minters = new address[](0);
 
-    address _token = _xerc20Factory.getDeployed(keccak256(abi.encodePacked('Test', 'TST', uint8(18), _owner)));
+    address _token = _xerc20Factory.getDeployed(keccak256(abi.encode('Test', 'TST', uint8(18), _owner)));
     vm.expectEmit(true, true, true, true);
     emit XERC20Deployed(_token);
     vm.prank(_owner);
@@ -159,9 +161,9 @@ contract UnitDeploy is Base {
     uint256[] memory _limits = new uint256[](0);
     address[] memory _minters = new address[](0);
 
-    address _xerc20 = _xerc20Factory.getDeployed(keccak256(abi.encodePacked('Test', 'TST', uint8(18), _owner)));
+    address _xerc20 = _xerc20Factory.getDeployed(keccak256(abi.encode('Test', 'TST', uint8(18), _owner)));
 
-    address payable _lockbox = payable(_xerc20Factory.getDeployed(keccak256(abi.encodePacked(_xerc20, _erc20, _owner))));
+    address payable _lockbox = payable(_xerc20Factory.getDeployed(keccak256(abi.encode(_xerc20, _erc20, _owner))));
 
     vm.prank(_owner);
     vm.mockCall(address(_erc20), abi.encodeWithSignature('decimals()'), abi.encode(18));

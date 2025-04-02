@@ -29,9 +29,14 @@ interface IXERC20Lockbox {
   error IXERC20Lockbox_Native();
 
   /**
-   * @notice Reverts when a user tries to withdraw and the call fails
+   * @notice Reverts when a lockbox is trying to be deployed from a wrong token address
    */
-  error IXERC20Lockbox_WithdrawFailed();
+  error IXERC20Lockbox_BadTokenAddress();
+
+  /**
+   * @notice Reverts when a lockbox is trying to be deployed for tokens with mismatching decimals
+   */
+  error IXERC20Lockbox_DecimalsMismatch();
 
   /**
    * @notice Deposit ERC20 tokens into the lockbox
