@@ -6,6 +6,7 @@ import {XERC20} from '../../contracts/XERC20.sol';
 import {XERC20Factory} from '../../contracts/XERC20Factory.sol';
 import {XERC20Lockbox} from '../../contracts/XERC20Lockbox.sol';
 import {IXERC20Factory} from '../../interfaces/IXERC20Factory.sol';
+import {IXERC20Lockbox} from '../../interfaces/IXERC20Lockbox.sol';
 import {CREATE3} from 'solady/utils/CREATE3.sol';
 
 contract XERC20FactoryForTest is XERC20Factory {
@@ -109,21 +110,22 @@ contract UnitDeploy is Base {
     vm.stopPrank();
 
     assertEq(address(XERC20Lockbox(_lockbox).XERC20()), _xerc20);
-    assertEq(address(XERC20Lockbox(_lockbox).ERC20()), _erc20);
+    assertEq(address(XERC20Lockbox(_lockbox).BASE_TOKEN()), _erc20);
   }
 
   function testLockboxDeploymentRevertsIfMaliciousAddress() public {
     uint256[] memory _limits = new uint256[](0);
     address[] memory _minters = new address[](0);
 
-    vm.expectRevert(IXERC20Factory.IXERC20Factory_BadTokenAddress.selector);
+    // Malicious address does not implement decimals() will return EvmError: Revert.
+    vm.expectRevert();
     _xerc20Factory.deployXERC20WithLockbox('Test', 'TST', _owner, _limits, _limits, _minters, address(0), false);
   }
 
   function testLockboxDeploymentRevertsIfInvalidParameters() public {
     uint256[] memory _limits = new uint256[](0);
     address[] memory _minters = new address[](0);
-    vm.expectRevert(IXERC20Factory.IXERC20Factory_BadTokenAddress.selector);
+    vm.expectRevert(CREATE3.DeploymentFailed.selector);
     _xerc20Factory.deployXERC20WithLockbox('Test', 'TST', _owner, _limits, _limits, _minters, address(100), true);
   }
 

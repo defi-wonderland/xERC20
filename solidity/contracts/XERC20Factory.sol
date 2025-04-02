@@ -74,8 +74,6 @@ contract XERC20Factory is IXERC20Factory {
     address _baseToken,
     bool _isNative
   ) external returns (address _xerc20, address payable _lockbox) {
-    if ((_baseToken == address(0)) != _isNative) revert IXERC20Factory_BadTokenAddress();
-
     uint8 _decimals = _isNative ? 18 : XERC20(_baseToken).decimals();
 
     _xerc20 = _deployXERC20(_name, _symbol, _decimals, _owner, _minterLimits, _burnerLimits, _bridges);
