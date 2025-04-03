@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: MIT
 pragma solidity >=0.8.4 <0.9.0;
 
 import {CommonE2EBase} from './Common.sol';
@@ -11,7 +11,7 @@ contract E2EDeployment is CommonE2EBase {
     assertEq(_xerc20.symbol(), 'DAI');
     assertEq(_xerc20.FACTORY(), address(_xerc20Factory));
     assertEq(address(_lockbox.XERC20()), address(_xerc20));
-    assertEq(address(_lockbox.ERC20()), address(_dai));
+    assertEq(address(_lockbox.BASE_TOKEN()), address(_dai));
     assertEq(_xerc20.burningMaxLimitOf(_testMinter), 50 ether);
     assertEq(_xerc20.mintingMaxLimitOf(_testMinter), 100 ether);
   }
@@ -20,10 +20,10 @@ contract E2EDeployment is CommonE2EBase {
     uint256[] memory _limits = new uint256[](0);
     address[] memory _minters = new address[](0);
 
-    address _token = _xerc20Factory.deployXERC20('Test', 'TST', _limits, _limits, _minters);
-    address _lock = _xerc20Factory.deployLockbox(_token, address(_dai), false);
+    (address _token, address _lock) =
+      _xerc20Factory.deployXERC20WithLockbox('Test', 'TST', _owner, _limits, _limits, _minters, address(_dai), false);
 
     assertEq(address(XERC20Lockbox(payable(_lock)).XERC20()), address(_token));
-    assertEq(address(XERC20Lockbox(payable(_lock)).ERC20()), address(_dai));
+    assertEq(address(XERC20Lockbox(payable(_lock)).BASE_TOKEN()), address(_dai));
   }
 }

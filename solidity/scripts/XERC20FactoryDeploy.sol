@@ -9,8 +9,8 @@ import {ScriptingLibrary} from './ScriptingLibrary/ScriptingLibrary.sol';
 
 contract XERC20FactoryDeploy is Script, ScriptingLibrary {
   ////////////////////////// MODIFY ////////////////////////////////
-  // When new factories need to be deployed, make sure to update the salt version to avoid address collition
-  string public constant SALT = 'xERC20-v1.5';
+  // When new factories need to be deployed, make sure to update the salt version to avoid address collision
+  string public constant SALT = 'xERC20-v1.6';
   //////////////////////////////////////////////////////////////////
 
   uint256 public deployerPk = vm.envUint('DEPLOYER_PRIVATE_KEY');
@@ -18,6 +18,8 @@ contract XERC20FactoryDeploy is Script, ScriptingLibrary {
   function run() public {
     bytes32 _salt = keccak256(abi.encodePacked(SALT, msg.sender));
 
+    // Replace with the RPC you want to use and uncomment
+    //vm.createSelectFork(vm.rpcUrl(vm.envString('ETHEREUM_SEPOLIA_RPC')));
     vm.startBroadcast(deployerPk);
     XERC20Factory _factory = new XERC20Factory{salt: _salt}();
     vm.stopBroadcast();
