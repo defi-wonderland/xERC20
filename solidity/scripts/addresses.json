@@ -1,0 +1,14 @@
+{
+    "ethereum": {
+        "factory": "0xA155dD47dCDcFF7fDDff470C49e5b9f7d1DDc72d",
+        "xerc20": "0x1f7717Ba78793554Ff2fD73eA2b836d220e7F60e"
+    },
+    "celo": {
+        "factory": "0xA155dD47dCDcFF7fDDff470C49e5b9f7d1DDc72d",
+        "xerc20": "0x1f7717Ba78793554Ff2fD73eA2b836d220e7F60e"
+    },
+    "worldchain": {
+        "factory": "0xA155dD47dCDcFF7fDDff470C49e5b9f7d1DDc72d",
+        "xerc20": "0x1f7717Ba78793554Ff2fD73eA2b836d220e7F60e"
+    }
+}
