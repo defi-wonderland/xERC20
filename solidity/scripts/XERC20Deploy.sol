@@ -38,7 +38,7 @@ contract XERC20Deploy is Script, ScriptingLibrary {
   using stdJson for string;
 
   uint256 public deployer = vm.envUint('DEPLOYER_PRIVATE_KEY');
-  XERC20Factory public factory = XERC20Factory(0xA155dD47dCDcFF7fDDff470C49e5b9f7d1DDc72d);
+  XERC20Factory public factory = XERC20Factory(0x1AB0B0438F04Dd396610DB7A6bc9B67d1e146E46);
 
   function run() public {
     string memory _json = vm.readFile('./solidity/scripts/oxut-deployment-config.json');
