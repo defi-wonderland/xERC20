@@ -39,6 +39,10 @@ contract XERC20 is ERC20, Ownable, IXERC20, ERC20Permit {
     FACTORY = _factory;
   }
 
+  function decimals() public view virtual override returns (uint8) {
+      return 6;
+  }
+
   /**
    * @notice Mints tokens for a user
    * @dev Can only be called by a bridge
