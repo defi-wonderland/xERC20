@@ -11,14 +11,14 @@
         },
         {
             "rpcEnvName": "CELO_MAINNET_RPC",
-            "erc20": "0x0000000000000000000000000000000000000001",
+            "erc20": "0x0000000000000000000000000000000000000000",
             "governor": "0xa7eccdb9be08178f896c26b7bbd8c3d4e844d9ba",
             "isNativeGasToken": false,
             "bridgeDetails": []
         },
         {
             "rpcEnvName": "WORLDCHAIN_MAINNET_RPC",
-            "erc20": "0x0000000000000000000000000000000000000001",
+            "erc20": "0x0000000000000000000000000000000000000000",
             "governor": "0xa7eccdb9be08178f896c26b7bbd8c3d4e844d9ba",
             "isNativeGasToken": false,
             "bridgeDetails": []
